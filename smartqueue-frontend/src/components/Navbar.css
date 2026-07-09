@@ -1,0 +1,206 @@
+:root {
+    /* Pure Emerald Mint & Rich Dark Jade Color Palette */
+    --primary-mint: #059669;        /* Sophisticated Tech Mint Green */
+    --dark-emerald: #047857;        /* Deeper contrast shade */
+    --mint-glow: rgba(5, 150, 105, 0.15);
+    --slate-dark: #0f172a;          /* Rich corporate text dark gray */
+    --slate-muted: #475569;
+    --border-glass: rgba(255, 255, 255, 0.4);
+}
+
+.smart-navbar {
+    width: 100%;
+    position: sticky;
+    top: 0;
+    z-index: 999;
+    background: rgba(255, 255, 255, 0.65);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Scrolled Premium Shrink State */
+.smart-navbar.scrolled {
+    background: rgba(255, 255, 255, 0.85);
+    box-shadow: 0 12px 40px -15px rgba(15, 23, 42, 0.05);
+    border-bottom: 1px solid rgba(5, 150, 105, 0.1);
+}
+
+.navbar-container {
+    max-width: 1340px;
+    margin: 0 auto;
+    padding: 18px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: padding 0.3s ease;
+}
+
+.smart-navbar.scrolled .navbar-container {
+    padding: 12px 40px;
+}
+
+/* Sleek Geometric Branding */
+.logo-section {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    gap: 12px;
+}
+
+.logo-box {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--primary-mint) 0%, #10b981 100%);
+    box-shadow: 0 8px 20px var(--mint-glow);
+    transition: transform 0.3s ease;
+}
+
+.logo-section:hover .logo-box {
+    transform: translateY(-1px) scale(1.03);
+}
+
+.heartbeat-icon {
+    font-size: 22px;
+    color: #ffffff;
+}
+
+.logo-content h2 {
+    margin: 0;
+    font-size: 21px;
+    font-weight: 700;
+    color: var(--slate-dark);
+    letter-spacing: -0.5px;
+    line-height: 1.1;
+}
+
+.logo-content h2 span {
+    color: var(--primary-mint);
+}
+
+.logo-content p {
+    margin: 3px 0 0 0;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--slate-muted);
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+}
+
+/* Nav Links Architecture - Fixed Pre-active Underline issue */
+.nav-links {
+    display: flex;
+    gap: 36px;
+    align-items: center;
+}
+
+.nav-links .nav-item {
+    position: relative;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--slate-muted);
+    padding: 6px 0;
+    transition: color 0.2s ease;
+}
+
+/* Hover line starts from width 0 */
+.nav-links .nav-item::after {
+    content: "";
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2.5px;
+    border-radius: 4px;
+    background: var(--primary-mint);
+    transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-links .nav-item:hover {
+    color: var(--slate-dark);
+}
+
+.nav-links .nav-item:hover::after {
+    width: 100%;
+}
+
+/* Underline strictly visible ONLY when state matches activeLink */
+.nav-links .nav-item.active {
+    color: var(--primary-mint);
+}
+
+.nav-links .nav-item.active::after {
+    width: 100%;
+}
+
+/* Action Center Controls */
+.nav-actions {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+
+.login-btn {
+    text-decoration: none;
+    padding: 10px 20px;
+    border-radius: 12px;
+    color: var(--slate-muted);
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.login-btn:hover {
+    color: var(--slate-dark);
+    background-color: rgba(15, 23, 42, 0.04);
+}
+
+/* Real Frosted Frosted Glassmorphism Button Setup */
+.start-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    padding: 11px 24px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--dark-emerald);
+
+    /* Frosted glass background setup using color alpha */
+    background: rgba(5, 150, 105, 0.12);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    border: 1px solid rgba(5, 150, 105, 0.25);
+
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.06);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.start-btn:hover {
+    transform: translateY(-1.5px);
+    background: rgba(5, 150, 105, 0.18);
+    border-color: rgba(5, 150, 105, 0.4);
+    box-shadow: 0 8px 20px rgba(5, 150, 105, 0.15);
+    color: var(--slate-dark);
+}
+
+.start-btn:active {
+    transform: translateY(0);
+}
+
+.arrow-icon {
+    font-size: 15px;
+    color: var(--primary-mint);
+    transition: transform 0.2s ease;
+}
+
+.start-btn:hover .arrow-icon {
+    transform: translateX(4px);
+}
