@@ -1,58 +1,155 @@
+import React from "react";
+
+import {
+    FaCalendarCheck,
+    FaTicketAlt,
+    FaWifi,
+    FaUserMd
+} from "react-icons/fa";
+
+import "./HowItWorks.css";
+
+
 function HowItWorks(){
 
-    let steps=[
-        "Patient books appointment",
-        "System generates token",
-        "Doctor manages queue",
-        "Patient receives updates"
+
+    const steps=[
+
+        {
+            icon:<FaCalendarCheck/>,
+            number:"01",
+            title:"Book Appointment",
+            desc:"Patients select doctor and book appointment digitally."
+        },
+
+
+        {
+            icon:<FaTicketAlt/>,
+            number:"02",
+            title:"Receive Digital Token",
+            desc:"SmartQueue automatically generates queue token."
+        },
+
+
+        {
+            icon:<FaWifi/>,
+            number:"03",
+            title:"Track Live Queue",
+            desc:"Patients get real-time updates about their waiting status."
+        },
+
+
+        {
+            icon:<FaUserMd/>,
+            number:"04",
+            title:"Doctor Consultation",
+            desc:"Doctor manages patients through smart dashboard."
+        }
+
     ];
+
 
 
     return(
 
-        <section id="how" className="py-5 bg-light">
+        <section className="how-section" id="how">
 
 
-            <div className="container">
 
-                <h2 className="text-center fw-bold mb-5">
-                    How SmartQueue Works
+            <div className="how-heading">
+
+
+<span>
+How It Works
+</span>
+
+
+                <h2>
+                    Simple Process,
+                    Smarter Healthcare
                 </h2>
 
 
-                <div className="row">
-
-
-                    {
-                        steps.map((s,i)=>(
-
-                            <div className="col-md-3 text-center">
-
-                                <div className="rounded-circle bg-primary text-white p-3 mx-auto mb-3"
-                                     style={{width:"60px"}}>
-
-                                    {i+1}
-
-                                </div>
-
-
-                                <h5>{s}</h5>
-
-
-                            </div>
-
-                        ))
-
-                    }
-
-
-                </div>
+                <p>
+                    From appointment booking to consultation,
+                    SmartQueue makes every step faster.
+                </p>
 
 
             </div>
 
 
+
+
+
+            <div className="timeline">
+
+
+                {
+                    steps.map((step,index)=>(
+
+
+                        <div
+                            className={`step ${index%2===0 ? "left":"right"}`}
+                            key={index}
+                        >
+
+
+
+                            <div className="step-card">
+
+
+                                <div className="step-icon">
+
+                                    {step.icon}
+
+                                </div>
+
+
+
+                                <div>
+
+                                    <h3>
+                                        {step.title}
+                                    </h3>
+
+
+                                    <p>
+                                        {step.desc}
+                                    </p>
+
+                                </div>
+
+
+                            </div>
+
+
+
+
+
+                            <div className="step-number">
+
+                                {step.number}
+
+                            </div>
+
+
+
+                        </div>
+
+
+                    ))
+                }
+
+
+
+            </div>
+
+
+
+
         </section>
+
 
     )
 

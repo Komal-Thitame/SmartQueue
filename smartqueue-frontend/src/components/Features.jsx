@@ -1,75 +1,147 @@
+import React from "react";
+
+import {
+    FaCalendarCheck,
+    FaTicketAlt,
+    FaUserMd,
+    FaBell,
+    FaChartLine,
+    FaShieldAlt
+} from "react-icons/fa";
+
+import "./Features.css";
+
+
 function Features(){
 
-    const data=[
+
+    const features=[
+
         {
-            title:"Online Appointment",
-            desc:"Patients can easily book appointments anytime."
+            icon:<FaCalendarCheck/>,
+            title:"Appointment Management",
+            desc:"Patients can easily book and manage hospital appointments digitally."
         },
+
+
         {
-            title:"Digital Token System",
-            desc:"Generate and manage tokens digitally."
+            icon:<FaTicketAlt/>,
+            title:"Smart Token Queue",
+            desc:"Generate digital tokens and track live queue position."
         },
+
+
         {
-            title:"Live Queue Tracking",
-            desc:"Patients know their waiting position."
-        },
-        {
+            icon:<FaUserMd/>,
             title:"Doctor Dashboard",
-            desc:"Doctors manage patients efficiently."
+            desc:"Doctors can manage appointments and patient information."
+        },
+
+
+        {
+            icon:<FaBell/>,
+            title:"Real-Time Notifications",
+            desc:"Receive instant updates about token status and appointments."
+        },
+
+
+        {
+            icon:<FaChartLine/>,
+            title:"Queue Analytics",
+            desc:"Monitor waiting time and improve hospital efficiency."
+        },
+
+
+        {
+            icon:<FaShieldAlt/>,
+            title:"Role Based Access",
+            desc:"Secure access for Admin, Doctor, Receptionist and Patient."
         }
+
     ];
+
 
 
     return(
 
-        <section id="features" className="py-5">
 
-            <div className="container">
+        <section className="features-section" id="features">
 
 
-                <h2 className="text-center fw-bold mb-5">
-                    Powerful Features
+
+            <div className="features-heading">
+
+
+<span>
+Powerful Features
+</span>
+
+
+                <h2>
+                    Everything You Need For
+                    Smart Queue Management
                 </h2>
 
 
-                <div className="row">
+                <p>
+                    A complete digital solution designed
+                    to simplify hospital operations.
+                </p>
 
-
-                    {
-                        data.map((item,index)=>(
-
-                            <div className="col-md-3 mb-4" key={index}>
-
-                                <div className="card h-100 shadow-sm border-0 p-4">
-
-
-                                    <h5 className="fw-bold text-primary">
-                                        {item.title}
-                                    </h5>
-
-
-                                    <p className="text-muted">
-                                        {item.desc}
-                                    </p>
-
-
-                                </div>
-
-
-                            </div>
-
-
-                        ))
-
-                    }
-
-
-                </div>
 
             </div>
 
 
+
+
+
+            <div className="features-grid">
+
+
+                {
+
+                    features.map((item,index)=>(
+
+
+                        <div
+                            className="feature-card"
+                            key={index}
+                        >
+
+
+                            <div className="feature-icon">
+
+                                {item.icon}
+
+                            </div>
+
+
+                            <h3>
+                                {item.title}
+                            </h3>
+
+
+                            <p>
+                                {item.desc}
+                            </p>
+
+
+                        </div>
+
+
+                    ))
+
+
+                }
+
+
+
+            </div>
+
+
+
         </section>
+
 
     )
 

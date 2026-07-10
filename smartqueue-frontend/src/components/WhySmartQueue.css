@@ -1,0 +1,447 @@
+/* ===============================
+   WHY SMARTQUEUE SECTION
+================================ */
+
+
+.why-section{
+
+    padding:100px 7%;
+
+    background:#ffffff;
+
+}
+
+
+
+
+
+/* Heading */
+
+
+.section-heading{
+
+    text-align:center;
+
+    max-width:750px;
+
+    margin:auto;
+
+}
+
+
+
+.section-heading span{
+
+    display:inline-block;
+
+    padding:8px 18px;
+
+    border-radius:30px;
+
+    background:#CCFBF1;
+
+    color:#0F766E;
+
+    font-weight:700;
+
+    font-size:14px;
+
+}
+
+
+
+.section-heading h2{
+
+    margin:20px 0 15px;
+
+    font-size:42px;
+
+    line-height:1.2;
+
+    color:#0F172A;
+
+    font-weight:900;
+
+}
+
+
+
+.section-heading p{
+
+    color:#64748B;
+
+    font-size:17px;
+
+    line-height:1.6;
+
+}
+
+
+
+
+
+/* Main Compare */
+
+
+.compare-container{
+
+
+    margin-top:70px;
+
+
+    display:grid;
+
+
+    grid-template-columns:1fr 1fr;
+
+
+    gap:40px;
+
+
+}
+
+
+
+
+
+.problem-box,
+.solution-box{
+
+
+    padding:35px;
+
+
+    border-radius:30px;
+
+
+}
+
+
+
+
+
+.problem-box{
+
+
+    background:#FFF7F7;
+
+
+    border:1px solid #FECACA;
+
+
+}
+
+
+
+
+
+.solution-box{
+
+
+    background:#F0FDFA;
+
+
+    border:1px solid #99F6E4;
+
+
+}
+
+
+
+
+
+.problem-box h3,
+.solution-box h3{
+
+
+    font-size:24px;
+
+
+    margin-bottom:30px;
+
+
+    color:#0F172A;
+
+
+}
+
+
+
+
+
+/* Problem Cards */
+
+
+.problem-card{
+
+
+    display:flex;
+
+
+    gap:18px;
+
+
+    align-items:flex-start;
+
+
+    padding:20px;
+
+
+    margin-bottom:18px;
+
+
+    background:white;
+
+
+    border-radius:20px;
+
+
+    transition:.3s;
+
+
+}
+
+
+
+.problem-card:hover{
+
+
+    transform:translateY(-5px);
+
+
+    box-shadow:
+
+            0 15px 35px rgba(15,23,42,.08);
+
+
+}
+
+
+
+
+
+.icon{
+
+
+    min-width:50px;
+
+
+    height:50px;
+
+
+    border-radius:15px;
+
+
+    display:flex;
+
+
+    align-items:center;
+
+
+    justify-content:center;
+
+
+    background:#FEE2E2;
+
+
+    color:#DC2626;
+
+
+    font-size:22px;
+
+
+}
+
+
+
+
+
+.problem-card h4{
+
+
+    margin:0 0 8px;
+
+
+    color:#0F172A;
+
+
+    font-size:17px;
+
+
+}
+
+
+
+.problem-card p{
+
+
+    margin:0;
+
+
+    color:#64748B;
+
+
+    font-size:14px;
+
+
+    line-height:1.5;
+
+
+}
+
+
+
+
+
+/* Solution Cards */
+
+
+.solution-card{
+
+
+    display:flex;
+
+
+    align-items:center;
+
+
+    gap:15px;
+
+
+    padding:20px;
+
+
+    margin-bottom:18px;
+
+
+    background:white;
+
+
+    border-radius:20px;
+
+
+    transition:.3s;
+
+
+}
+
+
+
+.solution-card:hover{
+
+
+    transform:translateX(8px);
+
+
+}
+
+
+
+
+
+.solution-card svg{
+
+
+    font-size:25px;
+
+
+    color:#14B8A6;
+
+
+}
+
+
+
+
+
+.solution-card span{
+
+
+    font-size:17px;
+
+
+    font-weight:700;
+
+
+    color:#0F172A;
+
+
+}
+
+
+
+
+
+/* Responsive */
+
+
+@media(max-width:900px){
+
+
+    .compare-container{
+
+
+        grid-template-columns:1fr;
+
+
+    }
+
+
+
+    .section-heading h2{
+
+
+        font-size:34px;
+
+
+    }
+
+
+}
+
+
+
+
+
+@media(max-width:600px){
+
+
+    .why-section{
+
+
+        padding:70px 20px;
+
+
+    }
+
+
+
+    .section-heading h2{
+
+
+        font-size:28px;
+
+
+    }
+
+
+
+    .problem-box,
+    .solution-box{
+
+
+        padding:22px;
+
+
+    }
+
+    .problem-card{
+
+
+        padding:15px;
+
+
+    }
+
+
+}

@@ -1,0 +1,546 @@
+/* =================================
+   HOW IT WORKS SECTION
+================================= */
+
+
+.how-section{
+
+    padding:110px 7%;
+
+    background:
+
+            linear-gradient(
+                    135deg,
+                    #F8FAFC,
+                    #ECFEFF
+            );
+
+    position:relative;
+
+    overflow:hidden;
+
+}
+
+
+
+
+
+/* Background Glow */
+
+
+.how-section::before{
+
+    content:"";
+
+    position:absolute;
+
+    width:300px;
+
+    height:300px;
+
+    background:#99F6E4;
+
+    border-radius:50%;
+
+    filter:blur(100px);
+
+    top:50px;
+
+    left:-120px;
+
+    opacity:.5;
+
+}
+
+
+
+.how-section::after{
+
+    content:"";
+
+    position:absolute;
+
+    width:350px;
+
+    height:350px;
+
+    background:#BBF7D0;
+
+    border-radius:50%;
+
+    filter:blur(120px);
+
+    right:-150px;
+
+    bottom:0;
+
+}
+
+
+
+
+
+/* Heading */
+
+
+.how-heading{
+
+    text-align:center;
+
+    max-width:750px;
+
+    margin:auto;
+
+    position:relative;
+
+    z-index:1;
+
+}
+
+
+
+.how-heading span{
+
+
+    display:inline-block;
+
+    background:#CCFBF1;
+
+    color:#0F766E;
+
+    padding:8px 20px;
+
+    border-radius:30px;
+
+    font-weight:700;
+
+    font-size:14px;
+
+}
+
+
+
+.how-heading h2{
+
+
+    margin:25px 0 15px;
+
+    font-size:42px;
+
+    font-weight:900;
+
+    color:#0F172A;
+
+}
+
+
+
+.how-heading p{
+
+    color:#64748B;
+
+    font-size:17px;
+
+}
+
+
+
+
+
+/* Timeline */
+
+
+.timeline{
+
+
+    max-width:1000px;
+
+    margin:80px auto 0;
+
+    position:relative;
+
+}
+
+
+
+
+
+/* Center Line */
+
+
+.timeline::before{
+
+
+    content:"";
+
+    position:absolute;
+
+
+    width:4px;
+
+
+    height:100%;
+
+
+    background:
+
+            linear-gradient(
+                    #14B8A6,
+                    #22C55E
+            );
+
+
+    left:50%;
+
+
+    transform:translateX(-50%);
+
+
+    border-radius:20px;
+
+
+}
+
+
+
+
+
+
+.step{
+
+
+    width:100%;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    position:relative;
+
+    margin-bottom:55px;
+
+}
+
+
+
+
+
+.step.left{
+
+    justify-content:flex-start;
+
+}
+
+
+
+.step.right{
+
+    justify-content:flex-end;
+
+}
+
+
+
+
+
+
+/* Cards */
+
+
+.step-card{
+
+
+    width:380px;
+
+
+    display:flex;
+
+
+    gap:20px;
+
+
+    align-items:center;
+
+
+    padding:25px;
+
+
+    background:white;
+
+
+    border-radius:25px;
+
+
+    border:1px solid #E2E8F0;
+
+
+    box-shadow:
+
+
+            0 20px 45px rgba(15,23,42,.08);
+
+
+    transition:.35s;
+
+
+}
+
+
+
+
+
+.step-card:hover{
+
+
+    transform:translateY(-8px);
+
+
+    box-shadow:
+
+
+            0 30px 60px rgba(15,23,42,.15);
+
+
+}
+
+
+
+
+
+
+
+.step-icon{
+
+
+    min-width:60px;
+
+
+    height:60px;
+
+
+    border-radius:18px;
+
+
+    display:flex;
+
+
+    align-items:center;
+
+
+    justify-content:center;
+
+
+    background:
+
+
+            linear-gradient(
+                    135deg,
+                    #14B8A6,
+                    #22C55E
+            );
+
+
+    color:white;
+
+
+    font-size:25px;
+
+
+}
+
+
+
+
+
+
+.step-card h3{
+
+
+    margin:0 0 8px;
+
+
+    color:#0F172A;
+
+
+    font-size:20px;
+
+
+}
+
+
+
+
+.step-card p{
+
+
+    margin:0;
+
+
+    color:#64748B;
+
+
+    font-size:14px;
+
+
+    line-height:1.5;
+
+
+}
+
+
+
+
+
+
+
+/* Number Circle */
+
+
+.step-number{
+
+
+    position:absolute;
+
+
+    left:50%;
+
+
+    transform:translateX(-50%);
+
+
+    width:55px;
+
+
+    height:55px;
+
+
+    border-radius:50%;
+
+
+    display:flex;
+
+
+    align-items:center;
+
+
+    justify-content:center;
+
+
+    background:#0F172A;
+
+
+    color:white;
+
+
+    font-weight:800;
+
+
+    border:5px solid #ECFEFF;
+
+
+    z-index:2;
+
+
+}
+
+
+
+
+
+/* Responsive */
+
+
+@media(max-width:900px){
+
+
+    .timeline::before{
+
+
+        left:25px;
+
+
+    }
+
+
+
+    .step,
+    .step.left,
+    .step.right{
+
+
+        justify-content:flex-start;
+
+        padding-left:70px;
+
+
+    }
+
+
+
+
+    .step-number{
+
+
+        left:25px;
+
+    }
+
+
+
+    .step-card{
+
+
+        width:100%;
+
+    }
+
+
+}
+
+
+
+
+
+@media(max-width:600px){
+
+
+    .how-section{
+
+
+        padding:80px 20px;
+
+    }
+
+
+
+    .how-heading h2{
+
+
+        font-size:30px;
+
+    }
+
+
+
+    .step-card{
+
+
+        padding:20px;
+
+    }
+
+
+
+    .step-icon{
+
+
+        min-width:50px;
+
+        height:50px;
+
+    }
+
+
+}

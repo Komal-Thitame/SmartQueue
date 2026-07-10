@@ -1,34 +1,55 @@
-function CTA(){
+import React from "react";
+import { FaArrowRight } from "react-icons/fa";
+import "./CTA.css";
 
-    return(
+function CTA() {
 
-        <section className="py-5 bg-primary text-white text-center">
+    return (
 
+        <section className="cta-section">
 
-            <div className="container">
+            <div className="cta-card">
+
+                <span className="cta-badge">
+                    Smart Healthcare Platform
+                </span>
 
                 <h2>
-                    Ready to transform healthcare queues?
+                    Ready to Transform
+                    Hospital Queue Management?
                 </h2>
 
                 <p>
-                    Start managing appointments smarter.
+                    Experience faster appointments,
+                    digital token management and
+                    real-time queue updates with SmartQueue.
                 </p>
 
+                <div className="cta-buttons">
 
-                <button className="btn btn-light btn-lg">
-                    Create Account
-                </button>
+                    <a
+                        href="/register"
+                        className="cta-primary"
+                    >
+                        Get Started
+                        <FaArrowRight/>
+                    </a>
 
+                    <a
+                        href="/login"
+                        className="cta-secondary"
+                    >
+                        Login
+                    </a>
+
+                </div>
 
             </div>
 
-
         </section>
 
-    )
+    );
 
 }
-
 
 export default CTA;

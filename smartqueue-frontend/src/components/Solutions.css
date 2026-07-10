@@ -1,0 +1,536 @@
+/* ==================================
+   SOLUTIONS SECTION
+================================== */
+
+
+.solutions-section{
+
+    padding:110px 7%;
+
+    background:#ffffff;
+
+    position:relative;
+
+    overflow:hidden;
+
+}
+
+
+
+
+
+/* Background Shapes */
+
+
+.solutions-section::before{
+
+
+    content:"";
+
+    position:absolute;
+
+    width:300px;
+
+    height:300px;
+
+
+    background:#CCFBF1;
+
+    border-radius:50%;
+
+
+    filter:blur(100px);
+
+
+    top:-100px;
+
+    left:-120px;
+
+
+}
+
+
+
+.solutions-section::after{
+
+
+    content:"";
+
+
+    position:absolute;
+
+
+    width:350px;
+
+
+    height:350px;
+
+
+    background:#DCFCE7;
+
+
+    border-radius:50%;
+
+
+    filter:blur(120px);
+
+
+    bottom:-150px;
+
+
+    right:-120px;
+
+
+}
+
+
+
+
+
+/* Heading */
+
+
+.solutions-heading{
+
+
+    text-align:center;
+
+
+    max-width:750px;
+
+
+    margin:auto;
+
+
+    position:relative;
+
+
+    z-index:1;
+
+
+}
+
+
+
+.solutions-heading span{
+
+
+    display:inline-block;
+
+
+    padding:8px 20px;
+
+
+    background:#CCFBF1;
+
+
+    color:#0F766E;
+
+
+    border-radius:30px;
+
+
+    font-size:14px;
+
+
+    font-weight:700;
+
+
+}
+
+
+
+.solutions-heading h2{
+
+
+    margin:25px 0 15px;
+
+
+    font-size:42px;
+
+
+    color:#0F172A;
+
+
+    font-weight:900;
+
+
+}
+
+
+
+.solutions-heading p{
+
+
+    color:#64748B;
+
+
+    font-size:17px;
+
+
+}
+
+
+
+
+
+
+
+/* Cards Grid */
+
+
+.solutions-grid{
+
+
+    margin-top:70px;
+
+
+    display:grid;
+
+
+    grid-template-columns:repeat(4,1fr);
+
+
+    gap:25px;
+
+
+    position:relative;
+
+
+    z-index:1;
+
+
+}
+
+
+
+
+
+/* Role Cards */
+
+
+.solution-role-card{
+
+
+    background:white;
+
+
+    padding:35px 25px;
+
+
+    border-radius:30px;
+
+
+    border:1px solid #E2E8F0;
+
+
+    text-align:center;
+
+
+    transition:.35s;
+
+
+    position:relative;
+
+
+    overflow:hidden;
+
+
+}
+
+
+
+
+
+.solution-role-card::before{
+
+
+    content:"";
+
+
+    position:absolute;
+
+
+    width:100px;
+
+
+    height:100px;
+
+
+    background:#ECFEFF;
+
+
+    border-radius:50%;
+
+
+    top:-40px;
+
+
+    right:-40px;
+
+
+    transition:.4s;
+
+
+}
+
+
+
+
+
+.solution-role-card:hover{
+
+
+    transform:translateY(-12px);
+
+
+    box-shadow:
+
+
+            0 25px 60px rgba(15,23,42,.12);
+
+
+    border-color:#99F6E4;
+
+
+}
+
+
+
+
+.solution-role-card:hover::before{
+
+
+    transform:scale(2);
+
+
+}
+
+
+
+
+
+
+/* Icon */
+
+
+.role-icon{
+
+
+    width:75px;
+
+
+    height:75px;
+
+
+    margin:auto;
+
+
+    display:flex;
+
+
+    align-items:center;
+
+
+    justify-content:center;
+
+
+    border-radius:22px;
+
+
+    background:
+
+
+            linear-gradient(
+
+                    135deg,
+
+                    #14B8A6,
+
+                    #22C55E
+
+            );
+
+
+    color:white;
+
+
+    font-size:32px;
+
+
+    position:relative;
+
+
+    z-index:1;
+
+
+}
+
+
+
+
+
+
+.solution-role-card h3{
+
+
+    margin:25px 0 12px;
+
+
+    color:#0F172A;
+
+
+    font-size:22px;
+
+
+}
+
+
+
+
+
+.solution-role-card p{
+
+
+    color:#64748B;
+
+
+    font-size:15px;
+
+
+    line-height:1.6;
+
+
+    min-height:70px;
+
+
+}
+
+
+
+
+
+
+
+/* Button */
+
+
+.solution-role-card button{
+
+
+    margin-top:20px;
+
+
+    padding:10px 22px;
+
+
+    border-radius:25px;
+
+
+    border:none;
+
+
+    background:#F0FDFA;
+
+
+    color:#0F766E;
+
+
+    font-weight:700;
+
+
+    cursor:pointer;
+
+
+    transition:.3s;
+
+
+}
+
+
+
+.solution-role-card button:hover{
+
+
+    background:#14B8A6;
+
+
+    color:white;
+
+
+}
+
+
+
+
+
+
+/* Responsive */
+
+
+@media(max-width:1200px){
+
+
+    .solutions-grid{
+
+
+        grid-template-columns:repeat(2,1fr);
+
+
+    }
+
+
+}
+
+
+
+
+
+
+
+@media(max-width:700px){
+
+
+    .solutions-section{
+
+
+        padding:80px 20px;
+
+
+    }
+
+
+
+
+    .solutions-heading h2{
+
+
+        font-size:30px;
+
+
+    }
+
+
+
+
+
+    .solutions-grid{
+
+
+        grid-template-columns:1fr;
+
+
+    }
+
+
+
+    .solution-role-card{
+
+
+        padding:30px 20px;
+
+
+    }
+
+
+}

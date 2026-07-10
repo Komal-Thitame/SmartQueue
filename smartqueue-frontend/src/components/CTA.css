@@ -1,0 +1,334 @@
+/* ==========================================
+   CTA SECTION
+========================================== */
+
+.cta-section{
+
+    padding:110px 7%;
+
+    background:
+            linear-gradient(
+                    135deg,
+                    #0F172A,
+                    #134E4A,
+                    #0F172A
+            );
+
+    position:relative;
+
+    overflow:hidden;
+
+}
+
+
+
+/* Background Glow */
+
+.cta-section::before{
+
+    content:"";
+
+    position:absolute;
+
+    width:350px;
+    height:350px;
+
+    background:#14B8A6;
+
+    border-radius:50%;
+
+    top:-150px;
+    left:-150px;
+
+    filter:blur(130px);
+
+    opacity:.25;
+
+}
+
+.cta-section::after{
+
+    content:"";
+
+    position:absolute;
+
+    width:300px;
+    height:300px;
+
+    background:#22C55E;
+
+    border-radius:50%;
+
+    right:-100px;
+    bottom:-100px;
+
+    filter:blur(120px);
+
+    opacity:.20;
+
+}
+
+
+
+/* Card */
+
+.cta-card{
+
+    max-width:950px;
+
+    margin:auto;
+
+    padding:70px 50px;
+
+    text-align:center;
+
+    border-radius:35px;
+
+    position:relative;
+
+    z-index:2;
+
+    background:rgba(255,255,255,.08);
+
+    backdrop-filter:blur(20px);
+
+    border:1px solid rgba(255,255,255,.12);
+
+    box-shadow:
+            0 25px 60px rgba(0,0,0,.25);
+
+}
+
+
+
+/* Badge */
+
+.cta-badge{
+
+    display:inline-block;
+
+    padding:10px 22px;
+
+    border-radius:30px;
+
+    background:rgba(255,255,255,.12);
+
+    color:#5EEAD4;
+
+    border:1px solid rgba(255,255,255,.15);
+
+    font-size:14px;
+
+    font-weight:700;
+
+    letter-spacing:.5px;
+
+}
+
+
+
+/* Heading */
+
+.cta-card h2{
+
+    margin:28px 0 20px;
+
+    color:white;
+
+    font-size:48px;
+
+    font-weight:900;
+
+    line-height:1.2;
+
+}
+
+
+
+/* Text */
+
+.cta-card p{
+
+    max-width:700px;
+
+    margin:auto;
+
+    color:#CBD5E1;
+
+    font-size:18px;
+
+    line-height:1.8;
+
+}
+
+
+
+/* Buttons */
+
+.cta-buttons{
+
+    margin-top:45px;
+
+    display:flex;
+
+    justify-content:center;
+
+    gap:20px;
+
+    flex-wrap:wrap;
+
+}
+
+
+
+/* Primary Button */
+
+.cta-primary{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:10px;
+
+    padding:16px 34px;
+
+    border-radius:14px;
+
+    text-decoration:none;
+
+    color:white;
+
+    font-weight:700;
+
+    background:
+            linear-gradient(
+                    135deg,
+                    #14B8A6,
+                    #22C55E
+            );
+
+    transition:.35s;
+
+    box-shadow:
+            0 15px 35px rgba(20,184,166,.35);
+
+}
+
+.cta-primary:hover{
+
+    transform:translateY(-5px);
+
+    box-shadow:
+            0 25px 50px rgba(20,184,166,.45);
+
+}
+
+.cta-primary svg{
+
+    transition:.3s;
+
+}
+
+.cta-primary:hover svg{
+
+    transform:translateX(5px);
+
+}
+
+
+
+/* Secondary Button */
+
+.cta-secondary{
+
+    padding:16px 34px;
+
+    border-radius:14px;
+
+    text-decoration:none;
+
+    color:white;
+
+    font-weight:700;
+
+    border:1px solid rgba(255,255,255,.25);
+
+    transition:.35s;
+
+}
+
+.cta-secondary:hover{
+
+    background:white;
+
+    color:#0F172A;
+
+}
+
+
+
+/* Responsive */
+
+@media(max-width:900px){
+
+    .cta-card{
+
+        padding:55px 30px;
+
+    }
+
+    .cta-card h2{
+
+        font-size:36px;
+
+    }
+
+}
+
+@media(max-width:600px){
+
+    .cta-section{
+
+        padding:80px 20px;
+
+    }
+
+    .cta-card{
+
+        padding:45px 20px;
+
+    }
+
+    .cta-card h2{
+
+        font-size:28px;
+
+    }
+
+    .cta-card p{
+
+        font-size:16px;
+
+    }
+
+    .cta-buttons{
+
+        flex-direction:column;
+
+        align-items:center;
+
+    }
+
+    .cta-primary,
+    .cta-secondary{
+
+        width:100%;
+
+        max-width:280px;
+
+        justify-content:center;
+
+    }
+
+}
