@@ -1,0 +1,216 @@
+/* src/styles/Register.css */
+.reg-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #eef7f6 0%, #e3f0ee 100%);
+    font-family: 'Inter', sans-serif;
+    padding: 24px;
+}
+
+.reg-card {
+    display: flex;
+    width: 100%;
+    max-width: 880px;
+    min-height: 540px;
+    background: #ffffff;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 15px 35px rgba(13, 166, 129, 0.08);
+}
+
+.reg-form-side {
+    flex: 1.2;
+    padding: 40px 44px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.reg-form-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.reg-title {
+    font-size: 26px;
+    font-weight: 700;
+    color: #0f2942;
+    margin: 0;
+}
+
+.reg-brand-mini {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #64748b;
+    letter-spacing: 0.05em;
+}
+
+.reg-brand-mini-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #0da681;
+}
+
+.reg-grid-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.reg-field {
+    display: flex;
+    flex-direction: column;
+}
+
+.full-width {
+    grid-column: span 2;
+}
+
+.reg-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #475569;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+}
+
+.reg-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 11px 16px;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 14px;
+    color: #0f2942;
+    background: #f8fafc;
+    transition: all 0.2s ease;
+}
+
+.reg-select {
+    cursor: pointer;
+    background-color: #f8fafc;
+}
+
+.reg-input:focus {
+    outline: none;
+    background: #ffffff;
+    border-color: #0da681;
+    box-shadow: 0 0 0 3px rgba(13, 166, 129, 0.12);
+}
+
+.reg-submit {
+    padding: 13px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(90deg, #0da681 0%, #0aa07c 100%);
+    color: #ffffff;
+    font-weight: 600;
+    font-size: 14.5px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 6px;
+}
+
+.reg-submit:hover:not(:disabled) {
+    box-shadow: 0 4px 15px rgba(13, 166, 129, 0.2);
+    opacity: 0.95;
+}
+
+.reg-footer-text {
+    text-align: center;
+    font-size: 13.5px;
+    color: #64748b;
+    margin-top: 18px;
+    margin-bottom: 0;
+}
+
+.reg-link {
+    color: #0da681;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.reg-link:hover {
+    text-decoration: underline;
+}
+
+.reg-panel-side {
+    flex: 0.8;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 40px;
+    background: linear-gradient(135deg, #0da681 0%, #06634d 100%);
+}
+
+@media (min-width: 768px) {
+    .reg-panel-side { display: flex; }
+}
+
+.reg-panel-badge {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1.5px solid rgba(255, 255, 255, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.reg-panel-badge-inner {
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    border: 2px solid #ffffff;
+    position: relative;
+}
+
+.reg-panel-badge-inner::before {
+    content: "";
+    position: absolute;
+    top: 7px; left: 5px;
+    width: 18px; height: 2px;
+    background: #ffffff;
+}
+
+.reg-panel-badge-inner::after {
+    content: "";
+    position: absolute;
+    top: 15px; left: 5px;
+    width: 10px; height: 2px;
+    background: #ffffff;
+    opacity: 0.6;
+}
+
+.reg-panel-side h2 {
+    font-size: 24px;
+    color: #ffffff;
+    margin: 0 0 10px;
+}
+
+.reg-panel-side p {
+    font-size: 13.5px;
+    color: #e2f5f1;
+    max-width: 250px;
+    margin: 0;
+    line-height: 1.5;
+}
+
+@media (max-width: 640px) {
+    .reg-grid-form { grid-template-columns: 1fr; }
+    .full-width { grid-column: span 1; }
+    .reg-form-side { padding: 32px 20px; }
+}
