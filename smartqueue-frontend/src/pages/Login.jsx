@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom"; // Link import kiya
+import { useNavigate, Link } from "react-router-dom";
 import { API_BASE_URL } from "../config";
 import "../styles/Login.css";
 
@@ -29,8 +29,17 @@ export default function Login() {
             const data = await response.json();
 
             if (response.ok) {
+                // 🟢 FIXED: Email & User details direct save ho rahe hain
                 localStorage.setItem("token", data.token);
                 localStorage.setItem("role", data.role);
+                localStorage.setItem("email", form.email); // Exact input email saved
+
+                // Backend user data object (if sent)
+                localStorage.setItem("user", JSON.stringify({
+                    email: form.email,
+                    name: data.name || form.email.split('@')[0],
+                    role: data.role || "ADMIN"
+                }));
 
                 if (data.role === "ADMIN") navigate("/admin/dashboard");
                 else if (data.role === "DOCTOR") navigate("/doctor/dashboard");

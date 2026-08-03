@@ -1,0 +1,96 @@
+package com.smartqueue.smartqueue_backend.service;
+
+import com.smartqueue.smartqueue_backend.dto.DoctorDTO;
+import com.smartqueue.smartqueue_backend.dto.RegisterRequest;
+import com.smartqueue.smartqueue_backend.entity.Doctor;
+import com.smartqueue.smartqueue_backend.entity.Role;
+import com.smartqueue.smartqueue_backend.entity.User;
+import com.smartqueue.smartqueue_backend.repository.DoctorRepository;
+import com.smartqueue.smartqueue_backend.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class AdminService {
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private DoctorRepository doctorRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    // Add New Doctor
+    public Doctor addDoctor(DoctorDTO doctorDTO) {
+        if (userRepository.existsByEmail(doctorDTO.getEmail())) {
+            throw new RuntimeException("Email already registered!");
+        }
+
+        User user = new User();
+        user.setName(doctorDTO.getName());
+        user.setEmail(doctorDTO.getEmail());
+        user.setPassword(passwordEncoder.encode(doctorDTO.getPassword()));
+        user.setPhone(doctorDTO.getPhone());
+        user.setRole(Role.DOCTOR);
+        User savedUser = userRepository.save(user);
+
+        Doctor doctor = new Doctor();
+        doctor.setName(doctorDTO.getName());
+        doctor.setEmail(doctorDTO.getEmail());
+        doctor.setPhone(doctorDTO.getPhone());
+        doctor.setSpecialization(doctorDTO.getSpecialization());
+        doctor.setDepartment(doctorDTO.getDepartment());
+        doctor.setConsultationFee(doctorDTO.getConsultationFee());
+        doctor.setRoomNumber(doctorDTO.getRoomNumber());
+        doctor.setAvailableTime(doctorDTO.getAvailableTime());
+        doctor.setUser(savedUser);
+
+        return doctorRepository.save(doctor);
+    }
+
+    // Add New Receptionist
+    public User addReceptionist(RegisterRequest request) {
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new RuntimeException("Email already registered!");
+        }
+
+        User user = new User();
+        user.setName(request.getName());
+        user.setEmail(request.getEmail());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setPhone(request.getPhone());
+        user.setRole(Role.RECEPTIONIST);
+
+        return userRepository.save(user);
+    }
+
+    // Get All Doctors
+    public List<Doctor> getAllDoctors() {
+        return doctorRepository.findAll();
+
+    }
+    // Sabhi Receptionists ki list nikalne ke liye
+    public List<User> getAllReceptionists() {
+        return userRepository.findByRole(Role.RECEPTIONIST);
+    }
+    // 1. Delete Doctor
+    public void deleteDoctor(Long id) {
+        if (!doctorRepository.existsById(id)) {
+            throw new RuntimeException("Doctor not found with id: " + id);
+        }
+        doctorRepository.deleteById(id);
+    }
+
+    // 2. Delete Receptionist / User
+    public void deleteReceptionist(Long id) {
+        if (!userRepository.existsById(id)) {
+            throw new RuntimeException("Receptionist not found with id: " + id);
+        }
+        userRepository.deleteById(id);
+    }
+}

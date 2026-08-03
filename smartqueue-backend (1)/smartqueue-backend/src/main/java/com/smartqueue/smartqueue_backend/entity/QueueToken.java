@@ -1,0 +1,47 @@
+package com.smartqueue.smartqueue_backend.entity;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "queue_tokens")
+@Data                       // Autogenerates Getters, Setters, toString, equals, and hashCode
+@NoArgsConstructor          // Creates default constructor: public QueueToken()
+@AllArgsConstructor         // Creates full constructor with all fields
+public class QueueToken {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String tokenNumber;
+    private String department;
+    private String status; // WAITING, SERVING, COMPLETED, SKIPPED
+
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
+    // Custom Constructor specifically for DataInitializer (3 arguments)
+    public QueueToken(String tokenNumber, String department, String status) {
+        this.tokenNumber = tokenNumber;
+        this.department = department;
+        this.status = status;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
+}
