@@ -22,12 +22,13 @@ export default function Register() {
         setError("");
 
         try {
-            const response = await fetch(`${API_BASE_URL}/register`, {
+            // Path updated to /auth/register to match SecurityConfig rules
+            const response = await fetch(`${API_BASE_URL}/auth/register`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     ...form,
-                    age: parseInt(form.age) // Age ko integer me convert kiya
+                    age: parseInt(form.age, 10) || 0
                 })
             });
 

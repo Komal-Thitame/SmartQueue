@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import QueueOperations from './QueueOperations'; // Queue Operations Component Import
 import '../styles/AdminDashboard.css';
+import DoctorSection from './DoctorSection';
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
@@ -224,6 +225,7 @@ const AdminDashboard = () => {
                         <span className="rail-icon">👨‍⚕️</span>
                         <span className="rail-lbl">Doctors</span>
                     </button>
+
 
                     <button
                         className={`rail-btn ${activeTab === 'reception' ? 'active' : ''}`}
@@ -493,8 +495,11 @@ const AdminDashboard = () => {
                     {/* 2. QUEUE OPERATIONS TAB */}
                     {activeTab === 'queue' && <QueueOperations />}
 
-                    {/* 3. FALLBACK FOR OTHER TABS */}
-                    {activeTab !== 'control' && activeTab !== 'queue' && (
+                    {/* 3. DOCTOR MATRIX TAB */}
+                    {activeTab === 'doctors' && <DoctorSection />}
+
+                    {/* 4. FALLBACK FOR OTHER TABS */}
+                    {activeTab !== 'control' && activeTab !== 'queue' && activeTab !== 'doctors' && (
                         <div className="sq-glass-card">
                             <h3>Section: {activeTab.toUpperCase()}</h3>
                             <p className="mt-2 text-muted">Manage hospital operations for {activeTab}.</p>

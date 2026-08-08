@@ -5,6 +5,7 @@ import com.smartqueue.smartqueue_backend.dto.RegisterRequest;
 import com.smartqueue.smartqueue_backend.entity.Doctor;
 import com.smartqueue.smartqueue_backend.entity.User;
 import com.smartqueue.smartqueue_backend.service.AdminService;
+import com.smartqueue.smartqueue_backend.service.DoctorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,11 +21,15 @@ public class AdminController {
     @Autowired
     private AdminService adminService;
 
+    @Autowired
+    private DoctorService doctorService; // Added DoctorService dependency
+
+    // Single Endpoint for both Add and Update Doctor
     @PostMapping("/add-doctor")
-    public ResponseEntity<?> addDoctor(@RequestBody DoctorDTO doctorDTO) {
+    public ResponseEntity<?> saveOrUpdateDoctor(@RequestBody DoctorDTO doctorDTO) {
         try {
-            Doctor doctor = adminService.addDoctor(doctorDTO);
-            return ResponseEntity.ok(Map.of("message", "Doctor added successfully!", "doctor", doctor));
+            Doctor savedDoctor = doctorService.saveOrUpdateDoctor(doctorDTO);
+            return ResponseEntity.ok(Map.of("message", "Doctor saved successfully!", "doctor", savedDoctor));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
@@ -44,11 +49,13 @@ public class AdminController {
     public ResponseEntity<List<Doctor>> getAllDoctors() {
         return ResponseEntity.ok(adminService.getAllDoctors());
     }
-    // Endpoint: http://localhost:8081/api/admin/receptionists
+
+    // Endpoint: GET http://localhost:8081/api/admin/receptionists
     @GetMapping("/receptionists")
     public ResponseEntity<List<User>> getAllReceptionists() {
         return ResponseEntity.ok(adminService.getAllReceptionists());
     }
+
     // Endpoint: DELETE http://localhost:8081/api/admin/doctor/{id}
     @DeleteMapping("/doctor/{id}")
     public ResponseEntity<?> deleteDoctor(@PathVariable Long id) {
@@ -70,5 +77,4 @@ public class AdminController {
             return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
         }
     }
-
 }

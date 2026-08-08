@@ -6,6 +6,8 @@ import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
 import AdminDashboard from "./pages/AdminDashboard";
 import QueueOperations from './pages/QueueOperations';
+import DoctorSection from './pages/DoctorSection.jsx';
+
 function App() {
   return (
       <BrowserRouter>
@@ -16,6 +18,7 @@ function App() {
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/admin/queue-operations" element={<QueueOperations />} />
+            <Route path="/admin/doctors" element={<DoctorSection />} />
         </Routes>
       </BrowserRouter>
   );
