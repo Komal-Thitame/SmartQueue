@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import QueueOperations from './QueueOperations'; // Queue Operations Component Import
 import '../styles/AdminDashboard.css';
 import DoctorSection from './DoctorSection';
+import ReceptionistSection from './ReceptionistSection.jsx'; // Import Receptionist Section
+import PatientSection from './AdminPatientSection.jsx'; // 👈 Patient Section Import Kiya
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
@@ -226,7 +228,6 @@ const AdminDashboard = () => {
                         <span className="rail-lbl">Doctors</span>
                     </button>
 
-
                     <button
                         className={`rail-btn ${activeTab === 'reception' ? 'active' : ''}`}
                         onClick={() => setActiveTab('reception')}
@@ -236,6 +237,7 @@ const AdminDashboard = () => {
                         <span className="rail-lbl">Reception</span>
                     </button>
 
+                    {/* 👈 Patients Tab Clickable Button */}
                     <button
                         className={`rail-btn ${activeTab === 'patients' ? 'active' : ''}`}
                         onClick={() => setActiveTab('patients')}
@@ -498,13 +500,23 @@ const AdminDashboard = () => {
                     {/* 3. DOCTOR MATRIX TAB */}
                     {activeTab === 'doctors' && <DoctorSection />}
 
-                    {/* 4. FALLBACK FOR OTHER TABS */}
-                    {activeTab !== 'control' && activeTab !== 'queue' && activeTab !== 'doctors' && (
-                        <div className="sq-glass-card">
-                            <h3>Section: {activeTab.toUpperCase()}</h3>
-                            <p className="mt-2 text-muted">Manage hospital operations for {activeTab}.</p>
-                        </div>
-                    )}
+                    {/* 4. RECEPTION DESK TAB */}
+                    {activeTab === 'reception' && <ReceptionistSection />}
+
+                    {/* 5. PATIENTS TAB 👈 Clickable Patient Management View */}
+                    {activeTab === 'patients' && <PatientSection />}
+
+                    {/* 6. FALLBACK FOR OTHER TABS */}
+                    {activeTab !== 'control' &&
+                        activeTab !== 'queue' &&
+                        activeTab !== 'doctors' &&
+                        activeTab !== 'reception' &&
+                        activeTab !== 'patients' && (
+                            <div className="sq-glass-card">
+                                <h3>Section: {activeTab.toUpperCase()}</h3>
+                                <p className="mt-2 text-muted">Manage hospital operations for {activeTab}.</p>
+                            </div>
+                        )}
                 </main>
             </div>
         </div>

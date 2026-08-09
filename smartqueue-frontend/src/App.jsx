@@ -7,6 +7,10 @@ import ForgotPassword from "./pages/ForgotPassword";
 import AdminDashboard from "./pages/AdminDashboard";
 import QueueOperations from './pages/QueueOperations';
 import DoctorSection from './pages/DoctorSection.jsx';
+import ReceptionistSection from './pages/ReceptionistSection.jsx';
+import AdminPatientsection from './pages/AdminPatientSection.jsx';
+
+
 
 function App() {
   return (
@@ -19,6 +23,10 @@ function App() {
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/admin/queue-operations" element={<QueueOperations />} />
             <Route path="/admin/doctors" element={<DoctorSection />} />
+            <Route path="/admin/receptionist" element={<ReceptionistSection/>} />
+            <Route path="/admin/patient" element={<AdminPatientsection/>} />
+
+
         </Routes>
       </BrowserRouter>
   );
