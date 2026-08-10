@@ -5,6 +5,7 @@ import '../styles/AdminDashboard.css';
 import DoctorSection from './DoctorSection';
 import ReceptionistSection from './ReceptionistSection.jsx'; // Import Receptionist Section
 import PatientSection from './AdminPatientSection.jsx'; // 👈 Patient Section Import Kiya
+import AdminSettingsSection from './AdminSettingsSection.jsx'; // 👈 Settings Section Import Kiya
 
 const AdminDashboard = () => {
     const navigate = useNavigate();
@@ -503,15 +504,19 @@ const AdminDashboard = () => {
                     {/* 4. RECEPTION DESK TAB */}
                     {activeTab === 'reception' && <ReceptionistSection />}
 
-                    {/* 5. PATIENTS TAB 👈 Clickable Patient Management View */}
+                    {/* 5. PATIENTS TAB */}
                     {activeTab === 'patients' && <PatientSection />}
 
-                    {/* 6. FALLBACK FOR OTHER TABS */}
+                    {/* 6. SETTINGS TAB 👈 Added Settings Section Rendering */}
+                    {activeTab === 'settings' && <AdminSettingsSection />}
+
+                    {/* 7. FALLBACK FOR OTHER TABS */}
                     {activeTab !== 'control' &&
                         activeTab !== 'queue' &&
                         activeTab !== 'doctors' &&
                         activeTab !== 'reception' &&
-                        activeTab !== 'patients' && (
+                        activeTab !== 'patients' &&
+                        activeTab !== 'settings' && (
                             <div className="sq-glass-card">
                                 <h3>Section: {activeTab.toUpperCase()}</h3>
                                 <p className="mt-2 text-muted">Manage hospital operations for {activeTab}.</p>
