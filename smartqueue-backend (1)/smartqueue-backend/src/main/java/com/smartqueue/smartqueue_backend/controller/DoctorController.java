@@ -2,22 +2,34 @@ package com.smartqueue.smartqueue_backend.controller;
 
 import com.smartqueue.smartqueue_backend.entity.Appointment;
 import com.smartqueue.smartqueue_backend.entity.AppointmentStatus;
+import com.smartqueue.smartqueue_backend.entity.Doctor;
+import com.smartqueue.smartqueue_backend.repository.DoctorRepository;
 import com.smartqueue.smartqueue_backend.service.DoctorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/doctor")
+@RequestMapping("/api/doctors") // Plural 'doctors' rakhein taaki frontend match ho
 @CrossOrigin(origins = "http://localhost:5173")
 public class DoctorController {
 
     @Autowired
+    private DoctorRepository doctorRepository;
+
+    @Autowired
     private DoctorService doctorService;
 
-    // Endpoint: PUT http://localhost:8081/api/doctor/update-status/1?status=IN_CONSULTATION
+    // 1. GET API: Admin dwara add kiye gaye saare doctors fetch karne ke liye (Patient ke liye)
+    @GetMapping("/all")
+    public List<Doctor> getAllDoctors() {
+        return doctorRepository.findAll();
+    }
+
+    // 2. PUT API: Appointment status update karne ke liye (Doctor dashboard ke liye)
     @PutMapping("/update-status/{appointmentId}")
     public ResponseEntity<?> updateStatus(
             @PathVariable Long appointmentId,
