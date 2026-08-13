@@ -29,17 +29,12 @@ export default function Login() {
             const data = await response.json();
 
             if (response.ok) {
-                // 🟢 FIXED: Email & User details direct save ho rahe hain
-                localStorage.setItem("token", data.token);
+                // 🟢 FIXED: Ab har user ki unique ID, Name, aur Details properly save hongi
+                localStorage.setItem("token", data.token || "temporary-token");
                 localStorage.setItem("role", data.role);
-                localStorage.setItem("email", form.email); // Exact input email saved
-
-                // Backend user data object (if sent)
-                localStorage.setItem("user", JSON.stringify({
-                    email: form.email,
-                    name: data.name || form.email.split('@')[0],
-                    role: data.role || "ADMIN"
-                }));
+                localStorage.setItem("userId", data.id);       // 👈 Ye line sabse important hai!
+                localStorage.setItem("userName", data.name);   // 👈 Ye bhi!
+                localStorage.setItem("email", data.email);     // 👈 Ye bhi!
 
                 if (data.role === "ADMIN") navigate("/admin/dashboard");
                 else if (data.role === "DOCTOR") navigate("/doctor/dashboard");

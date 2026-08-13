@@ -43,7 +43,9 @@ public class SecurityConfig {
                                 "/api/admin/**",
                                 "/api/receptionist/**",
                                 "/api/doctor/**",
-                                "/api/queue/**"
+                                "/api/queue/**",
+                                "/api/appointments/**",
+                                "/api/patients/**"     // 🟢 YEH LINE ADD KARNI HAI!
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

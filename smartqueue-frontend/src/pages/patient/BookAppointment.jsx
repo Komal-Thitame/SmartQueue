@@ -61,7 +61,7 @@ const BookAppointment = () => {
             const bookingData = {
                 appointmentDate: appointmentDate,
                 symptoms: reason,
-                patientId: patientId
+                patientId: patientId || null // Agar ID na ho toh null jayega lekin booking nahi रुकेगी
             };
 
             // Spring Boot backend API call for booking on Port 8081

@@ -28,4 +28,8 @@ public class Appointment {
     @ManyToOne
     @JoinColumn(name = "doctor_id")
     private Doctor doctor;
+
+    @Transient
+    private Long patientId;
+
 }

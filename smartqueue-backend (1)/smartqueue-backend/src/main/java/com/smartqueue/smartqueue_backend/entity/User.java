@@ -31,6 +31,13 @@ public class User {
 
     private String phone;
 
+    // 🟢 New fields added for complete dynamic profile support
+    private Integer age;
+
+    private String gender;
+
+    private String address;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;

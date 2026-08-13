@@ -49,6 +49,12 @@ public class AuthController {
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setPhone(request.getPhone());
+
+        // 🟢 Age, Gender, aur Address ko registration ke waqt set karna
+        user.setAge(request.getAge());
+        user.setGender(request.getGender());
+        user.setAddress(request.getAddress());
+
         user.setRole(Role.PATIENT);
 
         userRepository.save(user);
@@ -87,11 +93,19 @@ public class AuthController {
                     .body(Map.of("message", "Invalid Email or Password"));
         }
 
+        // 🟢 Login successful hone par user ki saari details return karna taaki profile dynamic bane
         return ResponseEntity.ok(
-                new AuthResponse(
-                        "temporary-token",
-                        user.getRole().toString(),
-                        "Login Successful"
+                Map.of(
+                        "token", "temporary-token",
+                        "role", user.getRole().toString(),
+                        "message", "Login Successful",
+                        "id", user.getId(),
+                        "name", user.getName(),
+                        "email", user.getEmail(),
+                        "phone", user.getPhone() != null ? user.getPhone() : "",
+                        "age", user.getAge() != null ? user.getAge() : 0,
+                        "gender", user.getGender() != null ? user.getGender() : "",
+                        "address", user.getAddress() != null ? user.getAddress() : ""
                 )
         );
     }
