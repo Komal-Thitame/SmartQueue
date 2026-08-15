@@ -15,4 +15,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
 
     // Doctor ke aaj ke kul kitne tokens bane hain count karne ke liye
     Long countByDoctorId(Long doctorId);
+
+    // 🟢 Patient ID ke basis par appointments fetch karne ke liye yeh line zaroori hai
+    List<Appointment> findByPatientId(Long patientId);
 }

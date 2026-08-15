@@ -29,7 +29,6 @@ public class Appointment {
     @JoinColumn(name = "doctor_id")
     private Doctor doctor;
 
-    @Transient
+    @Column(name = "patient_id")
     private Long patientId;
-
 }

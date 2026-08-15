@@ -51,4 +51,10 @@ public class AppointmentController {
         List<Appointment> appointments = appointmentService.getAppointmentsByDoctorAndStatus(doctorId, status);
         return ResponseEntity.ok(appointments);
     }
+    // GET API: Patient ki saari appointments fetch karne ke liye
+    @GetMapping("/patient/{patientId}")
+    public ResponseEntity<List<Appointment>> getPatientAppointments(@PathVariable Long patientId) {
+        List<Appointment> appointments = appointmentService.getAppointmentsByPatientId(patientId);
+        return ResponseEntity.ok(appointments);
+    }
 }

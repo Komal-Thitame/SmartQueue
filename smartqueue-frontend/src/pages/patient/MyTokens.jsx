@@ -1,24 +1,65 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import "../../styles/PatientDashboard.css";
 
 const MyTokens = () => {
     const navigate = useNavigate();
 
-    // Dynamic user state from localStorage
+    // Dynamic user states from localStorage
     const [patientName, setPatientName] = useState('Patient');
+    const [userId, setUserId] = useState(null);
+    const [tokenData, setTokenData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
 
     useEffect(() => {
         const storedName = localStorage.getItem("userName");
+        const storedId = localStorage.getItem("userId");
+
         if (storedName) {
             setPatientName(storedName);
         }
+
+        if (storedId) {
+            setUserId(storedId);
+            fetchActiveToken(storedId);
+        } else {
+            setLoading(false);
+        }
     }, []);
 
-    // 1. Yeh state logout popup ke liye add ki hai
-    const [isLoggingOut, setIsLoggingOut] = useState(false);
+    // 🟢 Sahi Appointment API endpoint yahan call ho raha hai
+    const fetchActiveToken = async (id) => {
+        try {
+            setLoading(true);
+            const response = await axios.get(`http://localhost:8081/api/appointments/patient/${id}`);
 
-    // 2. Yeh logout function banaya hai jo 2.5 second blur karke redirect karega
+            if (response.data && response.data.length > 0) {
+                // Sabse latest appointment nikalna jo patient ne book ki hai
+                const latestAppt = response.data[response.data.length - 1];
+
+                setTokenData({
+                    tokenNumber: `A-0${latestAppt.id}`,
+                    doctorName: latestAppt.doctorName || "Dr. Assigned",
+                    department: latestAppt.department || "General",
+                    currentServing: "A-01",
+                    status: latestAppt.status || "Waiting",
+                    patientsAhead: 2,
+                    estimatedWaitTime: 15
+                });
+            } else {
+                setTokenData(null);
+            }
+        } catch (error) {
+            console.log("No active token found or API error:", error);
+            setTokenData(null);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Logout function with secure overlay
     const handleLogout = () => {
         setIsLoggingOut(true);
         setTimeout(() => {
@@ -26,15 +67,6 @@ const MyTokens = () => {
             navigate('/login', { replace: true });
         }, 2500);
     };
-
-    const [tokenData, setTokenData] = useState({
-        tokenNumber: "A-05",
-        doctorName: "Dr. Sharma",
-        department: "Cardiology",
-        date: "2026-06-06",
-        currentServing: "A-02",
-        status: "Waiting"
-    });
 
     return (
         <div className="patient-dashboard-container">
@@ -51,7 +83,6 @@ const MyTokens = () => {
                     </nav>
                 </div>
                 <div className="patient-sidebar-bottom">
-                    {/* 3. Yahan onClick mein navigate ki jagah handleLogout laga diya hai */}
                     <button onClick={handleLogout} className="patient-logout-btn">
                         🚪 Logout
                     </button>
@@ -65,14 +96,14 @@ const MyTokens = () => {
                     <div className="patient-header-right">
                         <span style={{ cursor: 'pointer', fontSize: '18px' }}>🔔</span>
 
-                        {/* Clickable Header Profile Section - Redirects to Profile Page */}
+                        {/* Clickable Header Profile Section */}
                         <div
                             onClick={() => navigate('/patient/profile')}
                             style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
                             title="View Profile"
                         >
                             <div className="patient-avatar">
-                                {patientName.charAt(0).toUpperCase()}
+                                {patientName ? patientName.charAt(0).toUpperCase() : 'P'}
                             </div>
                             <span style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>
                                 {patientName}
@@ -87,18 +118,31 @@ const MyTokens = () => {
                         <p className="patient-welcome-sub">Track your live queue status and current running token in real-time.</p>
                     </div>
 
-                    {tokenData ? (
+                    {loading ? (
+                        <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>Loading your token status...</div>
+                    ) : tokenData ? (
                         <div className="token-card-box">
                             <span className="token-live-badge">● Live Queue Active</span>
-                            <p style={{ fontSize: '14px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '1px' }}>Your Token Number</p>
+                            <p style={{ fontSize: '14px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '1px', marginTop: '10px' }}>Your Token Number</p>
                             <h1 className="token-number-display">{tokenData.tokenNumber}</h1>
+
                             <div className="token-details-grid">
                                 <div className="token-detail-item"><p>Doctor</p><p>{tokenData.doctorName}</p></div>
                                 <div className="token-detail-item"><p>Department</p><p>{tokenData.department}</p></div>
-                                <div className="token-detail-item"><p>Currently Serving</p><p className="serving-highlight">{tokenData.currentServing}</p></div>
-                                <div className="token-detail-item"><p>Status</p><p className="status-highlight">{tokenData.status}</p></div>
+                                <div className="token-detail-item"><p>Currently Serving</p><p className="serving-highlight">{tokenData.currentServing || "N/A"}</p></div>
+                                <div className="token-detail-item"><p>Status</p><p className="status-highlight">{tokenData.status || "Waiting"}</p></div>
+
+                                <div className="token-detail-item"><p>Patients Ahead</p><p style={{ fontWeight: '600', color: '#059669' }}>{tokenData.patientsAhead ?? 0} Patients</p></div>
+                                <div className="token-detail-item"><p>Estimated Wait</p><p style={{ fontWeight: '600', color: '#d97706' }}>~{tokenData.estimatedWaitTime || 15} min</p></div>
                             </div>
-                            <button onClick={() => alert("Refreshing live token status...")} className="patient-primary-btn" style={{ width: '100%', padding: '12px', fontSize: '15px' }}>🔄 Refresh Status</button>
+
+                            <button
+                                onClick={() => fetchActiveToken(userId)}
+                                className="patient-primary-btn"
+                                style={{ width: '100%', padding: '12px', fontSize: '15px', marginTop: '15px' }}
+                            >
+                                🔄 Refresh Status
+                            </button>
                         </div>
                     ) : (
                         <div className="patient-content-box" style={{ padding: '40px 0', textAlign: 'center' }}>
@@ -111,7 +155,7 @@ const MyTokens = () => {
                 </div>
             </main>
 
-            {/* 4. Sabse last mein ye popup overlay add hota hai */}
+            {/* Logout Popup Overlay */}
             {isLoggingOut && (
                 <div className="logout-overlay">
                     <div className="logout-modal">
