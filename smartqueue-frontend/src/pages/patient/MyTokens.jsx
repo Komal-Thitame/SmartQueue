@@ -29,7 +29,7 @@ const MyTokens = () => {
         }
     }, []);
 
-    // 🟢 Sahi Appointment API endpoint yahan call ho raha hai
+    // 🟢 Backend se patient ki live appointments fetch karna aur real queue data map karna
     const fetchActiveToken = async (id) => {
         try {
             setLoading(true);
@@ -39,14 +39,23 @@ const MyTokens = () => {
                 // Sabse latest appointment nikalna jo patient ne book ki hai
                 const latestAppt = response.data[response.data.length - 1];
 
+                // Doctor object se name aur department nikalna
+                const doctorName = latestAppt.doctor ? latestAppt.doctor.name : "Dr. Assigned";
+                const department = latestAppt.doctor ? latestAppt.doctor.department : "General";
+
+                // Token number formatting (jaise A-01, A-05)
+                const tokenNumStr = latestAppt.tokenNumber ? `A-0${latestAppt.tokenNumber}` : `A-0${latestAppt.id}`;
+
                 setTokenData({
-                    tokenNumber: `A-0${latestAppt.id}`,
-                    doctorName: latestAppt.doctorName || "Dr. Assigned",
-                    department: latestAppt.department || "General",
-                    currentServing: "A-01",
-                    status: latestAppt.status || "Waiting",
-                    patientsAhead: 2,
-                    estimatedWaitTime: 15
+                    tokenNumber: tokenNumStr,
+                    doctorName: doctorName,
+                    department: department,
+                    // 🟢 Ab ye backend service se dynamic aa raha hai
+                    currentServing: latestAppt.currentServingToken || "A-01",
+                    status: latestAppt.status || "WAITING",
+                    // 🟢 Ab ye dono fields backend se calculate ho kar aa rahi hain
+                    patientsAhead: latestAppt.patientsAhead ?? 0,
+                    estimatedWaitTime: latestAppt.estimatedWaitTime ?? 0
                 });
             } else {
                 setTokenData(null);
@@ -130,10 +139,10 @@ const MyTokens = () => {
                                 <div className="token-detail-item"><p>Doctor</p><p>{tokenData.doctorName}</p></div>
                                 <div className="token-detail-item"><p>Department</p><p>{tokenData.department}</p></div>
                                 <div className="token-detail-item"><p>Currently Serving</p><p className="serving-highlight">{tokenData.currentServing || "N/A"}</p></div>
-                                <div className="token-detail-item"><p>Status</p><p className="status-highlight">{tokenData.status || "Waiting"}</p></div>
+                                <div className="token-detail-item"><p>Status</p><p className="status-highlight">{tokenData.status || "WAITING"}</p></div>
 
                                 <div className="token-detail-item"><p>Patients Ahead</p><p style={{ fontWeight: '600', color: '#059669' }}>{tokenData.patientsAhead ?? 0} Patients</p></div>
-                                <div className="token-detail-item"><p>Estimated Wait</p><p style={{ fontWeight: '600', color: '#d97706' }}>~{tokenData.estimatedWaitTime || 15} min</p></div>
+                                <div className="token-detail-item"><p>Estimated Wait</p><p style={{ fontWeight: '600', color: '#d97706' }}>~{tokenData.estimatedWaitTime || 0} min</p></div>
                             </div>
 
                             <button

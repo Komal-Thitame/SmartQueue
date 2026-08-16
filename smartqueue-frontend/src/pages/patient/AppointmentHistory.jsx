@@ -1,22 +1,73 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import "../../styles/PatientDashboard.css";
 
 const AppointmentHistory = () => {
     const navigate = useNavigate();
 
-    // Dynamic user state from localStorage
+    // Dynamic user states from localStorage
     const [patientName, setPatientName] = useState('Patient');
-
-    useEffect(() => {
-        const storedName = localStorage.getItem("userName");
-        if (storedName) {
-            setPatientName(storedName);
-        }
-    }, []);
+    const [userId, setUserId] = useState(null);
+    const [history, setHistory] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     // Logout Popup state
     const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+    useEffect(() => {
+        const storedName = localStorage.getItem("userName");
+        const storedId = localStorage.getItem("userId");
+
+        if (storedName) {
+            setPatientName(storedName);
+        }
+
+        if (storedId) {
+            setUserId(storedId);
+            fetchAppointmentHistory(storedId);
+        } else {
+            setLoading(false);
+        }
+    }, []);
+
+    // 🟢 Backend se patient ki saari appointments fetch karna
+    const fetchAppointmentHistory = async (id) => {
+        try {
+            setLoading(true);
+            const response = await axios.get(`http://localhost:8081/api/appointments/patient/${id}`);
+
+            if (response.data && response.data.length > 0) {
+                // Backend data ko table format ke hisaab se map karna
+                const formattedHistory = response.data.map((appt) => {
+                    // Date formatting (agar createdAt ya date field maujood ho)
+                    let formattedDate = "N/A";
+                    if (appt.createdAt) {
+                        formattedDate = appt.createdAt.substring(0, 10); // YYYY-MM-DD format
+                    }
+
+                    return {
+                        id: appt.id,
+                        date: formattedDate,
+                        doctor: appt.doctor ? appt.doctor.name : (appt.doctorName || "Dr. Assigned"),
+                        department: appt.doctor ? appt.doctor.department : "General",
+                        token: appt.tokenNumber ? `A-0${appt.tokenNumber}` : `A-0${appt.id}`,
+                        status: appt.status || "WAITING"
+                    };
+                });
+
+                // Latest appointments ko upar dikhane ke liye reverse kar sakte hain ya waise hi rakh sakte hain
+                setHistory(formattedHistory.reverse());
+            } else {
+                setHistory([]);
+            }
+        } catch (error) {
+            console.log("Error fetching appointment history:", error);
+            setHistory([]);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleLogout = () => {
         setIsLoggingOut(true);
@@ -25,13 +76,6 @@ const AppointmentHistory = () => {
             navigate('/login', { replace: true });
         }, 2500);
     };
-
-    // Dummy Data - Ye baad me database se aayega
-    const [history, setHistory] = useState([
-        { id: 1, doctor: "Dr. Sharma", date: "2026-07-15", token: "A-02", status: "Completed" },
-        { id: 2, doctor: "Dr. Rajesh Kumar", date: "2026-06-20", token: "C-01", status: "Completed" },
-        { id: 3, doctor: "Dr. Priya Verma", date: "2026-05-10", token: "B-03", status: "Cancelled" }
-    ]);
 
     return (
         <div className="patient-dashboard-container">
@@ -77,30 +121,47 @@ const AppointmentHistory = () => {
 
                 <div className="patient-body">
                     <div className="history-table-container">
-                        <table className="history-table">
-                            <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Doctor</th>
-                                <th>Token</th>
-                                <th>Status</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {history.map((item) => (
-                                <tr key={item.id}>
-                                    <td>{item.date}</td>
-                                    <td>{item.doctor}</td>
-                                    <td>{item.token}</td>
-                                    <td>
-                                        <span className={item.status === "Completed" ? "status-completed" : "status-cancelled"}>
-                                            {item.status}
-                                        </span>
-                                    </td>
+                        {loading ? (
+                            <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>Loading appointment history...</div>
+                        ) : history.length > 0 ? (
+                            <table className="history-table">
+                                <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Doctor</th>
+                                    <th>Department</th>
+                                    <th>Token</th>
+                                    <th>Status</th>
                                 </tr>
-                            ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                {history.map((item) => (
+                                    <tr key={item.id}>
+                                        <td>{item.date}</td>
+                                        <td>{item.doctor}</td>
+                                        <td>{item.department}</td>
+                                        <td>{item.token}</td>
+                                        <td>
+                                            <span className={
+                                                item.status === "COMPLETED" || item.status === "Completed"
+                                                    ? "status-completed"
+                                                    : item.status === "CANCELLED" || item.status === "Cancelled"
+                                                        ? "status-cancelled"
+                                                        : "status-waiting"
+                                            }>
+                                                {item.status}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))}
+                                </tbody>
+                            </table>
+                        ) : (
+                            <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
+                                <p style={{ fontSize: '16px', fontWeight: '500' }}>No appointment history found.</p>
+                                <p style={{ fontSize: '14px', marginTop: '5px' }}>Your past and active appointments will appear here.</p>
+                            </div>
+                        )}
                     </div>
                 </div>
             </main>

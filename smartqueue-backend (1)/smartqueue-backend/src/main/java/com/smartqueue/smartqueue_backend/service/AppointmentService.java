@@ -53,7 +53,43 @@ public class AppointmentService {
     public List<Appointment> getAppointmentsByDoctorAndStatus(Long doctorId, AppointmentStatus status) {
         return appointmentRepository.findByDoctorIdAndStatus(doctorId, status);
     }
+
+    // Patient ki appointments laana aur live queue tracking calculate karna
     public List<Appointment> getAppointmentsByPatientId(Long patientId) {
-        return appointmentRepository.findByPatientId(patientId);
+        List<Appointment> appointments = appointmentRepository.findByPatientId(patientId);
+
+        for (Appointment appt : appointments) {
+            if (appt.getDoctor() != null && appt.getStatus() == AppointmentStatus.WAITING) {
+                Long doctorId = appt.getDoctor().getId();
+
+                // 1. Is token se pehle kitne log WAITING mein hain
+                long aheadCount = appointmentRepository.countByDoctorIdAndStatusAndTokenNumberLessThan(
+                        doctorId, AppointmentStatus.WAITING, appt.getTokenNumber()
+                );
+                appt.setPatientsAhead((int) aheadCount);
+
+                // 2. Estimated Wait Time (Har patient ka 5 min average maan kar)
+                appt.setEstimatedWaitTime((int) (aheadCount * 5));
+
+                // 3. Currently Serving Token pata karna
+                List<Appointment> servingList = appointmentRepository.findByDoctorIdAndStatusOrderByTokenNumberAsc(
+                        doctorId, AppointmentStatus.IN_CONSULTATION
+                );
+                if (!servingList.isEmpty()) {
+                    appt.setCurrentServingToken("A-0" + servingList.get(0).getTokenNumber());
+                } else {
+                    List<Appointment> waitingList = appointmentRepository.findByDoctorIdAndStatusOrderByTokenNumberAsc(
+                            doctorId, AppointmentStatus.WAITING
+                    );
+                    if (!waitingList.isEmpty()) {
+                        appt.setCurrentServingToken("A-0" + waitingList.get(0).getTokenNumber());
+                    } else {
+                        appt.setCurrentServingToken("A-01");
+                    }
+                }
+            }
+        }
+
+        return appointments;
     }
 }

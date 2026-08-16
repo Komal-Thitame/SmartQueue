@@ -31,4 +31,14 @@ public class Appointment {
 
     @Column(name = "patient_id")
     private Long patientId;
+
+    // 🟢 Yeh teeno fields add karne se service layer ki saari 'cannot resolve method' errors solve ho jayengi
+    @Transient
+    private Integer patientsAhead;
+
+    @Transient
+    private Integer estimatedWaitTime;
+
+    @Transient
+    private String currentServingToken;
 }

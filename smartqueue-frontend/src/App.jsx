@@ -10,8 +10,10 @@ import BookAppointment from "./pages/patient/BookAppointment"; // 👈 Ye import
 import MyTokens from "./pages/patient/MyTokens"; // 👈 Ye import karein
 import AppointmentHistory from "./pages/patient/AppointmentHistory"; // 👈 Ye import karein
 import PatientProfile from "./pages/patient/PatientProfile";
-
-
+import ReceptionistDashboard from "./pages/receptionist/ReceptionistDashboard";
+import ReceptionistAppointments from './pages/receptionist/ReceptionistAppointments';
+import ReceptionistQueue from './pages/receptionist/ReceptionistQueue';
+import ReceptionistPatients from './pages/receptionist/ReceptionistPatients';
 
 
 function App() {
@@ -28,8 +30,10 @@ function App() {
             <Route path="/patient/mytokens" element={<MyTokens/>} /> {/* 👈 Ye route add karein */}
             <Route path="/patient/appointmenthistory" element={<AppointmentHistory/>} /> {/* 👈 Ye route add karein */}
             <Route path="/patient/profile" element={<PatientProfile />} />
-
-
+            <Route path="/receptionist/dashboard" element={<ReceptionistDashboard />} />
+            <Route path="/receptionist/appointments" element={<ReceptionistAppointments />} />
+            <Route path="/receptionist/queue" element={<ReceptionistQueue />} />
+            <Route path="/receptionist/patients" element={<ReceptionistPatients />} />
         </Routes>
       </BrowserRouter>
   );
