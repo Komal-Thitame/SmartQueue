@@ -14,7 +14,9 @@ import ReceptionistDashboard from "./pages/receptionist/ReceptionistDashboard";
 import ReceptionistAppointments from './pages/receptionist/ReceptionistAppointments';
 import ReceptionistQueue from './pages/receptionist/ReceptionistQueue';
 import ReceptionistPatients from './pages/receptionist/ReceptionistPatients';
-
+import DoctorDashboard from './pages/doctor/DoctorDashboard';
+import DoctorQueue from './pages/doctor/DoctorQueue';
+import DoctorPatients from './pages/doctor/DoctorPatients';
 
 function App() {
   return (
@@ -34,6 +36,9 @@ function App() {
             <Route path="/receptionist/appointments" element={<ReceptionistAppointments />} />
             <Route path="/receptionist/queue" element={<ReceptionistQueue />} />
             <Route path="/receptionist/patients" element={<ReceptionistPatients />} />
+            <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
+            <Route path="/doctor/queue" element={<DoctorQueue />} />
+            <Route path="/doctor/patients" element={<DoctorPatients />} />
         </Routes>
       </BrowserRouter>
   );
