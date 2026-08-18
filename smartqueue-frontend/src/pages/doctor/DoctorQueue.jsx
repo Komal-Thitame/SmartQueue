@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import "../../styles/ReceptionistDashboard.css";
 
 const DoctorQueue = () => {
@@ -7,31 +8,56 @@ const DoctorQueue = () => {
     const [doctorName, setDoctorName] = useState('Doctor');
     const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-    const [queueList, setQueueList] = useState([
-        { id: 1, token: "A-01", patientName: "Rahul Sharma", age: 28, gender: "Male", status: "IN-PROGRESS" },
-        { id: 2, token: "A-02", patientName: "Priya Verma", age: 24, gender: "Female", status: "WAITING" },
-        { id: 3, token: "A-03", patientName: "Amit Kumar", age: 32, gender: "Male", status: "WAITING" },
-    ]);
+    const [queueList, setQueueList] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const storedName = localStorage.getItem("userName");
+        const userId = localStorage.getItem("userId");
+
         if (storedName) {
             setDoctorName(storedName);
         }
+
+        if (userId) {
+            fetchDoctorQueue(userId);
+        } else {
+            setLoading(false);
+        }
     }, []);
+
+    const fetchDoctorQueue = async (userId) => {
+        try {
+            const response = await axios.get(`http://localhost:8081/api/queue/doctor-queue/${userId}`);
+            setQueueList(response.data);
+            setLoading(false);
+        } catch (error) {
+            console.error("Error fetching doctor queue:", error);
+            setLoading(false);
+        }
+    };
 
     const handleLogout = () => {
         setIsLoggingOut(true);
         setTimeout(() => {
             localStorage.clear();
             navigate('/login', { replace: true });
-        }, 2000); // 👈 Exactly 2 seconds timer
+        }, 2000);
     };
 
-    const updateStatus = (id, newStatus) => {
-        setQueueList(queueList.map(item =>
-            item.id === id ? { ...item, status: newStatus } : item
-        ));
+    const updateStatus = async (id, newStatus) => {
+        try {
+            await axios.put(`http://localhost:8081/api/queue/update/${id}`, {
+                status: newStatus
+            });
+
+            setQueueList(queueList.map(item =>
+                item.id === id ? { ...item, status: newStatus } : item
+            ));
+        } catch (error) {
+            console.error("Error updating status:", error);
+            alert("Failed to update status");
+        }
     };
 
     return (
@@ -72,54 +98,60 @@ const DoctorQueue = () => {
 
                     {/* Queue Table */}
                     <div className="table-card">
-                        <table className="custom-table">
-                            <thead>
-                            <tr>
-                                <th>Token</th>
-                                <th>Patient Name</th>
-                                <th>Age / Gender</th>
-                                <th>Status</th>
-                                <th>Action</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {queueList.map((item) => (
-                                <tr key={item.id}>
-                                    <td style={{ fontWeight: '700', color: '#059669' }}>{item.token}</td>
-                                    <td>{item.patientName}</td>
-                                    <td>{item.age} yrs / {item.gender}</td>
-                                    <td>
-                                        <span className={`status-badge ${item.status.toLowerCase()}`}>
-                                            {item.status}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div style={{ display: 'flex', gap: '8px' }}>
-                                            {item.status === "WAITING" && (
-                                                <button
-                                                    className="action-btn"
-                                                    style={{ background: '#3b82f6', color: '#fff' }}
-                                                    onClick={() => updateStatus(item.id, "IN-PROGRESS")}>
-                                                    Start Checkup
-                                                </button>
-                                            )}
-                                            {item.status === "IN-PROGRESS" && (
-                                                <button
-                                                    className="action-btn"
-                                                    style={{ background: '#22c55e', color: '#fff' }}
-                                                    onClick={() => updateStatus(item.id, "COMPLETED")}>
-                                                    Finish
-                                                </button>
-                                            )}
-                                            {item.status === "COMPLETED" && (
-                                                <span style={{ fontSize: '12px', color: '#6b7280', fontWeight: '500' }}>Done</span>
-                                            )}
-                                        </div>
-                                    </td>
+                        {loading ? (
+                            <p style={{ textAlign: 'center', padding: '20px', color: '#6b7280' }}>Loading live queue...</p>
+                        ) : queueList.length === 0 ? (
+                            <p style={{ textAlign: 'center', padding: '20px', color: '#6b7280' }}>No patients in the queue right now.</p>
+                        ) : (
+                            <table className="custom-table">
+                                <thead>
+                                <tr>
+                                    <th>Token</th>
+                                    <th>Patient Name</th>
+                                    <th>Age / Gender</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
                                 </tr>
-                            ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                {queueList.map((item) => (
+                                    <tr key={item.id}>
+                                        <td style={{ fontWeight: '700', color: '#059669' }}>{item.tokenNumber || item.token}</td>
+                                        <td>{item.patientName}</td>
+                                        <td>{item.age || 'N/A'} yrs / {item.gender || 'N/A'}</td>
+                                        <td>
+                                            <span className={`status-badge ${(item.status || '').toLowerCase()}`}>
+                                                {item.status}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div style={{ display: 'flex', gap: '8px' }}>
+                                                {item.status === "WAITING" && (
+                                                    <button
+                                                        className="action-btn"
+                                                        style={{ background: '#3b82f6', color: '#fff' }}
+                                                        onClick={() => updateStatus(item.id, "IN-PROGRESS")}>
+                                                        Start Checkup
+                                                    </button>
+                                                )}
+                                                {item.status === "IN-PROGRESS" && (
+                                                    <button
+                                                        className="action-btn"
+                                                        style={{ background: '#22c55e', color: '#fff' }}
+                                                        onClick={() => updateStatus(item.id, "COMPLETED")}>
+                                                        Finish
+                                                    </button>
+                                                )}
+                                                {item.status === "COMPLETED" && (
+                                                    <span style={{ fontSize: '12px', color: '#6b7280', fontWeight: '550' }}>Done</span>
+                                                )}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                                </tbody>
+                            </table>
+                        )}
                     </div>
                 </div>
             </main>

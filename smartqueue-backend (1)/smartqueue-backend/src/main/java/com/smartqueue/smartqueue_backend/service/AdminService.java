@@ -10,6 +10,7 @@ import com.smartqueue.smartqueue_backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -25,7 +26,6 @@ public class AdminService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    // Add New Doctor
     public Doctor addDoctor(DoctorDTO doctorDTO) {
         if (userRepository.existsByEmail(doctorDTO.getEmail())) {
             throw new RuntimeException("Email already registered!");
@@ -53,7 +53,6 @@ public class AdminService {
         return doctorRepository.save(doctor);
     }
 
-    // Add New Receptionist
     public User addReceptionist(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email already registered!");
@@ -69,24 +68,29 @@ public class AdminService {
         return userRepository.save(user);
     }
 
-    // Get All Doctors
     public List<Doctor> getAllDoctors() {
         return doctorRepository.findAll();
-
     }
-    // Sabhi Receptionists ki list nikalne ke liye
+
     public List<User> getAllReceptionists() {
         return userRepository.findByRole(Role.RECEPTIONIST);
     }
-    // 1. Delete Doctor
+
+    // 🟢 SAFE DELETE DOCTOR (Linked User ko bhi clean karega)
+    @Transactional
     public void deleteDoctor(Long id) {
-        if (!doctorRepository.existsById(id)) {
-            throw new RuntimeException("Doctor not found with id: " + id);
+        Doctor doctor = doctorRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Doctor not found with id: " + id));
+
+        // Agar user account linked hai toh use bhi delete karein
+        if (doctor.getUser() != null) {
+            userRepository.delete(doctor.getUser());
         }
-        doctorRepository.deleteById(id);
+
+        doctorRepository.delete(doctor);
     }
 
-    // 2. Delete Receptionist / User
+    @Transactional
     public void deleteReceptionist(Long id) {
         if (!userRepository.existsById(id)) {
             throw new RuntimeException("Receptionist not found with id: " + id);

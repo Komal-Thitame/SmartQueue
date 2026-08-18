@@ -71,7 +71,7 @@ const DoctorSection = () => {
             department: doc.department || 'Cardiology',
             specialization: doc.specialization || '',
             email: doc.email || '',
-            password: '', // Password security reasons ke liye empty rakhte hain
+            password: '', // Password empty rakha hai security/optional ke liye
             phone: doc.phone || '',
             roomNumber: doc.roomNumber || '',
             consultationFee: doc.consultationFee ? String(doc.consultationFee) : '500',
@@ -89,7 +89,9 @@ const DoctorSection = () => {
     const handleAddDoctorSubmit = async (e) => {
         e.preventDefault();
 
+        // Fix: Edit mode mein id bhi DTO ke andar pass karna zaroori hai
         const doctorDTO = {
+            id: isEditMode ? editingDoctorId : null,
             name: newDoc.name,
             department: newDoc.department,
             specialization: newDoc.specialization || newDoc.department,
@@ -102,15 +104,10 @@ const DoctorSection = () => {
         };
 
         try {
-            // Edit ke time POST/PUT URL switch karein
-            const url = isEditMode
-                ? `http://localhost:8081/api/admin/add-doctor` // Aapka backend edit bhi save karta hai
-                : 'http://localhost:8081/api/admin/add-doctor';
-
-            const response = await fetch(url, {
+            const response = await fetch('http://localhost:8081/api/admin/add-doctor', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(isEditMode ? { ...doctorDTO, id: editingDoctorId } : doctorDTO)
+                body: JSON.stringify(doctorDTO)
             });
 
             if (response.ok) {
@@ -119,8 +116,15 @@ const DoctorSection = () => {
                 setNewDoc(initialFormState);
                 fetchDoctors();
             } else {
-                const result = await response.json();
-                alert("Error: " + (result.message || "Save nahi ho saka"));
+                let errorMsg = "Save nahi ho saka";
+                try {
+                    const result = await response.json();
+                    errorMsg = result.message || errorMsg;
+                } catch (err) {
+                    // Agar response text format mein ho
+                    errorMsg = await response.text() || errorMsg;
+                }
+                alert("Error: " + errorMsg);
             }
         } catch (error) {
             console.error("API Error:", error);
@@ -135,12 +139,23 @@ const DoctorSection = () => {
                 const response = await fetch(`http://localhost:8081/api/admin/doctor/${id}`, {
                     method: 'DELETE'
                 });
+
                 if (response.ok) {
                     alert("Doctor removed successfully!");
-                    fetchDoctors();
+                    fetchDoctors(); // UI list turant update hogi
+                } else {
+                    let errorText = "Failed to delete doctor";
+                    try {
+                        const resJson = await response.json();
+                        errorText = resJson.message || errorText;
+                    } catch (e) {
+                        errorText = await response.text() || errorText;
+                    }
+                    alert("Error: " + errorText);
                 }
             } catch (error) {
                 console.error("Delete error:", error);
+                alert("Server error during deletion.");
             }
         }
     };

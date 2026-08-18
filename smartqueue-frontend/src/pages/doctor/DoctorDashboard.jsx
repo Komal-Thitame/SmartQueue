@@ -1,50 +1,78 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import "../../styles/ReceptionistDashboard.css"; // Hum same CSS use kar sakte hain consistency ke liye
+import axios from 'axios';
+import "../../styles/ReceptionistDashboard.css";
 
 const DoctorDashboard = () => {
     const navigate = useNavigate();
     const [doctorName, setDoctorName] = useState('Doctor');
     const [isLoggingOut, setIsLoggingOut] = useState(false);
+    const [doctorQueue, setDoctorQueue] = useState([]);
 
-    // Doctor stats
+    // Doctor dynamic stats calculated from queue data
+    const totalPatients = doctorQueue.length;
+    const waitingPatients = doctorQueue.filter(item => item.status === "WAITING").length;
+    const completedConsultations = doctorQueue.filter(item => item.status === "COMPLETED").length;
+
     const stats = [
-        { title: "Today's Patients", count: 8, color: "#3b82f6" },
-        { title: "Waiting in Queue", count: 3, color: "#eab308" },
-        { title: "Completed Consultations", count: 5, color: "#22c55e" }
+        { title: "Today's Patients", count: totalPatients > 0 ? totalPatients : 0, color: "#3b82f6" },
+        { title: "Waiting in Queue", count: waitingPatients, color: "#eab308" },
+        { title: "Completed Consultations", count: completedConsultations, color: "#22c55e" }
     ];
-
-    // Live queue for doctor
-    const [doctorQueue, setDoctorQueue] = useState([
-        { id: 1, token: "A-01", patientName: "Rahul Sharma", age: 28, gender: "Male", status: "IN-PROGRESS" },
-        { id: 2, token: "A-02", patientName: "Priya Verma", age: 24, gender: "Female", status: "WAITING" },
-        { id: 3, token: "A-03", patientName: "Amit Kumar", age: 32, gender: "Male", status: "WAITING" },
-    ]);
 
     useEffect(() => {
         const storedName = localStorage.getItem("userName");
         if (storedName) {
             setDoctorName(storedName);
         }
-    }, []);
+
+        // 🟢 FIXED: Direct logged-in doctor ki ID localStorage se fetch karein
+        const doctorId = localStorage.getItem("userId");
+
+        if (doctorId) {
+            fetchDoctorQueue(doctorId);
+        } else {
+            console.error("No Doctor ID found in localStorage!");
+            navigate('/login', { replace: true });
+        }
+    }, [navigate]);
+
+    // Database se live queue fetch karne ka function
+    const fetchDoctorQueue = async (doctorId) => {
+        try {
+            console.log(`Fetching queue for doctor ID: ${doctorId}`);
+            const response = await axios.get(`http://localhost:8081/api/queue/doctor-queue/${doctorId}`);
+            console.log("Queue data received:", response.data);
+            setDoctorQueue(response.data);
+        } catch (error) {
+            console.error("Error fetching queue:", error);
+        }
+    };
 
     const handleLogout = () => {
         setIsLoggingOut(true);
         setTimeout(() => {
             localStorage.clear();
             navigate('/login', { replace: true });
-        }, 2000); // 👈 Exactly 2 seconds timer
+        }, 2000);
     };
 
-    const updateStatus = (id, newStatus) => {
-        setDoctorQueue(doctorQueue.map(item =>
-            item.id === id ? { ...item, status: newStatus } : item
-        ));
+    // Database mein status update karne ka function
+    const updateStatus = async (id, newStatus) => {
+        try {
+            await axios.put(`http://localhost:8081/api/queue/update/${id}`, { status: newStatus });
+
+            // UI refresh / local state update
+            setDoctorQueue(doctorQueue.map(item =>
+                item.id === id ? { ...item, status: newStatus } : item
+            ));
+        } catch (error) {
+            console.error("Error updating status:", error);
+        }
     };
 
     return (
         <div className="receptionist-container">
-            {/* Sidebar Navigation */}
             <aside className="receptionist-sidebar">
                 <div className="sidebar-top">
                     <div className="sidebar-brand">SmartQueue</div>
@@ -59,7 +87,6 @@ const DoctorDashboard = () => {
                 </div>
             </aside>
 
-            {/* Main Content Area */}
             <main className="receptionist-main">
                 <header className="receptionist-header">
                     <h1 className="header-title">Doctor Dashboard</h1>
@@ -75,10 +102,8 @@ const DoctorDashboard = () => {
                 <div className="receptionist-body">
                     <div className="mb-6">
                         <h2 className="welcome-title">Welcome, Dr. {doctorName} 🩺</h2>
-                        <p className="welcome-sub">Manage your active patient consultations and live queue flow.</p>
                     </div>
 
-                    {/* Stats Grid */}
                     <div className="stats-grid">
                         {stats.map((s, index) => (
                             <div key={index} className="stat-card" style={{ borderLeft: `5px solid ${s.color}` }}>
@@ -88,7 +113,6 @@ const DoctorDashboard = () => {
                         ))}
                     </div>
 
-                    {/* Live Queue Table */}
                     <div className="table-card">
                         <h3 className="table-heading">Live Consultation Queue</h3>
                         <table className="custom-table">
@@ -102,54 +126,45 @@ const DoctorDashboard = () => {
                             </tr>
                             </thead>
                             <tbody>
-                            {doctorQueue.map((item) => (
-                                <tr key={item.id}>
-                                    <td style={{ fontWeight: '700', color: '#059669' }}>{item.token}</td>
-                                    <td>{item.patientName}</td>
-                                    <td>{item.age} yrs / {item.gender}</td>
-                                    <td>
-                                            <span className={`status-badge ${item.status.toLowerCase()}`}>
+                            {doctorQueue.length > 0 ? (
+                                doctorQueue.map((item) => (
+                                    <tr key={item.id}>
+                                        <td style={{ fontWeight: '700', color: '#059669' }}>{item.tokenNumber}</td>
+                                        <td>{item.patientName || "N/A"}</td>
+                                        <td>{item.age ? `${item.age} yrs` : "-"} {item.gender ? `/ ${item.gender}` : ""}</td>
+                                        <td>
+                                            <span className={`status-badge ${item.status ? item.status.toLowerCase() : 'waiting'}`}>
                                                 {item.status}
                                             </span>
-                                    </td>
-                                    <td>
-                                        <div style={{ display: 'flex', gap: '8px' }}>
-                                            {item.status === "WAITING" && (
-                                                <button
-                                                    className="action-btn"
-                                                    style={{ background: '#3b82f6', color: '#fff' }}
-                                                    onClick={() => updateStatus(item.id, "IN-PROGRESS")}>
-                                                    Start Checkup
-                                                </button>
-                                            )}
-                                            {item.status === "IN-PROGRESS" && (
-                                                <button
-                                                    className="action-btn"
-                                                    style={{ background: '#22c55e', color: '#fff' }}
-                                                    onClick={() => updateStatus(item.id, "COMPLETED")}>
-                                                    Finish
-                                                </button>
-                                            )}
-                                            {item.status === "COMPLETED" && (
-                                                <span style={{ fontSize: '12px', color: '#6b7280', fontWeight: '500' }}>Done</span>
-                                            )}
-                                        </div>
-                                    </td>
+                                        </td>
+                                        <td>
+                                            <div style={{ display: 'flex', gap: '8px' }}>
+                                                {item.status === "WAITING" && (
+                                                    <button className="action-btn" style={{ background: '#3b82f6', color: '#fff' }} onClick={() => updateStatus(item.id, "SERVING")}>Start Checkup</button>
+                                                )}
+                                                {item.status === "SERVING" && (
+                                                    <button className="action-btn" style={{ background: '#22c55e', color: '#fff' }} onClick={() => updateStatus(item.id, "COMPLETED")}>Finish</button>
+                                                )}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan="5" style={{ textAlign: 'center', padding: '20px' }}>No patients in queue.</td>
                                 </tr>
-                            ))}
+                            )}
                             </tbody>
                         </table>
                     </div>
                 </div>
             </main>
 
-            {/* Logout Overlay */}
             {isLoggingOut && (
                 <div className="logout-overlay">
                     <div className="logout-modal">
                         <div className="logout-spinner"></div>
                         <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#1f2937', margin: '0' }}>Logging out securely...</h3>
-                        <p style={{ fontSize: '14px', color: '#6b7280', margin: '0' }}>Please wait while we clear your session.</p>
                     </div>
                 </div>
             )}

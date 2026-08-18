@@ -1,37 +1,52 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import "../../styles/ReceptionistDashboard.css";
 
 const DoctorPatients = () => {
     const navigate = useNavigate();
     const [doctorName, setDoctorName] = useState('Doctor');
     const [isLoggingOut, setIsLoggingOut] = useState(false);
-
-    // Patients list who visited the doctor
-    const [patientsList, setPatientsList] = useState([
-        { id: 1, name: "Rahul Sharma", email: "rahul@gmail.com", phone: "9878787889", age: 28, gender: "Male", lastVisit: "2026-08-16", diagnosis: "Viral Fever" },
-        { id: 2, name: "Priya Verma", email: "priya@gmail.com", phone: "8989787889", age: 24, gender: "Female", lastVisit: "2026-08-16", diagnosis: "Routine Checkup" },
-        { id: 3, name: "Amit Kumar", email: "amit@gmail.com", phone: "7878787889", age: 32, gender: "Male", lastVisit: "2026-08-15", diagnosis: "Hypertension" }
-    ]);
+    const [patientsList, setPatientsList] = useState([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const storedName = localStorage.getItem("userName");
+        const userId = localStorage.getItem("userId");
+
         if (storedName) {
             setDoctorName(storedName);
         }
+
+        if (userId) {
+            fetchPatientHistory(userId);
+        } else {
+            setLoading(false);
+        }
     }, []);
+
+    const fetchPatientHistory = async (userId) => {
+        try {
+            // 🟢 Fixed: properly using await and axios.get
+            const response = await axios.get(`http://localhost:8081/api/queue/doctor-history/${userId}`);
+            setPatientsList(response.data);
+            setLoading(false);
+        } catch (error) {
+            console.error("Error fetching patient records:", error);
+            setLoading(false);
+        }
+    };
 
     const handleLogout = () => {
         setIsLoggingOut(true);
         setTimeout(() => {
             localStorage.clear();
             navigate('/login', { replace: true });
-        }, 2000); // 👈 Exactly 2 seconds timer
+        }, 2000);
     };
 
     return (
         <div className="receptionist-container">
-            {/* Sidebar Navigation */}
             <aside className="receptionist-sidebar">
                 <div className="sidebar-top">
                     <div className="sidebar-brand">SmartQueue</div>
@@ -46,7 +61,6 @@ const DoctorPatients = () => {
                 </div>
             </aside>
 
-            {/* Main Content Area */}
             <main className="receptionist-main">
                 <header className="receptionist-header">
                     <h1 className="header-title">Patients Records</h1>
@@ -62,45 +76,46 @@ const DoctorPatients = () => {
                 <div className="receptionist-body">
                     <div className="mb-6">
                         <h2 className="welcome-title">My Consulted Patients</h2>
-                        <p className="welcome-sub">View patient medical records, history, and diagnosis details.</p>
+                        <p className="welcome-sub">View patient medical records and visit history.</p>
                     </div>
 
-                    {/* Patients Table */}
                     <div className="table-card">
-                        <table className="custom-table">
-                            <thead>
-                            <tr>
-                                <th>Patient Name</th>
-                                <th>Contact</th>
-                                <th>Age / Gender</th>
-                                <th>Last Visit</th>
-                                <th>Diagnosis</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {patientsList.map((patient) => (
-                                <tr key={patient.id}>
-                                    <td style={{ fontWeight: '600', color: '#1f2937' }}>{patient.name}</td>
-                                    <td>
-                                        <div style={{ fontSize: '13px' }}>{patient.phone}</div>
-                                        <div style={{ fontSize: '11px', color: '#6b7280' }}>{patient.email}</div>
-                                    </td>
-                                    <td>{patient.age} yrs / {patient.gender}</td>
-                                    <td>{patient.lastVisit}</td>
-                                    <td>
-                                            <span style={{ background: '#e0e7ff', color: '#3730a3', padding: '4px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: '500' }}>
-                                                {patient.diagnosis}
-                                            </span>
-                                    </td>
+                        {loading ? (
+                            <p style={{ textAlign: 'center', padding: '20px', color: '#6b7280' }}>Loading records...</p>
+                        ) : patientsList.length === 0 ? (
+                            <p style={{ textAlign: 'center', padding: '20px', color: '#6b7280' }}>No consultation history found.</p>
+                        ) : (
+                            <table className="custom-table">
+                                <thead>
+                                <tr>
+                                    <th>Token</th>
+                                    <th>Patient Name</th>
+                                    <th>Age / Gender</th>
+                                    <th>Department</th>
+                                    <th>Status</th>
                                 </tr>
-                            ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                {patientsList.map((patient) => (
+                                    <tr key={patient.id}>
+                                        <td style={{ fontWeight: '700', color: '#059669' }}>{patient.tokenNumber}</td>
+                                        <td style={{ fontWeight: '600' }}>{patient.patientName}</td>
+                                        <td>{patient.age || 'N/A'} yrs / {patient.gender || 'N/A'}</td>
+                                        <td>{patient.department}</td>
+                                        <td>
+                                                <span className={`status-badge ${(patient.status || '').toLowerCase()}`}>
+                                                    {patient.status}
+                                                </span>
+                                        </td>
+                                    </tr>
+                                ))}
+                                </tbody>
+                            </table>
+                        )}
                     </div>
                 </div>
             </main>
 
-            {/* Logout Overlay */}
             {isLoggingOut && (
                 <div className="logout-overlay">
                     <div className="logout-modal">

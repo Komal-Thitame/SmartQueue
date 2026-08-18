@@ -3,9 +3,11 @@ package com.smartqueue.smartqueue_backend.service;
 import com.smartqueue.smartqueue_backend.entity.Appointment;
 import com.smartqueue.smartqueue_backend.entity.AppointmentStatus;
 import com.smartqueue.smartqueue_backend.entity.Doctor;
+import com.smartqueue.smartqueue_backend.entity.QueueToken; // 🟢 Import QueueToken
 import com.smartqueue.smartqueue_backend.entity.User;
 import com.smartqueue.smartqueue_backend.repository.AppointmentRepository;
 import com.smartqueue.smartqueue_backend.repository.DoctorRepository;
+import com.smartqueue.smartqueue_backend.repository.QueueTokenRepository; // 🟢 Import Repository
 import com.smartqueue.smartqueue_backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,7 +24,10 @@ public class AppointmentService {
     private DoctorRepository doctorRepository;
 
     @Autowired
-    private UserRepository userRepository; // UserRepository inject kiya
+    private UserRepository userRepository;
+
+    @Autowired
+    private QueueTokenRepository queueTokenRepository; // 🟢 Inject QueueTokenRepository
 
     // Appointment book karne aur token generate karne ka method
     public Appointment bookAppointment(Long doctorId, Appointment appointmentDetails) {
@@ -46,7 +51,20 @@ public class AppointmentService {
         appointmentDetails.setTokenNumber(nextToken);
         appointmentDetails.setStatus(AppointmentStatus.WAITING);
 
-        return appointmentRepository.save(appointmentDetails);
+        // 1. Appointment save karein
+        Appointment savedAppointment = appointmentRepository.save(appointmentDetails);
+
+        // 2. 🟢 YAHAN SATH MEIN QUEUE TOKEN BHI SAVE KAREIN (Taki Doctor Dashboard par dikhe)
+        QueueToken queueToken = new QueueToken();
+        queueToken.setTokenNumber("A-" + (nextToken < 10 ? "0" + nextToken : nextToken));
+        queueToken.setDepartment(doctor.getDepartment());
+        queueToken.setStatus("WAITING");
+        queueToken.setDoctorId(doctorId); // 🔴 Yeh sabse zaroori hai!
+        queueToken.setPatientName(savedAppointment.getPatientName());
+
+        queueTokenRepository.save(queueToken);
+
+        return savedAppointment;
     }
 
     // Specific doctor aur status ke hisaab se appointments laana

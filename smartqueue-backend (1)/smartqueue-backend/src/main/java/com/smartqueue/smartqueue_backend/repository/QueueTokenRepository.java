@@ -10,12 +10,15 @@ import java.util.Optional;
 @Repository
 public interface QueueTokenRepository extends JpaRepository<QueueToken, Long> {
 
-    // 1. Find first token by department and status, ordered by createdAt Ascending
     Optional<QueueToken> findFirstByDepartmentAndStatusOrderByCreatedAtAsc(String department, String status);
 
-    // 2. Find first token by department and status, ordered by updatedAt Descending
     Optional<QueueToken> findFirstByDepartmentAndStatusOrderByUpdatedAtDesc(String department, String status);
 
-    // 3. Find list of tokens by department and status
     List<QueueToken> findByDepartmentAndStatus(String department, String status);
+
+    List<QueueToken> findByDoctorIdAndStatusNot(Long doctorId, String status);
+
+    // 🟢 ADD THIS: Doctor ke saare patients (History + Live) fetch karne ke liye
+    List<QueueToken> findByDoctorId(Long doctorId);
+
 }

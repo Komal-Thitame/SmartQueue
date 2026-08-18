@@ -9,9 +9,9 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "queue_tokens")
-@Data                       // Autogenerates Getters, Setters, toString, equals, and hashCode
-@NoArgsConstructor          // Creates default constructor: public QueueToken()
-@AllArgsConstructor         // Creates full constructor with all fields
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class QueueToken {
 
     @Id
@@ -22,6 +22,11 @@ public class QueueToken {
     private String department;
     private String status; // WAITING, SERVING, COMPLETED, SKIPPED
 
+    private Long doctorId;
+
+    // 🟢 Yeh line add karna zaroori hai taaki setPatientName error na aaye
+    private String patientName;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -30,6 +35,16 @@ public class QueueToken {
         this.tokenNumber = tokenNumber;
         this.department = department;
         this.status = status;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    // Custom Constructor with doctorId (4 arguments)
+    public QueueToken(String tokenNumber, String department, String status, Long doctorId) {
+        this.tokenNumber = tokenNumber;
+        this.department = department;
+        this.status = status;
+        this.doctorId = doctorId;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }

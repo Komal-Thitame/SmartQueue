@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import "../../styles/PatientDashboard.css"; // Shared styling ke liye
+import "../../styles/PatientDashboard.css";
 
 const BookAppointment = () => {
     const navigate = useNavigate();
@@ -61,10 +61,10 @@ const BookAppointment = () => {
             const bookingData = {
                 appointmentDate: appointmentDate,
                 symptoms: reason,
-                patientId: patientId || null // Agar ID na ho toh null jayega lekin booking nahi रुकेगी
+                patientId: patientId || null
             };
 
-            // Spring Boot backend API call for booking on Port 8081
+            // Spring Boot backend API call for booking on Port 8081 (Passing selectedDoctor.id)
             const response = await axios.post(`http://localhost:8081/api/appointments/book/${selectedDoctor.id}`, bookingData);
 
             alert(`Appointment successfully booked! Your Token Number is: ${response.data.tokenNumber}`);
