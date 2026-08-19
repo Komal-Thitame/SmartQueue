@@ -19,6 +19,9 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     // 🟢 Is token number se chhote aur WAITING status wale total appointments count karne ke liye
     long countByDoctorIdAndStatusAndTokenNumberLessThan(Long doctorId, AppointmentStatus status, Integer tokenNumber);
 
+    long countByDoctorIdAndAppointmentDateAndStatusAndTokenNumberLessThan(
+            Long doctorId, String appointmentDate, AppointmentStatus status, int tokenNumber
+    );
     // 🟢 Doctor ka currently serving ya sabse pehla active token nikalne ke liye
     List<Appointment> findByDoctorIdAndStatusOrderByTokenNumberAsc(Long doctorId, AppointmentStatus status);
 }

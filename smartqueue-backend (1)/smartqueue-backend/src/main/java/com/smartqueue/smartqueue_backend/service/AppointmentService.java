@@ -3,15 +3,16 @@ package com.smartqueue.smartqueue_backend.service;
 import com.smartqueue.smartqueue_backend.entity.Appointment;
 import com.smartqueue.smartqueue_backend.entity.AppointmentStatus;
 import com.smartqueue.smartqueue_backend.entity.Doctor;
-import com.smartqueue.smartqueue_backend.entity.QueueToken; // 🟢 Import QueueToken
+import com.smartqueue.smartqueue_backend.entity.QueueToken;
 import com.smartqueue.smartqueue_backend.entity.User;
 import com.smartqueue.smartqueue_backend.repository.AppointmentRepository;
 import com.smartqueue.smartqueue_backend.repository.DoctorRepository;
-import com.smartqueue.smartqueue_backend.repository.QueueTokenRepository; // 🟢 Import Repository
+import com.smartqueue.smartqueue_backend.repository.QueueTokenRepository;
 import com.smartqueue.smartqueue_backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -27,7 +28,7 @@ public class AppointmentService {
     private UserRepository userRepository;
 
     @Autowired
-    private QueueTokenRepository queueTokenRepository; // 🟢 Inject QueueTokenRepository
+    private QueueTokenRepository queueTokenRepository;
 
     // Appointment book karne aur token generate karne ka method
     public Appointment bookAppointment(Long doctorId, Appointment appointmentDetails) {
@@ -54,12 +55,12 @@ public class AppointmentService {
         // 1. Appointment save karein
         Appointment savedAppointment = appointmentRepository.save(appointmentDetails);
 
-        // 2. 🟢 YAHAN SATH MEIN QUEUE TOKEN BHI SAVE KAREIN (Taki Doctor Dashboard par dikhe)
+        // 2. Queue Token save karein (Taki Doctor Dashboard par dikhe)
         QueueToken queueToken = new QueueToken();
         queueToken.setTokenNumber("A-" + (nextToken < 10 ? "0" + nextToken : nextToken));
         queueToken.setDepartment(doctor.getDepartment());
         queueToken.setStatus("WAITING");
-        queueToken.setDoctorId(doctorId); // 🔴 Yeh sabse zaroori hai!
+        queueToken.setDoctorId(doctorId);
         queueToken.setPatientName(savedAppointment.getPatientName());
 
         queueTokenRepository.save(queueToken);
@@ -72,17 +73,18 @@ public class AppointmentService {
         return appointmentRepository.findByDoctorIdAndStatus(doctorId, status);
     }
 
-    // Patient ki appointments laana aur live queue tracking calculate karna
+    // Patient ki appointments laana aur live queue tracking calculate karna (Aaj ki date ke mutabik)
     public List<Appointment> getAppointmentsByPatientId(Long patientId) {
         List<Appointment> appointments = appointmentRepository.findByPatientId(patientId);
+        String today = LocalDate.now().toString(); // Aaj ki date (YYYY-MM-DD format)
 
         for (Appointment appt : appointments) {
             if (appt.getDoctor() != null && appt.getStatus() == AppointmentStatus.WAITING) {
                 Long doctorId = appt.getDoctor().getId();
 
-                // 1. Is token se pehle kitne log WAITING mein hain
-                long aheadCount = appointmentRepository.countByDoctorIdAndStatusAndTokenNumberLessThan(
-                        doctorId, AppointmentStatus.WAITING, appt.getTokenNumber()
+                // 1. Sirf aaj ki date aur is token se pehle ke WAITING tokens count karna
+                long aheadCount = appointmentRepository.countByDoctorIdAndAppointmentDateAndStatusAndTokenNumberLessThan(
+                        doctorId, today, AppointmentStatus.WAITING, appt.getTokenNumber()
                 );
                 appt.setPatientsAhead((int) aheadCount);
 

@@ -31,32 +31,59 @@ const AppointmentHistory = () => {
         }
     }, []);
 
-    // 🟢 Backend se patient ki saari appointments fetch karna
+    // 🟢 Backend se patient ki appointments fetch karke sirf History/Past records filter karna
     const fetchAppointmentHistory = async (id) => {
         try {
             setLoading(true);
             const response = await axios.get(`http://localhost:8081/api/appointments/patient/${id}`);
 
-            if (response.data && response.data.length > 0) {
-                // Backend data ko table format ke hisaab se map karna
-                const formattedHistory = response.data.map((appt) => {
-                    // Date formatting (agar createdAt ya date field maujood ho)
+            if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+                const todayStr = new Date().toISOString().split('T')[0];
+
+                // Filter logic: Sirf wahi records jo past date ke hain YAA jinka status COMPLETED, CANCELLED, MISSED hai
+                const pastAppointments = response.data.filter((appt) => {
+                    const rawDate = appt.appointmentDate || appt.date || appt.bookingDate || appt.createdAt;
+                    let formattedDate = todayStr;
+                    if (rawDate) {
+                        try {
+                            formattedDate = rawDate.split('T')[0];
+                        } catch (e) {
+                            formattedDate = todayStr;
+                        }
+                    }
+
+                    const status = (appt.status || "").toUpperCase();
+
+                    // Rule: Date < today OR status completed/cancelled/missed (aur aaj ki WAITING/UPCOMING yaha nahi aayegi)
+                    const isPastDate = formattedDate < todayStr;
+                    const isFinishedStatus = status === "COMPLETED" || status === "CANCELLED" || status === "MISSED";
+
+                    return isPastDate || isFinishedStatus;
+                });
+
+                const formattedHistory = pastAppointments.map((appt) => {
+                    const rawDate = appt.appointmentDate || appt.date || appt.bookingDate || appt.createdAt;
                     let formattedDate = "N/A";
-                    if (appt.createdAt) {
-                        formattedDate = appt.createdAt.substring(0, 10); // YYYY-MM-DD format
+
+                    if (rawDate) {
+                        try {
+                            formattedDate = rawDate.split('T')[0]; // YYYY-MM-DD format
+                        } catch (e) {
+                            formattedDate = rawDate;
+                        }
                     }
 
                     return {
                         id: appt.id,
                         date: formattedDate,
                         doctor: appt.doctor ? appt.doctor.name : (appt.doctorName || "Dr. Assigned"),
-                        department: appt.doctor ? appt.doctor.department : "General",
-                        token: appt.tokenNumber ? `A-0${appt.tokenNumber}` : `A-0${appt.id}`,
-                        status: appt.status || "WAITING"
+                        department: appt.doctor ? appt.doctor.department : (appt.department || "General"),
+                        token: appt.tokenNumber ? `#${appt.tokenNumber}` : `#${appt.id}`,
+                        status: appt.status || "COMPLETED"
                     };
                 });
 
-                // Latest appointments ko upar dikhane ke liye reverse kar sakte hain ya waise hi rakh sakte hain
+                // Latest past appointments ko upar dikhane ke liye reverse karna
                 setHistory(formattedHistory.reverse());
             } else {
                 setHistory([]);
@@ -143,9 +170,9 @@ const AppointmentHistory = () => {
                                         <td>{item.token}</td>
                                         <td>
                                             <span className={
-                                                item.status === "COMPLETED" || item.status === "Completed"
+                                                item.status.toUpperCase() === "COMPLETED"
                                                     ? "status-completed"
-                                                    : item.status === "CANCELLED" || item.status === "Cancelled"
+                                                    : item.status.toUpperCase() === "CANCELLED"
                                                         ? "status-cancelled"
                                                         : "status-waiting"
                                             }>
@@ -158,8 +185,8 @@ const AppointmentHistory = () => {
                             </table>
                         ) : (
                             <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
-                                <p style={{ fontSize: '16px', fontWeight: '500' }}>No appointment history found.</p>
-                                <p style={{ fontSize: '14px', marginTop: '5px' }}>Your past and active appointments will appear here.</p>
+                                <p style={{ fontSize: '16px', fontWeight: '500' }}>No past appointment history found.</p>
+                                <p style={{ fontSize: '14px', marginTop: '5px' }}>Your completed, cancelled, or missed past visits will appear here.</p>
                             </div>
                         )}
                     </div>

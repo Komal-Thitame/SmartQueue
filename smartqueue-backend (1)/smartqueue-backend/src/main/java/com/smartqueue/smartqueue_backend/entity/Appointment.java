@@ -19,9 +19,12 @@ public class Appointment {
     private String patientPhone;
     private Integer tokenNumber;
 
+    // 🟢 Yeh naya field add kiya gaya hai appointment ki date store karne ke liye (e.g., "2026-08-19")
+    private String appointmentDate;
+
     @Enumerated(EnumType.STRING)
     private AppointmentStatus status = AppointmentStatus.WAITING;
-    // Statuses: WAITING, IN_CONSULTATION, COMPLETED, CANCELLED
+    // Statuses: WAITING, IN_CONSULTATION, COMPLETED, CANCELLED, MISSED, BOOKED
 
     private LocalDateTime createdAt = LocalDateTime.now();
 
@@ -32,7 +35,6 @@ public class Appointment {
     @Column(name = "patient_id")
     private Long patientId;
 
-    // 🟢 Yeh teeno fields add karne se service layer ki saari 'cannot resolve method' errors solve ho jayengi
     @Transient
     private Integer patientsAhead;
 

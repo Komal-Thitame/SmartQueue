@@ -1,17 +1,45 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import "../../styles/PatientDashboard.css";
 
 const MyTokens = () => {
     const navigate = useNavigate();
+    const location = useLocation();
 
-    // Dynamic user states from localStorage
     const [patientName, setPatientName] = useState('Patient');
     const [userId, setUserId] = useState(null);
-    const [tokenData, setTokenData] = useState(null);
+    const [tokensList, setTokensList] = useState([]);
+    const [selectedToken, setSelectedToken] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+    // 🟢 Helper function to cleanly calculate patients ahead and estimated time dynamically
+    const formatTokenData = (appt) => {
+        const tokenNum = parseInt(appt.tokenNumber) || 0;
+
+        // Extract number from currentServing string (e.g., "A-01" becomes 1)
+        const servingStr = appt.currentServingToken || appt.currentServing || "1";
+        const servingNum = parseInt(servingStr.toString().replace(/[^0-9]/g, '')) || 1;
+
+        // Correct calculation for waiting patients ahead
+        let calculatedAhead = tokenNum - servingNum - 1;
+        if (calculatedAhead < 0) calculatedAhead = 0;
+
+        // Estimated wait time (assuming 5 minutes per patient)
+        const calculatedWaitTime = calculatedAhead * 5;
+
+        return {
+            id: appt.id, // 🟢 Appointment ID included for cancellation API
+            tokenNumber: tokenNum,
+            doctorName: appt.doctorName || appt.doctor?.name || "Dr. Assigned",
+            department: appt.department || appt.doctor?.department || "General",
+            currentServing: servingStr,
+            status: appt.status || "WAITING",
+            patientsAhead: calculatedAhead,
+            estimatedWaitTime: calculatedWaitTime
+        };
+    };
 
     useEffect(() => {
         const storedName = localStorage.getItem("userName");
@@ -23,52 +51,59 @@ const MyTokens = () => {
 
         if (storedId) {
             setUserId(storedId);
-            fetchActiveToken(storedId);
+
+            // Check if a specific appointment was passed via navigation state from Dashboard
+            if (location.state && location.state.selectedAppointment) {
+                const formatted = formatTokenData(location.state.selectedAppointment);
+                setSelectedToken(formatted);
+                setLoading(false);
+            } else {
+                // Otherwise fetch all active tokens for this patient
+                fetchAllActiveTokens(storedId);
+            }
         } else {
             setLoading(false);
         }
-    }, []);
+    }, [location.state]);
 
-    // 🟢 Backend se patient ki live appointments fetch karna aur real queue data map karna
-    const fetchActiveToken = async (id) => {
+    const fetchAllActiveTokens = async (id) => {
         try {
             setLoading(true);
-            const response = await axios.get(`http://localhost:8081/api/appointments/patient/${id}`);
+            const response = await axios.get(`http://localhost:8081/api/appointments/active/${id}`);
 
-            if (response.data && response.data.length > 0) {
-                // Sabse latest appointment nikalna jo patient ne book ki hai
-                const latestAppt = response.data[response.data.length - 1];
+            if (response.data && Array.isArray(response.data) && response.data.length > 0) {
+                const formattedTokens = response.data.map(appt => formatTokenData(appt));
 
-                // Doctor object se name aur department nikalna
-                const doctorName = latestAppt.doctor ? latestAppt.doctor.name : "Dr. Assigned";
-                const department = latestAppt.doctor ? latestAppt.doctor.department : "General";
-
-                // Token number formatting (jaise A-01, A-05)
-                const tokenNumStr = latestAppt.tokenNumber ? `A-0${latestAppt.tokenNumber}` : `A-0${latestAppt.id}`;
-
-                setTokenData({
-                    tokenNumber: tokenNumStr,
-                    doctorName: doctorName,
-                    department: department,
-                    // 🟢 Ab ye backend service se dynamic aa raha hai
-                    currentServing: latestAppt.currentServingToken || "A-01",
-                    status: latestAppt.status || "WAITING",
-                    // 🟢 Ab ye dono fields backend se calculate ho kar aa rahi hain
-                    patientsAhead: latestAppt.patientsAhead ?? 0,
-                    estimatedWaitTime: latestAppt.estimatedWaitTime ?? 0
-                });
+                setTokensList(formattedTokens);
+                setSelectedToken(formattedTokens[0]);
             } else {
-                setTokenData(null);
+                setSelectedToken(null);
+                setTokensList([]);
             }
         } catch (error) {
-            console.log("No active token found or API error:", error);
-            setTokenData(null);
+            console.log("Error fetching active tokens:", error);
+            setSelectedToken(null);
         } finally {
             setLoading(false);
         }
     };
 
-    // Logout function with secure overlay
+    // 🟢 Function to handle appointment cancellation
+    const handleCancelAppointment = async (appointmentId) => {
+        if (window.confirm("Are you sure you want to cancel this appointment?")) {
+            try {
+                await axios.put(`http://localhost:8081/api/appointments/cancel/${appointmentId}`);
+                alert("Appointment cancelled successfully!");
+                if (userId) {
+                    fetchAllActiveTokens(userId); // Refresh the active tokens list
+                }
+            } catch (error) {
+                console.error("Error cancelling appointment:", error);
+                alert("Failed to cancel appointment. Please try again.");
+            }
+        }
+    };
+
     const handleLogout = () => {
         setIsLoggingOut(true);
         setTimeout(() => {
@@ -105,7 +140,6 @@ const MyTokens = () => {
                     <div className="patient-header-right">
                         <span style={{ cursor: 'pointer', fontSize: '18px' }}>🔔</span>
 
-                        {/* Clickable Header Profile Section */}
                         <div
                             onClick={() => navigate('/patient/profile')}
                             style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
@@ -127,30 +161,72 @@ const MyTokens = () => {
                         <p className="patient-welcome-sub">Track your live queue status and current running token in real-time.</p>
                     </div>
 
+                    {/* Agar multiple tokens hain toh switch karne ke liye tabs dikhayein */}
+                    {tokensList.length > 1 && (
+                        <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
+                            {tokensList.map((t, idx) => (
+                                <button
+                                    key={idx}
+                                    onClick={() => setSelectedToken(t)}
+                                    style={{
+                                        padding: '8px 16px',
+                                        borderRadius: '8px',
+                                        border: selectedToken?.tokenNumber === t.tokenNumber ? '2px solid #059669' : '1px solid #d1d5db',
+                                        background: selectedToken?.tokenNumber === t.tokenNumber ? '#ecfdf5' : '#fff',
+                                        color: selectedToken?.tokenNumber === t.tokenNumber ? '#047857' : '#374151',
+                                        fontWeight: '600',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    {t.doctorName} ({t.tokenNumber})
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
                     {loading ? (
                         <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>Loading your token status...</div>
-                    ) : tokenData ? (
+                    ) : selectedToken ? (
                         <div className="token-card-box">
                             <span className="token-live-badge">● Live Queue Active</span>
                             <p style={{ fontSize: '14px', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '1px', marginTop: '10px' }}>Your Token Number</p>
-                            <h1 className="token-number-display">{tokenData.tokenNumber}</h1>
+                            <h1 className="token-number-display">{selectedToken.tokenNumber}</h1>
 
                             <div className="token-details-grid">
-                                <div className="token-detail-item"><p>Doctor</p><p>{tokenData.doctorName}</p></div>
-                                <div className="token-detail-item"><p>Department</p><p>{tokenData.department}</p></div>
-                                <div className="token-detail-item"><p>Currently Serving</p><p className="serving-highlight">{tokenData.currentServing || "N/A"}</p></div>
-                                <div className="token-detail-item"><p>Status</p><p className="status-highlight">{tokenData.status || "WAITING"}</p></div>
+                                <div className="token-detail-item"><p>Doctor</p><p>{selectedToken.doctorName}</p></div>
+                                <div className="token-detail-item"><p>Department</p><p>{selectedToken.department}</p></div>
+                                <div className="token-detail-item"><p>Currently Serving</p><p className="serving-highlight">{selectedToken.currentServing || "A-01"}</p></div>
+                                <div className="token-detail-item"><p>Status</p><p className="status-highlight">{selectedToken.status || "WAITING"}</p></div>
 
-                                <div className="token-detail-item"><p>Patients Ahead</p><p style={{ fontWeight: '600', color: '#059669' }}>{tokenData.patientsAhead ?? 0} Patients</p></div>
-                                <div className="token-detail-item"><p>Estimated Wait</p><p style={{ fontWeight: '600', color: '#d97706' }}>~{tokenData.estimatedWaitTime || 0} min</p></div>
+                                <div className="token-detail-item"><p>Patients Ahead</p><p style={{ fontWeight: '600', color: '#059669' }}>{selectedToken.patientsAhead} Patients</p></div>
+                                <div className="token-detail-item"><p>Estimated Wait</p><p style={{ fontWeight: '600', color: '#d97706' }}>~{selectedToken.estimatedWaitTime} min</p></div>
                             </div>
 
                             <button
-                                onClick={() => fetchActiveToken(userId)}
+                                onClick={() => userId && fetchAllActiveTokens(userId)}
                                 className="patient-primary-btn"
                                 style={{ width: '100%', padding: '12px', fontSize: '15px', marginTop: '15px' }}
                             >
                                 🔄 Refresh Status
+                            </button>
+
+                            {/* 🟢 Cancel Appointment Button */}
+                            <button
+                                onClick={() => handleCancelAppointment(selectedToken.id)}
+                                style={{
+                                    width: '100%',
+                                    padding: '12px',
+                                    fontSize: '15px',
+                                    marginTop: '10px',
+                                    background: '#ef4444',
+                                    color: '#fff',
+                                    border: 'none',
+                                    borderRadius: '8px',
+                                    cursor: 'pointer',
+                                    fontWeight: '600'
+                                }}
+                            >
+                                ❌ Cancel Appointment
                             </button>
                         </div>
                     ) : (
