@@ -31,7 +31,7 @@ const AppointmentHistory = () => {
         }
     }, []);
 
-    // 🟢 Backend se patient ki appointments fetch karke sirf History/Past records filter karna
+    // 🟢 Backend se patient ki appointments fetch karke past dates aur finished statuses show karna
     const fetchAppointmentHistory = async (id) => {
         try {
             setLoading(true);
@@ -40,7 +40,7 @@ const AppointmentHistory = () => {
             if (response.data && Array.isArray(response.data) && response.data.length > 0) {
                 const todayStr = new Date().toISOString().split('T')[0];
 
-                // Filter logic: Sirf wahi records jo past date ke hain YAA jinka status COMPLETED, CANCELLED, MISSED hai
+                // Filter logic: Past date ke saari appointments YAA finished status wale records history me aayenge
                 const pastAppointments = response.data.filter((appt) => {
                     const rawDate = appt.appointmentDate || appt.date || appt.bookingDate || appt.createdAt;
                     let formattedDate = todayStr;
@@ -52,9 +52,9 @@ const AppointmentHistory = () => {
                         }
                     }
 
-                    const status = (appt.status || "").toUpperCase();
+                    const status = (appt.status || "").trim().toUpperCase();
 
-                    // Rule: Date < today OR status completed/cancelled/missed (aur aaj ki WAITING/UPCOMING yaha nahi aayegi)
+                    // Rule: Date < today OR status completed/cancelled/missed
                     const isPastDate = formattedDate < todayStr;
                     const isFinishedStatus = status === "COMPLETED" || status === "CANCELLED" || status === "MISSED";
 
@@ -79,7 +79,7 @@ const AppointmentHistory = () => {
                         doctor: appt.doctor ? appt.doctor.name : (appt.doctorName || "Dr. Assigned"),
                         department: appt.doctor ? appt.doctor.department : (appt.department || "General"),
                         token: appt.tokenNumber ? `#${appt.tokenNumber}` : `#${appt.id}`,
-                        status: appt.status || "COMPLETED"
+                        status: appt.status ? appt.status.toUpperCase() : "COMPLETED"
                     };
                 });
 
@@ -170,11 +170,13 @@ const AppointmentHistory = () => {
                                         <td>{item.token}</td>
                                         <td>
                                             <span className={
-                                                item.status.toUpperCase() === "COMPLETED"
+                                                item.status === "COMPLETED"
                                                     ? "status-completed"
-                                                    : item.status.toUpperCase() === "CANCELLED"
+                                                    : item.status === "CANCELLED"
                                                         ? "status-cancelled"
-                                                        : "status-waiting"
+                                                        : item.status === "MISSED"
+                                                            ? "status-missed"
+                                                            : "status-waiting"
                                             }>
                                                 {item.status}
                                             </span>
@@ -186,7 +188,7 @@ const AppointmentHistory = () => {
                         ) : (
                             <div style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
                                 <p style={{ fontSize: '16px', fontWeight: '500' }}>No past appointment history found.</p>
-                                <p style={{ fontSize: '14px', marginTop: '5px' }}>Your completed, cancelled, or missed past visits will appear here.</p>
+                                <p style={{ fontSize: '14px', marginTop: '5px' }}>Your past visits will appear here.</p>
                             </div>
                         )}
                     </div>
