@@ -24,4 +24,5 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     );
     // 🟢 Doctor ka currently serving ya sabse pehla active token nikalne ke liye
     List<Appointment> findByDoctorIdAndStatusOrderByTokenNumberAsc(Long doctorId, AppointmentStatus status);
+    List<Appointment> findByDoctorId(Long doctorId);
 }

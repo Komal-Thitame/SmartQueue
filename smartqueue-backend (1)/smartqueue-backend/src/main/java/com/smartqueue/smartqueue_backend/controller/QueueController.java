@@ -1,8 +1,11 @@
 package com.smartqueue.smartqueue_backend.controller;
 
+import com.smartqueue.smartqueue_backend.entity.Appointment;
+import com.smartqueue.smartqueue_backend.entity.AppointmentStatus;
 import com.smartqueue.smartqueue_backend.entity.Doctor;
 import com.smartqueue.smartqueue_backend.entity.QueueToken;
-import com.smartqueue.smartqueue_backend.repository.DoctorRepository; // 1. DoctorRepository import karein
+import com.smartqueue.smartqueue_backend.repository.AppointmentRepository;
+import com.smartqueue.smartqueue_backend.repository.DoctorRepository;
 import com.smartqueue.smartqueue_backend.repository.QueueTokenRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +25,10 @@ public class QueueController {
     private QueueTokenRepository queueRepository;
 
     @Autowired
-    private DoctorRepository doctorRepository; // 2. DoctorRepository inject karein
+    private DoctorRepository doctorRepository;
+
+    @Autowired
+    private AppointmentRepository appointmentRepository;
 
     @GetMapping("/current")
     public ResponseEntity<?> getCurrentServingToken(@RequestParam(defaultValue = "Cardiology") String department) {
@@ -113,18 +119,11 @@ public class QueueController {
         return ResponseEntity.ok(metrics);
     }
 
-    // 🟢 FIXED: User ID ko actual Doctor ID mein map karke queue fetch karna
     @GetMapping("/doctor-queue/{id}")
     public ResponseEntity<?> getDoctorSpecificQueue(@PathVariable Long id) {
-        // Pehle check karein ki kya yeh ID `doctors` table ki direct ID hai ya `users` table ki user_id hai
-        Optional<Doctor> doctorByUserId = doctorRepository.findByUserId(id);
-
-        Long actualDoctorId;
-        if (doctorByUserId.isPresent()) {
-            actualDoctorId = doctorByUserId.get().getId(); // Agar user_id aayi hai toh doctor ki real ID lenge
-        } else {
-            actualDoctorId = id; // Agar seedha doctor ki ID hai
-        }
+        Long actualDoctorId = doctorRepository.findByUserId(id)
+                .map(Doctor::getId)
+                .orElse(id);
 
         List<QueueToken> doctorQueue = queueRepository.findByDoctorIdAndStatusNot(actualDoctorId, "COMPLETED");
         return ResponseEntity.ok(doctorQueue);
@@ -135,26 +134,96 @@ public class QueueController {
         Optional<QueueToken> optionalToken = queueRepository.findById(id);
         if (optionalToken.isPresent()) {
             QueueToken token = optionalToken.get();
-            token.setStatus(request.get("status"));
+            String newStatus = request.get("status");
+            token.setStatus(newStatus);
             queueRepository.save(token);
+
+            try {
+                // 🟢 DIRECT FIX: findAll() use karke token number match kar rahe hain bina doctor ID filter ke
+                List<Appointment> allAppointments = appointmentRepository.findAll();
+                String queueTokenNumStr = token.getTokenNumber() != null ? token.getTokenNumber().replaceAll("[^0-9]", "").trim() : "";
+
+                for (Appointment app : allAppointments) {
+                    if (app.getTokenNumber() != null) {
+                        String appTokenNumStr = String.valueOf(app.getTokenNumber()).replaceAll("[^0-9]", "").trim();
+
+                        if (!appTokenNumStr.isEmpty() && appTokenNumStr.equals(queueTokenNumStr)) {
+                            if ("COMPLETED".equalsIgnoreCase(newStatus)) {
+                                app.setStatus(AppointmentStatus.COMPLETED);
+                            } else if ("SERVING".equalsIgnoreCase(newStatus)) {
+                                app.setStatus(AppointmentStatus.IN_CONSULTATION);
+                            } else if ("WAITING".equalsIgnoreCase(newStatus)) {
+                                app.setStatus(AppointmentStatus.WAITING);
+                            } else if ("SKIPPED".equalsIgnoreCase(newStatus)) {
+                                app.setStatus(AppointmentStatus.CANCELLED);
+                            }
+                            appointmentRepository.save(app);
+                            System.out.println("Successfully synced Appointment ID " + app.getId() + " to status " + newStatus);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("Error syncing appointment status: " + e.getMessage());
+            }
+
             return ResponseEntity.ok(token);
         }
         return ResponseEntity.notFound().build();
     }
-    // 🟢 Naya endpoint doctor ke saare patients history ke liye
+
     @GetMapping("/doctor-history/{id}")
     public ResponseEntity<?> getDoctorPatientHistory(@PathVariable Long id) {
-        Optional<Doctor> doctorByUserId = doctorRepository.findByUserId(id);
+        Long actualDoctorId = doctorRepository.findByUserId(id)
+                .map(Doctor::getId)
+                .orElse(id);
 
-        Long actualDoctorId;
-        if (doctorByUserId.isPresent()) {
-            actualDoctorId = doctorByUserId.get().getId();
-        } else {
-            actualDoctorId = id;
-        }
-
-        // Doctor ke saare tokens/patients fetch karna (chahe waiting ho ya completed)
         List<QueueToken> patientHistory = queueRepository.findByDoctorId(actualDoctorId);
         return ResponseEntity.ok(patientHistory);
+    }
+
+    @GetMapping("/current-serving/{doctorId}")
+    public ResponseEntity<?> getCurrentServingByDoctor(@PathVariable Long doctorId) {
+        List<QueueToken> tokens = queueRepository.findByDoctorId(doctorId);
+        Optional<QueueToken> servingToken = tokens.stream()
+                .filter(t -> "SERVING".equalsIgnoreCase(t.getStatus()))
+                .findFirst();
+
+        if (servingToken.isPresent()) {
+            return ResponseEntity.ok(Map.of("currentServing", servingToken.get().getTokenNumber()));
+        }
+        return ResponseEntity.ok(Map.of("currentServing", "None"));
+    }
+
+    @GetMapping("/appointment-status/{appointmentId}")
+    public ResponseEntity<?> getStatusByAppointmentId(@PathVariable Long appointmentId) {
+        Optional<Appointment> appOpt = appointmentRepository.findById(appointmentId);
+        if (appOpt.isPresent()) {
+            Appointment app = appOpt.get();
+
+            String currentServingToken = "None";
+
+            Long doctorId = null;
+            if (app.getDoctor() != null) {
+                doctorId = app.getDoctor().getId();
+            }
+
+            if (doctorId != null) {
+                List<QueueToken> doctorTokens = queueRepository.findByDoctorId(doctorId);
+                for (QueueToken qt : doctorTokens) {
+                    if ("SERVING".equalsIgnoreCase(qt.getStatus())) {
+                        currentServingToken = qt.getTokenNumber();
+                        break;
+                    }
+                }
+            }
+
+            Map<String, Object> response = new HashMap<>();
+            response.put("tokenNumber", app.getTokenNumber());
+            response.put("status", app.getStatus() != null ? app.getStatus().toString() : "WAITING");
+            response.put("currentServing", currentServingToken);
+
+            return ResponseEntity.ok(response);
+        }
+        return ResponseEntity.notFound().build();
     }
 }

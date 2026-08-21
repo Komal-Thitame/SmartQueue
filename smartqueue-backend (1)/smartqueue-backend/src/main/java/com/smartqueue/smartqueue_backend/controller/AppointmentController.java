@@ -2,8 +2,10 @@ package com.smartqueue.smartqueue_backend.controller;
 
 import com.smartqueue.smartqueue_backend.entity.Appointment;
 import com.smartqueue.smartqueue_backend.entity.AppointmentStatus;
+import com.smartqueue.smartqueue_backend.entity.QueueToken;
 import com.smartqueue.smartqueue_backend.entity.User;
 import com.smartqueue.smartqueue_backend.repository.AppointmentRepository;
+import com.smartqueue.smartqueue_backend.repository.QueueTokenRepository;
 import com.smartqueue.smartqueue_backend.repository.UserRepository;
 import com.smartqueue.smartqueue_backend.service.AppointmentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +13,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -27,6 +32,9 @@ public class AppointmentController {
 
     @Autowired
     private AppointmentRepository appointmentRepository;
+
+    @Autowired
+    private QueueTokenRepository queueTokenRepository;
 
     @PostMapping("/book/{doctorId}")
     public ResponseEntity<Appointment> bookAppointment(
@@ -60,33 +68,67 @@ public class AppointmentController {
         return ResponseEntity.ok(appointments);
     }
 
-    // 🟢 Active Appointments Endpoint with Date Filtering & Auto-Missed Logic
+    // 🟢 Fixed Active Appointments Endpoint: Allows WAITING, BOOKED, and IN_CONSULTATION
     @GetMapping("/active/{patientId}")
-    public ResponseEntity<List<Appointment>> getActiveAppointments(@PathVariable Long patientId) {
+    public ResponseEntity<List<Map<String, Object>>> getActiveAppointments(@PathVariable Long patientId) {
         List<Appointment> allAppointments = appointmentService.getAppointmentsByPatientId(patientId);
-        String todayStr = LocalDate.now().toString(); // e.g., "2026-08-19"
+        String todayStr = LocalDate.now().toString();
+        List<Map<String, Object>> responseList = new ArrayList<>();
 
-        List<Appointment> activeApts = allAppointments.stream()
-                .filter(apt -> {
-                    String aptDate = apt.getAppointmentDate(); // Ab yeh method successfully resolve ho jayega
-                    if (aptDate == null) return true;
+        for (Appointment apt : allAppointments) {
+            String aptDate = apt.getAppointmentDate();
+            if (aptDate == null) continue;
 
-                    boolean isTodayOrFuture = aptDate.compareTo(todayStr) >= 0;
-                    boolean isWaitingOrBooked = apt.getStatus() == AppointmentStatus.WAITING ||
-                            apt.getStatus() == AppointmentStatus.BOOKED;
+            // Past dates missed check
+            if (aptDate.compareTo(todayStr) < 0 && apt.getStatus() == AppointmentStatus.WAITING) {
+                apt.setStatus(AppointmentStatus.MISSED);
+                appointmentRepository.save(apt);
+                continue;
+            }
 
-                    // Agar date beet chuki hai aur status WAITING hai, toh MISSED mark kar dein
-                    if (aptDate.compareTo(todayStr) < 0 && apt.getStatus() == AppointmentStatus.WAITING) {
-                        apt.setStatus(AppointmentStatus.MISSED);
-                        appointmentRepository.save(apt);
-                        return false; // Active list se hata dein
+            boolean isTodayOrFuture = aptDate.compareTo(todayStr) >= 0;
+
+            // 🟢 Include IN_CONSULTATION so that active serving tokens don't disappear from patient dashboard
+            boolean isValidStatus = apt.getStatus() == AppointmentStatus.WAITING ||
+                    apt.getStatus() == AppointmentStatus.BOOKED ||
+                    apt.getStatus() == AppointmentStatus.IN_CONSULTATION;
+
+            if (isTodayOrFuture && isValidStatus) {
+                Map<String, Object> aptMap = new HashMap<>();
+                aptMap.put("id", apt.getId());
+                aptMap.put("tokenNumber", apt.getTokenNumber());
+                aptMap.put("status", apt.getStatus());
+                aptMap.put("appointmentDate", apt.getAppointmentDate());
+                aptMap.put("patientName", apt.getPatientName());
+                aptMap.put("patientPhone", apt.getPatientPhone());
+
+                String doctorName = "Doctor";
+                Long doctorId = null;
+                if (apt.getDoctor() != null) {
+                    doctorName = apt.getDoctor().getName();
+                    doctorId = apt.getDoctor().getId();
+                    aptMap.put("doctor", apt.getDoctor());
+                }
+                aptMap.put("doctorName", doctorName);
+
+                // Fetch current serving token for this doctor
+                String currentServingToken = "1";
+                if (doctorId != null) {
+                    List<QueueToken> doctorTokens = queueTokenRepository.findByDoctorId(doctorId);
+                    for (QueueToken qt : doctorTokens) {
+                        if ("SERVING".equalsIgnoreCase(qt.getStatus())) {
+                            currentServingToken = qt.getTokenNumber();
+                            break;
+                        }
                     }
+                }
+                aptMap.put("currentServingToken", currentServingToken);
 
-                    return isTodayOrFuture && isWaitingOrBooked;
-                })
-                .toList();
+                responseList.add(aptMap);
+            }
+        }
 
-        return ResponseEntity.ok(activeApts);
+        return ResponseEntity.ok(responseList);
     }
 
     @PutMapping("/cancel/{appointmentId}")

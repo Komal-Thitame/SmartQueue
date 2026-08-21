@@ -8,17 +8,9 @@ const DoctorDashboard = () => {
     const [doctorName, setDoctorName] = useState('Doctor');
     const [isLoggingOut, setIsLoggingOut] = useState(false);
     const [doctorQueue, setDoctorQueue] = useState([]);
+    const [isLoadingQueue, setIsLoadingQueue] = useState(true);
 
-    // Doctor dynamic stats calculated from queue data
-    const totalPatients = doctorQueue.length;
-    const waitingPatients = doctorQueue.filter(item => item.status === "WAITING").length;
-    const completedConsultations = doctorQueue.filter(item => item.status === "COMPLETED").length;
-
-    const stats = [
-        { title: "Today's Patients", count: totalPatients > 0 ? totalPatients : 0, color: "#3b82f6" },
-        { title: "Waiting in Queue", count: waitingPatients, color: "#eab308" },
-        { title: "Completed Consultations", count: completedConsultations, color: "#22c55e" }
-    ];
+    const doctorId = localStorage.getItem("userId");
 
     useEffect(() => {
         const storedName = localStorage.getItem("userName");
@@ -26,48 +18,87 @@ const DoctorDashboard = () => {
             setDoctorName(storedName);
         }
 
-        // 🟢 FIXED: Direct logged-in doctor ki ID localStorage se fetch karein
-        const doctorId = localStorage.getItem("userId");
-
         if (doctorId) {
             fetchDoctorQueue(doctorId);
         } else {
             console.error("No Doctor ID found in localStorage!");
             navigate('/login', { replace: true });
         }
-    }, [navigate]);
+    }, [navigate, doctorId]);
 
     // Database se live queue fetch karne ka function
-    const fetchDoctorQueue = async (doctorId) => {
+    const fetchDoctorQueue = async (id) => {
         try {
-            console.log(`Fetching queue for doctor ID: ${doctorId}`);
-            const response = await axios.get(`http://localhost:8081/api/queue/doctor-queue/${doctorId}`);
-            console.log("Queue data received:", response.data);
-            setDoctorQueue(response.data);
+            setIsLoadingQueue(true);
+            const response = await axios.get(`http://localhost:8081/api/queue/doctor-queue/${id}`);
+            if (Array.isArray(response.data)) {
+                setDoctorQueue(response.data);
+            } else {
+                setDoctorQueue([]);
+            }
         } catch (error) {
             console.error("Error fetching queue:", error);
+            setDoctorQueue([]);
+        } finally {
+            setIsLoadingQueue(false);
         }
     };
+
+    // Today's Date Helper & Normalizer
+    const todayStr = new Date().toISOString().split('T')[0];
+
+    const getNormalizedDateStr = (item) => {
+        const rawDate = item.appointmentDate || item.date || item.bookingDate || item.created_at || item.createdAt;
+        if (!rawDate) return todayStr;
+        try {
+            return rawDate.split('T')[0];
+        } catch (e) {
+            return todayStr;
+        }
+    };
+
+    // 🟢 Sirf Aaj ke patients filter karein
+    const todaysQueue = doctorQueue.filter(item => {
+        const itemDate = getNormalizedDateStr(item);
+        return itemDate === todayStr;
+    });
+
+    // 🟢 Live queue sirf aaj ke WAITING aur SERVING patients ko dikhaye
+    const liveQueue = todaysQueue.filter(item =>
+        item.status === "WAITING" || item.status === "SERVING"
+    );
+
+    // Doctor dynamic stats calculated strictly for Today
+    const totalPatients = todaysQueue.length;
+    const waitingPatients = todaysQueue.filter(item => item.status === "WAITING").length;
+    const completedConsultations = todaysQueue.filter(item => item.status === "COMPLETED").length;
+
+    const stats = [
+        { title: "Today's Patients", count: totalPatients > 0 ? totalPatients : 0, color: "#3b82f6" },
+        { title: "Waiting in Queue", count: waitingPatients, color: "#eab308" },
+        { title: "Completed Consultations", count: completedConsultations, color: "#22c55e" }
+    ];
 
     const handleLogout = () => {
         setIsLoggingOut(true);
         setTimeout(() => {
             localStorage.clear();
             navigate('/login', { replace: true });
-        }, 2000);
+        }, 1500);
     };
 
-    // Database mein status update karne ka function
+    // Database mein status update karne ka function + Queue refresh
     const updateStatus = async (id, newStatus) => {
         try {
             await axios.put(`http://localhost:8081/api/queue/update/${id}`, { status: newStatus });
 
-            // UI refresh / local state update
-            setDoctorQueue(doctorQueue.map(item =>
-                item.id === id ? { ...item, status: newStatus } : item
-            ));
+            // Queue ko turant refresh karein taaki patient screen se hat jaye
+            if (doctorId) {
+                fetchDoctorQueue(doctorId);
+            }
         } catch (error) {
             console.error("Error updating status:", error);
+            alert("Failed to update status. Please try again.");
         }
     };
 
@@ -94,7 +125,7 @@ const DoctorDashboard = () => {
                         <span style={{ cursor: 'pointer', fontSize: '18px' }}>🔔</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <div className="user-avatar">{doctorName.charAt(0).toUpperCase()}</div>
-                            <span style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>{doctorName}</span>
+                            <span style={{ fontSize: '14px', fontWeight: '500', color: '#374151' }}>Dr. {doctorName}</span>
                         </div>
                     </div>
                 </header>
@@ -102,60 +133,83 @@ const DoctorDashboard = () => {
                 <div className="receptionist-body">
                     <div className="mb-6">
                         <h2 className="welcome-title">Welcome, Dr. {doctorName} 🩺</h2>
+                        <p style={{ color: "#6b7280", margin: "4px 0 0 0", fontSize: "14px" }}>Manage today's live consultation queue and patient checkups.</p>
                     </div>
 
                     <div className="stats-grid">
                         {stats.map((s, index) => (
                             <div key={index} className="stat-card" style={{ borderLeft: `5px solid ${s.color}` }}>
                                 <p className="stat-title">{s.title}</p>
-                                <h2 className="stat-count">{s.count}</h2>
+                                <h2 className="stat-count">{isLoadingQueue ? "..." : s.count}</h2>
                             </div>
                         ))}
                     </div>
 
                     <div className="table-card">
-                        <h3 className="table-heading">Live Consultation Queue</h3>
-                        <table className="custom-table">
-                            <thead>
-                            <tr>
-                                <th>Token</th>
-                                <th>Patient Name</th>
-                                <th>Age / Gender</th>
-                                <th>Status</th>
-                                <th>Action</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {doctorQueue.length > 0 ? (
-                                doctorQueue.map((item) => (
-                                    <tr key={item.id}>
-                                        <td style={{ fontWeight: '700', color: '#059669' }}>{item.tokenNumber}</td>
-                                        <td>{item.patientName || "N/A"}</td>
-                                        <td>{item.age ? `${item.age} yrs` : "-"} {item.gender ? `/ ${item.gender}` : ""}</td>
-                                        <td>
-                                            <span className={`status-badge ${item.status ? item.status.toLowerCase() : 'waiting'}`}>
-                                                {item.status}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <div style={{ display: 'flex', gap: '8px' }}>
-                                                {item.status === "WAITING" && (
-                                                    <button className="action-btn" style={{ background: '#3b82f6', color: '#fff' }} onClick={() => updateStatus(item.id, "SERVING")}>Start Checkup</button>
-                                                )}
-                                                {item.status === "SERVING" && (
-                                                    <button className="action-btn" style={{ background: '#22c55e', color: '#fff' }} onClick={() => updateStatus(item.id, "COMPLETED")}>Finish</button>
-                                                )}
-                                            </div>
+                        <h3 className="table-heading">Today's Live Consultation Queue</h3>
+
+                        {isLoadingQueue ? (
+                            <div style={{ textAlign: 'center', padding: '40px 20px', color: '#6b7280' }}>
+                                <div style={{ fontSize: '30px', marginBottom: '10px' }}>⏳</div>
+                                <p style={{ margin: 0 }}>Loading live queue...</p>
+                            </div>
+                        ) : (
+                            <table className="custom-table">
+                                <thead>
+                                <tr>
+                                    <th>Token</th>
+                                    <th>Patient Name</th>
+                                    <th>Age / Gender</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {liveQueue.length > 0 ? (
+                                    liveQueue.map((item) => (
+                                        <tr key={item.id}>
+                                            <td style={{ fontWeight: '700', color: '#059669' }}>{item.tokenNumber}</td>
+                                            <td>{item.patientName || "N/A"}</td>
+                                            <td>{item.age ? `${item.age} yrs` : "-"} {item.gender ? `/ ${item.gender}` : ""}</td>
+                                            <td>
+                                                    <span className={`status-badge ${item.status ? item.status.toLowerCase() : 'waiting'}`}>
+                                                        {item.status}
+                                                    </span>
+                                            </td>
+                                            <td>
+                                                <div style={{ display: 'flex', gap: '8px' }}>
+                                                    {item.status === "WAITING" && (
+                                                        <button
+                                                            className="action-btn"
+                                                            style={{ background: '#3b82f6', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontWeight: '500' }}
+                                                            onClick={() => updateStatus(item.id, "SERVING")}
+                                                        >
+                                                            Start Checkup
+                                                        </button>
+                                                    )}
+                                                    {item.status === "SERVING" && (
+                                                        <button
+                                                            className="action-btn"
+                                                            style={{ background: '#22c55e', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontWeight: '500' }}
+                                                            onClick={() => updateStatus(item.id, "COMPLETED")}
+                                                        >
+                                                            Finish
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    <tr>
+                                        <td colSpan="5" style={{ textAlign: 'center', padding: '30px', color: '#6b7280' }}>
+                                            No patients scheduled for today in queue.
                                         </td>
                                     </tr>
-                                ))
-                            ) : (
-                                <tr>
-                                    <td colSpan="5" style={{ textAlign: 'center', padding: '20px' }}>No patients in queue.</td>
-                                </tr>
-                            )}
-                            </tbody>
-                        </table>
+                                )}
+                                </tbody>
+                            </table>
+                        )}
                     </div>
                 </div>
             </main>
@@ -165,6 +219,7 @@ const DoctorDashboard = () => {
                     <div className="logout-modal">
                         <div className="logout-spinner"></div>
                         <h3 style={{ fontSize: '18px', fontWeight: '600', color: '#1f2937', margin: '0' }}>Logging out securely...</h3>
+                        <p style={{ fontSize: '14px', color: '#6b7280', margin: '0' }}>Please wait...</p>
                     </div>
                 </div>
             )}
