@@ -14,30 +14,17 @@ const MyTokens = () => {
     const [loading, setLoading] = useState(true);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-    // 🟢 Helper function to cleanly calculate patients ahead and estimated time dynamically
+    // 🟢 Updated formatter using backend data properties
     const formatTokenData = (appt) => {
-        const tokenNum = parseInt(appt.tokenNumber) || 0;
-
-        // Extract number from currentServing string (e.g., "A-01" becomes 1)
-        const servingStr = appt.currentServingToken || appt.currentServing || "1";
-        const servingNum = parseInt(servingStr.toString().replace(/[^0-9]/g, '')) || 1;
-
-        // Correct calculation for waiting patients ahead
-        let calculatedAhead = tokenNum - servingNum - 1;
-        if (calculatedAhead < 0) calculatedAhead = 0;
-
-        // Estimated wait time (assuming 5 minutes per patient)
-        const calculatedWaitTime = calculatedAhead * 5;
-
         return {
-            id: appt.id, // 🟢 Appointment ID included for cancellation API
-            tokenNumber: tokenNum,
-            doctorName: appt.doctorName || appt.doctor?.name || "Dr. Assigned",
-            department: appt.department || appt.doctor?.department || "General",
-            currentServing: servingStr,
+            id: appt.id || appt.appointmentId,
+            tokenNumber: appt.tokenNumber,
+            doctorName: appt.doctorName || appt.doctor?.name || selectedToken?.doctorName || "Dr. Assigned",
+            department: appt.department || appt.doctor?.department || selectedToken?.department || "General",
+            currentServing: appt.currentServing || appt.currentServingToken || "None",
             status: appt.status || "WAITING",
-            patientsAhead: calculatedAhead,
-            estimatedWaitTime: calculatedWaitTime
+            patientsAhead: appt.patientsAhead !== undefined ? appt.patientsAhead : 0,
+            estimatedWaitTime: appt.estimatedWaitTime !== undefined ? appt.estimatedWaitTime : 0
         };
     };
 
@@ -52,19 +39,57 @@ const MyTokens = () => {
         if (storedId) {
             setUserId(storedId);
 
-            // Check if a specific appointment was passed via navigation state from Dashboard
             if (location.state && location.state.selectedAppointment) {
                 const formatted = formatTokenData(location.state.selectedAppointment);
                 setSelectedToken(formatted);
                 setLoading(false);
             } else {
-                // Otherwise fetch all active tokens for this patient
                 fetchAllActiveTokens(storedId);
             }
         } else {
             setLoading(false);
         }
     }, [location.state]);
+
+    // 🟢 Fetch Live Token Status from Backend Endpoint
+    const fetchLiveTokenStatus = async (appointmentId) => {
+        if (!appointmentId) return;
+
+        try {
+            const response = await axios.get(
+                `http://localhost:8081/api/queue/appointment-status/${appointmentId}`
+            );
+
+            const liveData = response.data;
+
+            setSelectedToken(prev => {
+                if (!prev) return prev;
+                return {
+                    ...prev,
+                    tokenNumber: liveData.tokenNumber,
+                    currentServing: liveData.currentServing || "None",
+                    status: liveData.status || "WAITING",
+                    patientsAhead: liveData.patientsAhead ?? 0,
+                    estimatedWaitTime: liveData.estimatedWaitTime ?? 0
+                };
+            });
+        } catch (error) {
+            console.error("Error fetching live token status:", error);
+        }
+    };
+
+    // 🟢 Real-time auto refresh every 3 seconds for selected token
+    useEffect(() => {
+        if (!selectedToken?.id) return;
+
+        fetchLiveTokenStatus(selectedToken.id);
+
+        const interval = setInterval(() => {
+            fetchLiveTokenStatus(selectedToken.id);
+        }, 3000);
+
+        return () => clearInterval(interval);
+    }, [selectedToken?.id]);
 
     const fetchAllActiveTokens = async (id) => {
         try {
@@ -73,7 +98,6 @@ const MyTokens = () => {
 
             if (response.data && Array.isArray(response.data) && response.data.length > 0) {
                 const formattedTokens = response.data.map(appt => formatTokenData(appt));
-
                 setTokensList(formattedTokens);
                 setSelectedToken(formattedTokens[0]);
             } else {
@@ -88,14 +112,13 @@ const MyTokens = () => {
         }
     };
 
-    // 🟢 Function to handle appointment cancellation
     const handleCancelAppointment = async (appointmentId) => {
         if (window.confirm("Are you sure you want to cancel this appointment?")) {
             try {
                 await axios.put(`http://localhost:8081/api/appointments/cancel/${appointmentId}`);
                 alert("Appointment cancelled successfully!");
                 if (userId) {
-                    fetchAllActiveTokens(userId); // Refresh the active tokens list
+                    fetchAllActiveTokens(userId);
                 }
             } catch (error) {
                 console.error("Error cancelling appointment:", error);
@@ -139,7 +162,6 @@ const MyTokens = () => {
                     <h1 className="patient-header-title">My Tokens & Live Status</h1>
                     <div className="patient-header-right">
                         <span style={{ cursor: 'pointer', fontSize: '18px' }}>🔔</span>
-
                         <div
                             onClick={() => navigate('/patient/profile')}
                             style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}
@@ -161,7 +183,6 @@ const MyTokens = () => {
                         <p className="patient-welcome-sub">Track your live queue status and current running token in real-time.</p>
                     </div>
 
-                    {/* Agar multiple tokens hain toh switch karne ke liye tabs dikhayein */}
                     {tokensList.length > 1 && (
                         <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', flexWrap: 'wrap' }}>
                             {tokensList.map((t, idx) => (
@@ -195,22 +216,20 @@ const MyTokens = () => {
                             <div className="token-details-grid">
                                 <div className="token-detail-item"><p>Doctor</p><p>{selectedToken.doctorName}</p></div>
                                 <div className="token-detail-item"><p>Department</p><p>{selectedToken.department}</p></div>
-                                <div className="token-detail-item"><p>Currently Serving</p><p className="serving-highlight">{selectedToken.currentServing || "A-01"}</p></div>
+                                <div className="token-detail-item"><p>Currently Serving</p><p className="serving-highlight">{selectedToken.currentServing || "None"}</p></div>
                                 <div className="token-detail-item"><p>Status</p><p className="status-highlight">{selectedToken.status || "WAITING"}</p></div>
-
                                 <div className="token-detail-item"><p>Patients Ahead</p><p style={{ fontWeight: '600', color: '#059669' }}>{selectedToken.patientsAhead} Patients</p></div>
                                 <div className="token-detail-item"><p>Estimated Wait</p><p style={{ fontWeight: '600', color: '#d97706' }}>~{selectedToken.estimatedWaitTime} min</p></div>
                             </div>
 
                             <button
-                                onClick={() => userId && fetchAllActiveTokens(userId)}
+                                onClick={() => selectedToken?.id && fetchLiveTokenStatus(selectedToken.id)}
                                 className="patient-primary-btn"
                                 style={{ width: '100%', padding: '12px', fontSize: '15px', marginTop: '15px' }}
                             >
                                 🔄 Refresh Status
                             </button>
 
-                            {/* 🟢 Cancel Appointment Button */}
                             <button
                                 onClick={() => handleCancelAppointment(selectedToken.id)}
                                 style={{

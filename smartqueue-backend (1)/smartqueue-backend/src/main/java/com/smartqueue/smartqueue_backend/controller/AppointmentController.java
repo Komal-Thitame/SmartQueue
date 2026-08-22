@@ -68,7 +68,7 @@ public class AppointmentController {
         return ResponseEntity.ok(appointments);
     }
 
-    // 🟢 Fixed Active Appointments Endpoint: Allows WAITING, BOOKED, and IN_CONSULTATION
+    // Active Appointments (Today & Future + In Consultation)
     @GetMapping("/active/{patientId}")
     public ResponseEntity<List<Map<String, Object>>> getActiveAppointments(@PathVariable Long patientId) {
         List<Appointment> allAppointments = appointmentService.getAppointmentsByPatientId(patientId);
@@ -79,7 +79,7 @@ public class AppointmentController {
             String aptDate = apt.getAppointmentDate();
             if (aptDate == null) continue;
 
-            // Past dates missed check
+            // Auto-Missed Logic for past dates
             if (aptDate.compareTo(todayStr) < 0 && apt.getStatus() == AppointmentStatus.WAITING) {
                 apt.setStatus(AppointmentStatus.MISSED);
                 appointmentRepository.save(apt);
@@ -87,8 +87,6 @@ public class AppointmentController {
             }
 
             boolean isTodayOrFuture = aptDate.compareTo(todayStr) >= 0;
-
-            // 🟢 Include IN_CONSULTATION so that active serving tokens don't disappear from patient dashboard
             boolean isValidStatus = apt.getStatus() == AppointmentStatus.WAITING ||
                     apt.getStatus() == AppointmentStatus.BOOKED ||
                     apt.getStatus() == AppointmentStatus.IN_CONSULTATION;
@@ -111,7 +109,6 @@ public class AppointmentController {
                 }
                 aptMap.put("doctorName", doctorName);
 
-                // Fetch current serving token for this doctor
                 String currentServingToken = "1";
                 if (doctorId != null) {
                     List<QueueToken> doctorTokens = queueTokenRepository.findByDoctorId(doctorId);
@@ -129,6 +126,35 @@ public class AppointmentController {
         }
 
         return ResponseEntity.ok(responseList);
+    }
+
+    // Patient History Endpoint for Completed, Missed, Cancelled, and Past Appointments
+    @GetMapping("/history/{patientId}")
+    public ResponseEntity<List<Appointment>> getPatientHistory(@PathVariable Long patientId) {
+        List<Appointment> allAppointments = appointmentService.getAppointmentsByPatientId(patientId);
+        String todayStr = LocalDate.now().toString();
+
+        List<Appointment> historyList = allAppointments.stream()
+                .filter(apt -> {
+                    String aptDate = apt.getAppointmentDate();
+
+                    // Agar date aaj se purani hai aur status WAITING hai, toh use MISSED mark karke save karein
+                    if (aptDate != null && aptDate.compareTo(todayStr) < 0 && apt.getStatus() == AppointmentStatus.WAITING) {
+                        apt.setStatus(AppointmentStatus.MISSED);
+                        appointmentRepository.save(apt);
+                    }
+
+                    // Past dates ki saari appointments ya finished status wali appointments history mein aayengi
+                    boolean isPastDate = aptDate != null && aptDate.compareTo(todayStr) < 0;
+                    boolean hasFinishedStatus = apt.getStatus() == AppointmentStatus.COMPLETED ||
+                            apt.getStatus() == AppointmentStatus.MISSED ||
+                            apt.getStatus() == AppointmentStatus.CANCELLED;
+
+                    return isPastDate || hasFinishedStatus;
+                })
+                .toList();
+
+        return ResponseEntity.ok(historyList);
     }
 
     @PutMapping("/cancel/{appointmentId}")

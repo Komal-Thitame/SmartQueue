@@ -139,7 +139,6 @@ public class QueueController {
             queueRepository.save(token);
 
             try {
-                // 🟢 DIRECT FIX: findAll() use karke token number match kar rahe hain bina doctor ID filter ke
                 List<Appointment> allAppointments = appointmentRepository.findAll();
                 String queueTokenNumStr = token.getTokenNumber() != null ? token.getTokenNumber().replaceAll("[^0-9]", "").trim() : "";
 
@@ -158,7 +157,6 @@ public class QueueController {
                                 app.setStatus(AppointmentStatus.CANCELLED);
                             }
                             appointmentRepository.save(app);
-                            System.out.println("Successfully synced Appointment ID " + app.getId() + " to status " + newStatus);
                         }
                     }
                 }
@@ -197,17 +195,31 @@ public class QueueController {
     @GetMapping("/appointment-status/{appointmentId}")
     public ResponseEntity<?> getStatusByAppointmentId(@PathVariable Long appointmentId) {
         Optional<Appointment> appOpt = appointmentRepository.findById(appointmentId);
-        if (appOpt.isPresent()) {
-            Appointment app = appOpt.get();
+        if (appOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
 
-            String currentServingToken = "None";
+        Appointment app = appOpt.get();
+        String currentServingToken = "None";
+        long patientsAhead = 0;
+        Long doctorId = null;
 
-            Long doctorId = null;
-            if (app.getDoctor() != null) {
-                doctorId = app.getDoctor().getId();
+        if (app.getDoctor() != null) {
+            doctorId = app.getDoctor().getId();
+        }
+
+        if (doctorId != null) {
+            // 1️⃣ Sabse pehle Appointment table me dekho ki is doctor ka kaun sa appointment IN_CONSULTATION hai
+            List<Appointment> doctorAppointments = appointmentRepository.findByDoctorId(doctorId);
+            for (Appointment da : doctorAppointments) {
+                if (AppointmentStatus.IN_CONSULTATION.equals(da.getStatus()) && da.getTokenNumber() != null) {
+                    currentServingToken = String.valueOf(da.getTokenNumber());
+                    break;
+                }
             }
 
-            if (doctorId != null) {
+            // 2️⃣ Agar Appointment table me nahi mila, toh QueueToken table me "SERVING" check karo
+            if ("None".equals(currentServingToken)) {
                 List<QueueToken> doctorTokens = queueRepository.findByDoctorId(doctorId);
                 for (QueueToken qt : doctorTokens) {
                     if ("SERVING".equalsIgnoreCase(qt.getStatus())) {
@@ -217,13 +229,26 @@ public class QueueController {
                 }
             }
 
-            Map<String, Object> response = new HashMap<>();
-            response.put("tokenNumber", app.getTokenNumber());
-            response.put("status", app.getStatus() != null ? app.getStatus().toString() : "WAITING");
-            response.put("currentServing", currentServingToken);
-
-            return ResponseEntity.ok(response);
+            // 3️⃣ Patients ahead calculation
+            if (app.getTokenNumber() != null && app.getAppointmentDate() != null) {
+                patientsAhead = appointmentRepository
+                        .countByDoctorIdAndAppointmentDateAndStatusAndTokenNumberLessThan(
+                                doctorId,
+                                app.getAppointmentDate(),
+                                AppointmentStatus.WAITING,
+                                app.getTokenNumber()
+                        );
+            }
         }
-        return ResponseEntity.notFound().build();
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("appointmentId", app.getId());
+        response.put("tokenNumber", app.getTokenNumber());
+        response.put("status", app.getStatus() != null ? app.getStatus().toString() : "WAITING");
+        response.put("currentServing", currentServingToken);
+        response.put("patientsAhead", patientsAhead);
+        response.put("estimatedWaitTime", patientsAhead * 5);
+
+        return ResponseEntity.ok(response);
     }
 }

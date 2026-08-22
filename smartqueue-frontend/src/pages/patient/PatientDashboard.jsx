@@ -8,6 +8,7 @@ const PatientDashboard = () => {
 
     const [patientName, setPatientName] = useState("Patient");
     const [activeAppointments, setActiveAppointments] = useState([]);
+    const [historyAppointments, setHistoryAppointments] = useState([]); // 🟢 Added state for history
     const [isLoadingAppointment, setIsLoadingAppointment] = useState(true);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -17,6 +18,7 @@ const PatientDashboard = () => {
             setPatientName(storedName);
         }
         fetchActiveAppointments();
+        fetchHistoryAppointments(); // 🟢 Fetch history on load
     }, []);
 
     const fetchActiveAppointments = async () => {
@@ -50,12 +52,34 @@ const PatientDashboard = () => {
         }
     };
 
+    // 🟢 Added function to fetch completed, missed, and cancelled history from backend
+    const fetchHistoryAppointments = async () => {
+        try {
+            const patientId = localStorage.getItem("userId");
+            if (!patientId) return;
+
+            const response = await axios.get(
+                `http://localhost:8081/api/appointments/history/${patientId}`
+            );
+
+            if (Array.isArray(response.data)) {
+                setHistoryAppointments(response.data);
+            } else {
+                setHistoryAppointments([]);
+            }
+        } catch (error) {
+            console.error("History appointments fetch error:", error);
+            setHistoryAppointments([]);
+        }
+    };
+
     const handleCancelAppointment = async (appointmentId) => {
         if (window.confirm("Are you sure you want to cancel this appointment?")) {
             try {
                 await axios.put(`http://localhost:8081/api/appointments/cancel/${appointmentId}`);
                 alert("Appointment cancelled successfully!");
                 fetchActiveAppointments();
+                fetchHistoryAppointments();
             } catch (error) {
                 console.error("Error cancelling appointment:", error);
                 alert("Failed to cancel appointment. Please try again.");
@@ -134,13 +158,6 @@ const PatientDashboard = () => {
         const formattedRaw = getNormalizedDateStr(app);
         const status = app.status || "WAITING";
         return formattedRaw > todayStr && status !== "CANCELLED";
-    });
-
-    // 3. History / Past Appointments (Purani ya completed dates)
-    const historyAppointments = activeAppointments.filter((app) => {
-        const formattedRaw = getNormalizedDateStr(app);
-        const status = app.status || "";
-        return formattedRaw < todayStr || status === "COMPLETED" || status === "CANCELLED";
     });
 
     const activeBookingsCount = todaysAppointments.length;
@@ -354,11 +371,11 @@ const PatientDashboard = () => {
                         </div>
                     )}
 
-                    {/* SECTION 3: RECENT HISTORY / PAST APPOINTMENTS */}
+                    {/* SECTION 3: RECENT HISTORY / PAST APPOINTMENTS (COMPLETED, MISSED, CANCELLED) */}
                     {!isLoadingAppointment && historyAppointments.length > 0 && (
                         <div className="patient-content-box" style={{ padding: "28px" }}>
                             <h3 style={{ fontSize: "20px", fontWeight: "600", marginBottom: "20px", color: "#1f2937" }}>
-                                📜 Past / History Appointments
+                                📜 Past / History Appointments (Completed & Missed)
                             </h3>
                             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                                 {historyAppointments.map((app, index) => (
@@ -384,21 +401,19 @@ const PatientDashboard = () => {
                                                 {displayAppointmentDate(app)} • Token #{app.tokenNumber}
                                             </p>
                                         </div>
-                                        <span style={{ padding: "4px 10px", background: "#e0e7ff", color: "#3730a3", borderRadius: "20px", fontSize: "12px", fontWeight: "600" }}>
-                                            {app.status || "COMPLETED"}
+                                        <span style={{
+                                            padding: "4px 10px",
+                                            background: app.status === "COMPLETED" ? "#ecfdf5" : app.status === "MISSED" ? "#fef3c7" : "#fee2e2",
+                                            color: app.status === "COMPLETED" ? "#059669" : app.status === "MISSED" ? "#d97706" : "#dc2626",
+                                            borderRadius: "20px",
+                                            fontSize: "12px",
+                                            fontWeight: "600"
+                                        }}>
+                                            {app.status}
                                         </span>
                                     </div>
                                 ))}
                             </div>
-                        </div>
-                    )}
-
-                    {!isLoadingAppointment && activeAppointments.length === 0 && (
-                        <div className="patient-content-box" style={{ padding: "40px 0", textAlign: "center" }}>
-                            <div className="patient-empty-icon">🏥</div>
-                            <h3 className="patient-empty-title">No appointments found</h3>
-                            <p className="patient-empty-desc">You don't have any appointments right now.</p>
-                            <button onClick={handleBookAppointment} className="patient-primary-btn" style={{ marginTop: "15px" }}>+ Book Appointment</button>
                         </div>
                     )}
                 </div>
