@@ -10,19 +10,67 @@ import java.util.List;
 @Repository
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
 
-    List<Appointment> findByDoctorIdAndStatus(Long doctorId, AppointmentStatus status);
+    // Existing methods
+    List<Appointment> findByDoctorIdAndStatus(
+            Long doctorId,
+            AppointmentStatus status
+    );
 
     Long countByDoctorId(Long doctorId);
 
     List<Appointment> findByPatientId(Long patientId);
 
-    // 🟢 Is token number se chhote aur WAITING status wale total appointments count karne ke liye
-    long countByDoctorIdAndStatusAndTokenNumberLessThan(Long doctorId, AppointmentStatus status, Integer tokenNumber);
+    // Token number se chhote WAITING appointments count karne ke liye
+    long countByDoctorIdAndStatusAndTokenNumberLessThan(
+            Long doctorId,
+            AppointmentStatus status,
+            Integer tokenNumber
+    );
 
     long countByDoctorIdAndAppointmentDateAndStatusAndTokenNumberLessThan(
-            Long doctorId, String appointmentDate, AppointmentStatus status, int tokenNumber
+            Long doctorId,
+            String appointmentDate,
+            AppointmentStatus status,
+            int tokenNumber
     );
-    // 🟢 Doctor ka currently serving ya sabse pehla active token nikalne ke liye
-    List<Appointment> findByDoctorIdAndStatusOrderByTokenNumberAsc(Long doctorId, AppointmentStatus status);
+
+    // Doctor ke status-wise appointments
+    List<Appointment> findByDoctorIdAndStatusOrderByTokenNumberAsc(
+            Long doctorId,
+            AppointmentStatus status
+    );
+
+    // Doctor ke saare appointments
     List<Appointment> findByDoctorId(Long doctorId);
+
+
+    // ==========================================
+    // NEW METHODS - DOCTOR QUEUE / MY PATIENTS
+    // ==========================================
+
+    // Sirf ek specific date ke doctor appointments
+    List<Appointment> findByDoctorIdAndAppointmentDate(
+            Long doctorId,
+            String appointmentDate
+    );
+
+    // Specific date + status ke appointments
+    List<Appointment> findByDoctorIdAndAppointmentDateAndStatus(
+            Long doctorId,
+            String appointmentDate,
+            AppointmentStatus status
+    );
+
+    // Specific date ke appointments token order me
+    List<Appointment> findByDoctorIdAndAppointmentDateOrderByTokenNumberAsc(
+            Long doctorId,
+            String appointmentDate
+    );
+
+    // Specific date + status ke appointments token order me
+    List<Appointment> findByDoctorIdAndAppointmentDateAndStatusOrderByTokenNumberAsc(
+            Long doctorId,
+            String appointmentDate,
+            AppointmentStatus status
+    );
 }
