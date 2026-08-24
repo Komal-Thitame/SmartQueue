@@ -19,18 +19,40 @@ public class QueueToken {
     private Long id;
 
     private String tokenNumber;
+
     private String department;
-    private String status; // WAITING, SERVING, COMPLETED, SKIPPED
+
+    // WAITING, IN-PROGRESS, COMPLETED, SKIPPED
+    private String status;
 
     private Long doctorId;
 
-    // 🟢 Yeh line add karna zaroori hai taaki setPatientName error na aaye
     private String patientName;
 
+    // ==============================
+    // CONSULTATION TIME TRACKING
+    // ==============================
+
+    // Doctor clicks "Start Checkup"
+    private LocalDateTime consultationStartTime;
+
+    // Doctor clicks "Finish"
+    private LocalDateTime consultationEndTime;
+
+    // Actual consultation duration in minutes
+    private Integer actualConsultationMinutes;
+
+
+    // ==============================
+    // AUDIT FIELDS
+    // ==============================
+
     private LocalDateTime createdAt;
+
     private LocalDateTime updatedAt;
 
-    // Custom Constructor specifically for DataInitializer (3 arguments)
+
+    // Custom Constructor for DataInitializer
     public QueueToken(String tokenNumber, String department, String status) {
         this.tokenNumber = tokenNumber;
         this.department = department;
@@ -39,8 +61,14 @@ public class QueueToken {
         this.updatedAt = LocalDateTime.now();
     }
 
-    // Custom Constructor with doctorId (4 arguments)
-    public QueueToken(String tokenNumber, String department, String status, Long doctorId) {
+
+    // Custom Constructor with doctorId
+    public QueueToken(
+            String tokenNumber,
+            String department,
+            String status,
+            Long doctorId
+    ) {
         this.tokenNumber = tokenNumber;
         this.department = department;
         this.status = status;
@@ -49,11 +77,17 @@ public class QueueToken {
         this.updatedAt = LocalDateTime.now();
     }
 
+
     @PrePersist
     protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
+
+        if (this.createdAt == null) {
+            this.createdAt = LocalDateTime.now();
+        }
+
         this.updatedAt = LocalDateTime.now();
     }
+
 
     @PreUpdate
     protected void onUpdate() {
