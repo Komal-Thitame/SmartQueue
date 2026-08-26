@@ -17,9 +17,13 @@ public class Appointment {
 
     private String patientName;
     private String patientPhone;
+
+    // 🟢 Age aur Gender fields ko properly alag lines mein define kiya gaya hai
+    private Integer age;
+    private String gender;
+
     private Integer tokenNumber;
 
-    // 🟢 Yeh naya field add kiya gaya hai appointment ki date store karne ke liye (e.g., "2026-08-19")
     private String appointmentDate;
 
     @Enumerated(EnumType.STRING)

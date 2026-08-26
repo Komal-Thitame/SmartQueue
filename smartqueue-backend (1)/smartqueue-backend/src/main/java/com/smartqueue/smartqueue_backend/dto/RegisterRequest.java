@@ -20,7 +20,7 @@ public class RegisterRequest {
 
     private String phone;
 
-    // 🟢 Yeh teeno fields add kar diye hain taaki error solve ho jaye
+    // 🟢 Age, Gender aur Address properly add kiye gaye hain
     @NotNull(message = "Age is required")
     private Integer age;
 

@@ -52,27 +52,33 @@ public class AppointmentService {
 
 
         // =====================================================
-        // PATIENT DETAILS USER TABLE SE FETCH KARO
+        // PATIENT DETAILS USER TABLE SE FETCH KARO (WITH FALLBACK)
         // =====================================================
 
-        if (appointmentDetails.getPatientId() != null) {
+        User patient = null;
 
-            User patient = userRepository
+        if (appointmentDetails.getPatientId() != null) {
+            patient = userRepository
                     .findById(appointmentDetails.getPatientId())
                     .orElse(null);
+        }
 
-            if (patient != null) {
+        // Fallback: Agar patientId nahi mila, toh patient name se match karke dhoond lo
+        if (patient == null && appointmentDetails.getPatientName() != null) {
+            patient = userRepository.findAll().stream()
+                    .filter(u -> u.getName() != null && u.getName().equalsIgnoreCase(appointmentDetails.getPatientName()))
+                    .findFirst()
+                    .orElse(null);
+        }
 
-                // Real patient name
-                appointmentDetails.setPatientName(
-                        patient.getName()
-                );
+        if (patient != null) {
+            appointmentDetails.setPatientId(patient.getId());
+            appointmentDetails.setPatientName(patient.getName());
+            appointmentDetails.setPatientPhone(patient.getPhone());
 
-                // Real patient phone
-                appointmentDetails.setPatientPhone(
-                        patient.getPhone()
-                );
-            }
+            // 🟢 REAL PATIENT AGE & GENDER SET HO JAYEGI
+            appointmentDetails.setAge(patient.getAge());
+            appointmentDetails.setGender(patient.getGender());
         }
 
 
@@ -104,6 +110,11 @@ public class AppointmentService {
         appointmentDetails.setStatus(
                 AppointmentStatus.WAITING
         );
+
+        // Agar appointment date nahi aayi hai toh aaj ki date set karein
+        if (appointmentDetails.getAppointmentDate() == null) {
+            appointmentDetails.setAppointmentDate(LocalDate.now().toString());
+        }
 
 
         // =====================================================

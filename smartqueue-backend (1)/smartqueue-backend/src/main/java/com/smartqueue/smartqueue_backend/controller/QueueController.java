@@ -370,8 +370,7 @@ public class QueueController {
 
 
     // =========================================================
-    // DOCTOR LIVE QUEUE
-    // ONLY TODAY + WAITING / IN-PROGRESS
+    // DOCTOR LIVE QUEUE (UPDATED TO RETURN APPOINTMENTS WITH AGE/GENDER)
     // =========================================================
 
     @GetMapping("/doctor-queue/{id}")
@@ -410,101 +409,19 @@ public class QueueController {
         }
 
 
-        // Doctor ke saare queue tokens
-        List<QueueToken> allTokens =
-                queueRepository.findByDoctorId(
-                        actualDoctorId
-                );
-
-
         String today = LocalDate.now().toString();
 
+        // Sirf aaj ki WAITING aur IN_CONSULTATION appointments return karo
+        List<Appointment> liveAppointments = allAppointments.stream()
+                .filter(app -> {
+                    boolean todayApp = today.equals(app.getAppointmentDate());
+                    boolean activeStatus = app.getStatus() == AppointmentStatus.WAITING
+                            || app.getStatus() == AppointmentStatus.IN_CONSULTATION;
+                    return todayApp && activeStatus;
+                })
+                .toList();
 
-        List<QueueToken> liveQueue =
-                allTokens.stream()
-
-                        .filter(token ->
-
-                                "WAITING".equalsIgnoreCase(
-                                        token.getStatus()
-                                )
-
-                                        ||
-
-                                        "IN-PROGRESS".equalsIgnoreCase(
-                                                token.getStatus()
-                                        )
-                        )
-
-                        .filter(token -> {
-
-                            String queueTokenNumber =
-                                    token.getTokenNumber();
-
-                            if (queueTokenNumber == null) {
-                                return false;
-                            }
-
-
-                            String cleanQueueToken =
-                                    queueTokenNumber
-                                            .replaceAll("[^0-9]", "")
-                                            .trim();
-
-
-                            return allAppointments.stream()
-                                    .anyMatch(app -> {
-
-                                        if (app.getTokenNumber() == null) {
-                                            return false;
-                                        }
-
-
-                                        String cleanAppointmentToken =
-                                                String.valueOf(
-                                                                app.getTokenNumber()
-                                                        )
-                                                        .replaceAll(
-                                                                "[^0-9]",
-                                                                ""
-                                                        )
-                                                        .trim();
-
-
-                                        boolean sameToken =
-                                                cleanAppointmentToken.equals(
-                                                        cleanQueueToken
-                                                );
-
-
-                                        boolean todayAppointment =
-                                                today.equals(
-                                                        app.getAppointmentDate()
-                                                );
-
-
-                                        boolean activeStatus =
-                                                app.getStatus()
-                                                        == AppointmentStatus.WAITING
-
-                                                        ||
-
-                                                        app.getStatus()
-                                                                == AppointmentStatus.IN_CONSULTATION;
-
-
-                                        return sameToken
-                                                &&
-                                                todayAppointment
-                                                &&
-                                                activeStatus;
-                                    });
-                        })
-
-                        .toList();
-
-
-        return ResponseEntity.ok(liveQueue);
+        return ResponseEntity.ok(liveAppointments);
     }
 
 
@@ -727,7 +644,10 @@ public class QueueController {
                         String.valueOf(
                                         app.getTokenNumber()
                                 )
-                                .replaceAll("[^0-9]", "")
+                                .replaceAll(
+                                        "[^0-9]",
+                                        ""
+                                )
                                 .trim();
 
 
