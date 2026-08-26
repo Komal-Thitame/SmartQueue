@@ -9,6 +9,7 @@ import com.smartqueue.smartqueue_backend.repository.AppointmentRepository;
 import com.smartqueue.smartqueue_backend.repository.DoctorRepository;
 import com.smartqueue.smartqueue_backend.repository.QueueTokenRepository;
 import com.smartqueue.smartqueue_backend.repository.UserRepository;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -30,85 +31,296 @@ public class AppointmentService {
     @Autowired
     private QueueTokenRepository queueTokenRepository;
 
-    // Appointment book karne aur token generate karne ka method
-    public Appointment bookAppointment(Long doctorId, Appointment appointmentDetails) {
-        Doctor doctor = doctorRepository.findById(doctorId)
-                .orElseThrow(() -> new RuntimeException("Doctor not found with id: " + doctorId));
 
-        // Agar frontend se patientId aayi hai, toh User table se naam aur phone fetch karke set karein
+    // =====================================================
+    // BOOK APPOINTMENT AND CREATE QUEUE TOKEN
+    // =====================================================
+
+    public Appointment bookAppointment(
+            Long doctorId,
+            Appointment appointmentDetails
+    ) {
+
+        // Doctor find karo
+        Doctor doctor = doctorRepository
+                .findById(doctorId)
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Doctor not found with id: " + doctorId
+                        )
+                );
+
+
+        // =====================================================
+        // PATIENT DETAILS USER TABLE SE FETCH KARO
+        // =====================================================
+
         if (appointmentDetails.getPatientId() != null) {
-            User patient = userRepository.findById(appointmentDetails.getPatientId()).orElse(null);
+
+            User patient = userRepository
+                    .findById(appointmentDetails.getPatientId())
+                    .orElse(null);
+
             if (patient != null) {
-                appointmentDetails.setPatientName(patient.getName());
-                appointmentDetails.setPatientPhone(patient.getPhone());
+
+                // Real patient name
+                appointmentDetails.setPatientName(
+                        patient.getName()
+                );
+
+                // Real patient phone
+                appointmentDetails.setPatientPhone(
+                        patient.getPhone()
+                );
             }
         }
 
-        // Doctor ke total bookings count karke naya token number assign karna
-        long count = appointmentRepository.countByDoctorId(doctorId);
-        int nextToken = (int) count + 1;
 
-        appointmentDetails.setDoctor(doctor);
-        appointmentDetails.setTokenNumber(nextToken);
-        appointmentDetails.setStatus(AppointmentStatus.WAITING);
+        // =====================================================
+        // NEW TOKEN NUMBER GENERATE KARO
+        // =====================================================
 
-        // 1. Appointment save karein
-        Appointment savedAppointment = appointmentRepository.save(appointmentDetails);
+        long count =
+                appointmentRepository.countByDoctorId(
+                        doctorId
+                );
 
-        // 2. Queue Token save karein (Taki Doctor Dashboard par dikhe)
-        QueueToken queueToken = new QueueToken();
-        queueToken.setTokenNumber("A-" + (nextToken < 10 ? "0" + nextToken : nextToken));
-        queueToken.setDepartment(doctor.getDepartment());
-        queueToken.setStatus("WAITING");
-        queueToken.setDoctorId(doctorId);
-        queueToken.setPatientName(savedAppointment.getPatientName());
+        int nextToken =
+                (int) count + 1;
 
-        queueTokenRepository.save(queueToken);
+
+        // =====================================================
+        // APPOINTMENT DETAILS SET KARO
+        // =====================================================
+
+        appointmentDetails.setDoctor(
+                doctor
+        );
+
+        appointmentDetails.setTokenNumber(
+                nextToken
+        );
+
+        appointmentDetails.setStatus(
+                AppointmentStatus.WAITING
+        );
+
+
+        // =====================================================
+        // SAVE APPOINTMENT
+        // =====================================================
+
+        Appointment savedAppointment =
+                appointmentRepository.save(
+                        appointmentDetails
+                );
+
+
+        // =====================================================
+        // CREATE QUEUE TOKEN
+        // =====================================================
+
+        QueueToken queueToken =
+                new QueueToken();
+
+
+        // Example: A-01, A-02, A-10
+        queueToken.setTokenNumber(
+                "A-" + String.format(
+                        "%02d",
+                        nextToken
+                )
+        );
+
+
+        // Doctor department
+        queueToken.setDepartment(
+                doctor.getDepartment()
+        );
+
+
+        // Initial queue status
+        queueToken.setStatus(
+                "WAITING"
+        );
+
+
+        // Doctor ID
+        queueToken.setDoctorId(
+                doctorId
+        );
+
+
+        // =====================================================
+        // IMPORTANT: PATIENT ID SAVE KARO
+        // =====================================================
+
+        queueToken.setPatientId(
+                savedAppointment.getPatientId()
+        );
+
+
+        // Patient Name
+        queueToken.setPatientName(
+                savedAppointment.getPatientName()
+        );
+
+
+        // =====================================================
+        // SAVE QUEUE TOKEN
+        // =====================================================
+
+        queueTokenRepository.save(
+                queueToken
+        );
+
 
         return savedAppointment;
     }
 
-    // Specific doctor aur status ke hisaab se appointments laana
-    public List<Appointment> getAppointmentsByDoctorAndStatus(Long doctorId, AppointmentStatus status) {
-        return appointmentRepository.findByDoctorIdAndStatus(doctorId, status);
+
+    // =====================================================
+    // GET APPOINTMENTS BY DOCTOR AND STATUS
+    // =====================================================
+
+    public List<Appointment> getAppointmentsByDoctorAndStatus(
+            Long doctorId,
+            AppointmentStatus status
+    ) {
+
+        return appointmentRepository
+                .findByDoctorIdAndStatus(
+                        doctorId,
+                        status
+                );
     }
 
-    // Patient ki appointments laana aur live queue tracking calculate karna (Aaj ki date ke mutabik)
-    public List<Appointment> getAppointmentsByPatientId(Long patientId) {
-        List<Appointment> appointments = appointmentRepository.findByPatientId(patientId);
-        String today = LocalDate.now().toString(); // Aaj ki date (YYYY-MM-DD format)
+
+    // =====================================================
+    // GET PATIENT APPOINTMENTS WITH LIVE QUEUE TRACKING
+    // =====================================================
+
+    public List<Appointment> getAppointmentsByPatientId(
+            Long patientId
+    ) {
+
+        List<Appointment> appointments =
+                appointmentRepository
+                        .findByPatientId(
+                                patientId
+                        );
+
+
+        // Today's date
+        String today =
+                LocalDate.now().toString();
+
 
         for (Appointment appt : appointments) {
-            if (appt.getDoctor() != null && appt.getStatus() == AppointmentStatus.WAITING) {
-                Long doctorId = appt.getDoctor().getId();
 
-                // 1. Sirf aaj ki date aur is token se pehle ke WAITING tokens count karna
-                long aheadCount = appointmentRepository.countByDoctorIdAndAppointmentDateAndStatusAndTokenNumberLessThan(
-                        doctorId, today, AppointmentStatus.WAITING, appt.getTokenNumber()
+            if (appt.getDoctor() != null
+                    &&
+                    appt.getStatus()
+                            == AppointmentStatus.WAITING) {
+
+
+                Long doctorId =
+                        appt.getDoctor().getId();
+
+
+                // =====================================================
+                // PATIENTS AHEAD COUNT
+                // =====================================================
+
+                long aheadCount =
+                        appointmentRepository
+                                .countByDoctorIdAndAppointmentDateAndStatusAndTokenNumberLessThan(
+
+                                        doctorId,
+
+                                        today,
+
+                                        AppointmentStatus.WAITING,
+
+                                        appt.getTokenNumber()
+                                );
+
+
+                appt.setPatientsAhead(
+                        (int) aheadCount
                 );
-                appt.setPatientsAhead((int) aheadCount);
 
-                // 2. Estimated Wait Time (Har patient ka 5 min average maan kar)
-                appt.setEstimatedWaitTime((int) (aheadCount * 5));
 
-                // 3. Currently Serving Token pata karna
-                List<Appointment> servingList = appointmentRepository.findByDoctorIdAndStatusOrderByTokenNumberAsc(
-                        doctorId, AppointmentStatus.IN_CONSULTATION
+                // =====================================================
+                // ESTIMATED WAIT TIME
+                // Currently 5 minutes per patient
+                // =====================================================
+
+                appt.setEstimatedWaitTime(
+                        (int) (aheadCount * 5)
                 );
+
+
+                // =====================================================
+                // CURRENTLY SERVING TOKEN
+                // =====================================================
+
+                List<Appointment> servingList =
+                        appointmentRepository
+                                .findByDoctorIdAndStatusOrderByTokenNumberAsc(
+
+                                        doctorId,
+
+                                        AppointmentStatus.IN_CONSULTATION
+                                );
+
+
                 if (!servingList.isEmpty()) {
-                    appt.setCurrentServingToken("A-0" + servingList.get(0).getTokenNumber());
-                } else {
-                    List<Appointment> waitingList = appointmentRepository.findByDoctorIdAndStatusOrderByTokenNumberAsc(
-                            doctorId, AppointmentStatus.WAITING
+
+                    appt.setCurrentServingToken(
+                            "A-"
+                                    + String.format(
+                                    "%02d",
+                                    servingList
+                                            .get(0)
+                                            .getTokenNumber()
+                            )
                     );
+
+                } else {
+
+                    List<Appointment> waitingList =
+                            appointmentRepository
+                                    .findByDoctorIdAndStatusOrderByTokenNumberAsc(
+
+                                            doctorId,
+
+                                            AppointmentStatus.WAITING
+                                    );
+
+
                     if (!waitingList.isEmpty()) {
-                        appt.setCurrentServingToken("A-0" + waitingList.get(0).getTokenNumber());
+
+                        appt.setCurrentServingToken(
+                                "A-"
+                                        + String.format(
+                                        "%02d",
+                                        waitingList
+                                                .get(0)
+                                                .getTokenNumber()
+                                )
+                        );
+
                     } else {
-                        appt.setCurrentServingToken("A-01");
+
+                        appt.setCurrentServingToken(
+                                "None"
+                        );
                     }
                 }
             }
         }
+
 
         return appointments;
     }

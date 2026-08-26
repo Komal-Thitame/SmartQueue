@@ -18,6 +18,10 @@ public class QueueToken {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // ==============================
+    // BASIC QUEUE DETAILS
+    // ==============================
+
     private String tokenNumber;
 
     private String department;
@@ -25,9 +29,17 @@ public class QueueToken {
     // WAITING, IN-PROGRESS, COMPLETED, SKIPPED
     private String status;
 
+    // Actual Doctor ID
     private Long doctorId;
 
+    // IMPORTANT:
+    // Patient ka User ID store hoga.
+    // Is ID se User table se real age aur gender fetch karenge.
+    private Long patientId;
+
+    // Patient name
     private String patientName;
+
 
     // ==============================
     // CONSULTATION TIME TRACKING
@@ -47,13 +59,23 @@ public class QueueToken {
     // AUDIT FIELDS
     // ==============================
 
+    // Token creation time
     private LocalDateTime createdAt;
 
+    // Last update time
     private LocalDateTime updatedAt;
 
 
-    // Custom Constructor for DataInitializer
-    public QueueToken(String tokenNumber, String department, String status) {
+    // ==============================
+    // CUSTOM CONSTRUCTOR
+    // For DataInitializer
+    // ==============================
+
+    public QueueToken(
+            String tokenNumber,
+            String department,
+            String status
+    ) {
         this.tokenNumber = tokenNumber;
         this.department = department;
         this.status = status;
@@ -62,7 +84,11 @@ public class QueueToken {
     }
 
 
-    // Custom Constructor with doctorId
+    // ==============================
+    // CUSTOM CONSTRUCTOR
+    // WITH DOCTOR ID
+    // ==============================
+
     public QueueToken(
             String tokenNumber,
             String department,
@@ -78,6 +104,10 @@ public class QueueToken {
     }
 
 
+    // ==============================
+    // BEFORE INSERT
+    // ==============================
+
     @PrePersist
     protected void onCreate() {
 
@@ -88,6 +118,10 @@ public class QueueToken {
         this.updatedAt = LocalDateTime.now();
     }
 
+
+    // ==============================
+    // BEFORE UPDATE
+    // ==============================
 
     @PreUpdate
     protected void onUpdate() {
