@@ -4,10 +4,12 @@ import com.smartqueue.smartqueue_backend.entity.Appointment;
 import com.smartqueue.smartqueue_backend.entity.AppointmentStatus;
 import com.smartqueue.smartqueue_backend.entity.Doctor;
 import com.smartqueue.smartqueue_backend.entity.QueueToken;
+import com.smartqueue.smartqueue_backend.entity.User;
 
 import com.smartqueue.smartqueue_backend.repository.AppointmentRepository;
 import com.smartqueue.smartqueue_backend.repository.DoctorRepository;
 import com.smartqueue.smartqueue_backend.repository.QueueTokenRepository;
+import com.smartqueue.smartqueue_backend.repository.UserRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,10 +19,8 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/queue")
@@ -36,29 +36,141 @@ public class QueueController {
     @Autowired
     private AppointmentRepository appointmentRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
 
     // =========================================================
-    // HELPER METHOD
+    // CONSTANT
+    // =========================================================
+
+    /*
+     * Every patient gets fixed 15 minutes estimated consultation
+     * time.
+     */
+    private static final int AVERAGE_CONSULTATION_TIME = 15;
+
+
+    // =========================================================
+    // HELPER - PAST APPOINTMENT
     // =========================================================
 
     private boolean isPastAppointment(String appointmentDate) {
 
-        if (appointmentDate == null || appointmentDate.trim().isEmpty()) {
+        if (appointmentDate == null
+                || appointmentDate.trim().isEmpty()) {
+
             return false;
         }
 
         try {
+
             LocalDate appointmentLocalDate =
                     LocalDate.parse(
                             appointmentDate,
                             DateTimeFormatter.ISO_LOCAL_DATE
                     );
 
-            return appointmentLocalDate.isBefore(LocalDate.now());
+            return appointmentLocalDate.isBefore(
+                    LocalDate.now()
+            );
 
         } catch (Exception e) {
+
             return false;
         }
+    }
+
+
+    // =========================================================
+    // NORMALIZE TOKEN NUMBER
+    // =========================================================
+
+    private String normalizeToken(Object tokenNumber) {
+
+        if (tokenNumber == null) {
+            return "";
+        }
+
+        return String.valueOf(tokenNumber)
+                .replaceAll("[^0-9]", "")
+                .trim();
+    }
+
+
+    // =========================================================
+    // FIND ACTUAL DOCTOR ID
+    // =========================================================
+
+    private Long getActualDoctorId(Long id) {
+
+        return doctorRepository
+                .findByUserId(id)
+                .map(Doctor::getId)
+                .orElse(id);
+    }
+
+
+    // =========================================================
+    // FIND QUEUE TOKEN FOR APPOINTMENT
+    // =========================================================
+
+    private Optional<QueueToken> findQueueTokenForAppointment(
+            Appointment appointment) {
+
+        if (appointment == null) {
+            return Optional.empty();
+        }
+
+        if (appointment.getTokenNumber() == null) {
+            return Optional.empty();
+        }
+
+        Long doctorId = null;
+
+        if (appointment.getDoctor() != null) {
+
+            doctorId =
+                    appointment.getDoctor().getId();
+        }
+
+        if (doctorId == null) {
+            return Optional.empty();
+        }
+
+        final Long finalDoctorId = doctorId;
+
+        String appointmentToken =
+                normalizeToken(
+                        appointment.getTokenNumber()
+                );
+
+        List<QueueToken> doctorTokens =
+                queueRepository.findByDoctorId(
+                        finalDoctorId
+                );
+
+        return doctorTokens.stream()
+
+                .filter(token ->
+
+                        appointmentToken.equals(
+                                normalizeToken(
+                                        token.getTokenNumber()
+                                )
+                        )
+                )
+
+                .sorted(
+                        Comparator.comparing(
+                                QueueToken::getCreatedAt,
+                                Comparator.nullsLast(
+                                        Comparator.naturalOrder()
+                                )
+                        ).reversed()
+                )
+
+                .findFirst();
     }
 
 
@@ -68,20 +180,28 @@ public class QueueController {
 
     @GetMapping("/current")
     public ResponseEntity<?> getCurrentServingToken(
-            @RequestParam(defaultValue = "Cardiology") String department) {
+            @RequestParam(
+                    defaultValue = "Cardiology"
+            ) String department) {
 
         return queueRepository
                 .findFirstByDepartmentAndStatusOrderByCreatedAtAsc(
                         department,
                         "IN-PROGRESS"
                 )
-                .map(token -> ResponseEntity.ok(
-                        Map.of(
-                                "currentServing",
-                                token.getTokenNumber()
+
+                .map(token ->
+
+                        ResponseEntity.ok(
+                                Map.of(
+                                        "currentServing",
+                                        token.getTokenNumber()
+                                )
                         )
-                ))
+                )
+
                 .orElseGet(() ->
+
                         ResponseEntity.ok(
                                 Map.of(
                                         "currentServing",
@@ -98,37 +218,61 @@ public class QueueController {
 
     @PostMapping("/next")
     public ResponseEntity<?> callNextToken(
-            @RequestParam(defaultValue = "Cardiology") String department) {
+            @RequestParam(
+                    defaultValue = "Cardiology"
+            ) String department) {
 
-        // Current IN-PROGRESS patient ko complete karo
+        // -----------------------------------------------------
+        // COMPLETE CURRENT PATIENT
+        // -----------------------------------------------------
+
         queueRepository
                 .findFirstByDepartmentAndStatusOrderByCreatedAtAsc(
                         department,
                         "IN-PROGRESS"
                 )
+
                 .ifPresent(token -> {
 
-                    LocalDateTime endTime = LocalDateTime.now();
+                    LocalDateTime endTime =
+                            LocalDateTime.now();
 
-                    token.setConsultationEndTime(endTime);
+                    token.setConsultationEndTime(
+                            endTime
+                    );
 
-                    if (token.getConsultationStartTime() != null) {
+                    if (token.getConsultationStartTime()
+                            != null) {
 
-                        long minutes = Duration.between(
-                                token.getConsultationStartTime(),
-                                endTime
-                        ).toMinutes();
+                        long minutes =
+                                Duration.between(
+                                        token.getConsultationStartTime(),
+                                        endTime
+                                ).toMinutes();
 
                         token.setActualConsultationMinutes(
                                 (int) minutes
                         );
                     }
 
-                    token.setStatus("COMPLETED");
+                    token.setStatus(
+                            "COMPLETED"
+                    );
 
-                    queueRepository.save(token);
+                    queueRepository.save(
+                            token
+                    );
+
+                    syncAppointmentStatus(
+                            token,
+                            "COMPLETED"
+                    );
                 });
 
+
+        // -----------------------------------------------------
+        // FIND NEXT WAITING PATIENT
+        // -----------------------------------------------------
 
         Optional<QueueToken> nextWaiting =
                 queueRepository
@@ -140,21 +284,37 @@ public class QueueController {
 
         if (nextWaiting.isPresent()) {
 
-            QueueToken next = nextWaiting.get();
+            QueueToken next =
+                    nextWaiting.get();
 
-            next.setStatus("IN-PROGRESS");
+            next.setStatus(
+                    "IN-PROGRESS"
+            );
 
             next.setConsultationStartTime(
                     LocalDateTime.now()
             );
 
-            next.setConsultationEndTime(null);
+            next.setConsultationEndTime(
+                    null
+            );
 
-            next.setActualConsultationMinutes(null);
+            next.setActualConsultationMinutes(
+                    null
+            );
 
-            queueRepository.save(next);
+            queueRepository.save(
+                    next
+            );
 
-            return ResponseEntity.ok(next);
+            syncAppointmentStatus(
+                    next,
+                    "IN-PROGRESS"
+            );
+
+            return ResponseEntity.ok(
+                    buildQueueTokenResponse(next)
+            );
         }
 
 
@@ -173,22 +333,42 @@ public class QueueController {
 
     @PostMapping("/previous")
     public ResponseEntity<?> callPreviousToken(
-            @RequestParam(defaultValue = "Cardiology") String department) {
+            @RequestParam(
+                    defaultValue = "Cardiology"
+            ) String department) {
 
         queueRepository
                 .findFirstByDepartmentAndStatusOrderByCreatedAtAsc(
                         department,
                         "IN-PROGRESS"
                 )
+
                 .ifPresent(token -> {
 
-                    token.setStatus("WAITING");
+                    token.setStatus(
+                            "WAITING"
+                    );
 
-                    token.setConsultationStartTime(null);
-                    token.setConsultationEndTime(null);
-                    token.setActualConsultationMinutes(null);
+                    token.setConsultationStartTime(
+                            null
+                    );
 
-                    queueRepository.save(token);
+                    token.setConsultationEndTime(
+                            null
+                    );
+
+                    token.setActualConsultationMinutes(
+                            null
+                    );
+
+                    queueRepository.save(
+                            token
+                    );
+
+                    syncAppointmentStatus(
+                            token,
+                            "WAITING"
+                    );
                 });
 
 
@@ -202,21 +382,37 @@ public class QueueController {
 
         if (lastCompleted.isPresent()) {
 
-            QueueToken previous = lastCompleted.get();
+            QueueToken previous =
+                    lastCompleted.get();
 
-            previous.setStatus("IN-PROGRESS");
+            previous.setStatus(
+                    "IN-PROGRESS"
+            );
 
             previous.setConsultationStartTime(
                     LocalDateTime.now()
             );
 
-            previous.setConsultationEndTime(null);
+            previous.setConsultationEndTime(
+                    null
+            );
 
-            previous.setActualConsultationMinutes(null);
+            previous.setActualConsultationMinutes(
+                    null
+            );
 
-            queueRepository.save(previous);
+            queueRepository.save(
+                    previous
+            );
 
-            return ResponseEntity.ok(previous);
+            syncAppointmentStatus(
+                    previous,
+                    "IN-PROGRESS"
+            );
+
+            return ResponseEntity.ok(
+                    buildQueueTokenResponse(previous)
+            );
         }
 
 
@@ -235,23 +431,32 @@ public class QueueController {
 
     @PostMapping("/recall")
     public ResponseEntity<?> recallToken(
-            @RequestParam(defaultValue = "Cardiology") String department) {
+            @RequestParam(
+                    defaultValue = "Cardiology"
+            ) String department) {
 
         return queueRepository
                 .findFirstByDepartmentAndStatusOrderByCreatedAtAsc(
                         department,
                         "IN-PROGRESS"
                 )
-                .map(token -> ResponseEntity.ok(
-                        Map.of(
-                                "message",
-                                "Recalling token "
-                                        + token.getTokenNumber(),
-                                "tokenNumber",
-                                token.getTokenNumber()
+
+                .map(token ->
+
+                        ResponseEntity.ok(
+                                Map.of(
+                                        "message",
+                                        "Recalling token "
+                                                + token.getTokenNumber(),
+
+                                        "tokenNumber",
+                                        token.getTokenNumber()
+                                )
                         )
-                ))
+                )
+
                 .orElseGet(() ->
+
                         ResponseEntity.ok(
                                 Map.of(
                                         "message",
@@ -268,22 +473,34 @@ public class QueueController {
 
     @PostMapping("/skip")
     public ResponseEntity<?> skipToken(
-            @RequestParam(defaultValue = "Cardiology") String department) {
+            @RequestParam(
+                    defaultValue = "Cardiology"
+            ) String department) {
 
         queueRepository
                 .findFirstByDepartmentAndStatusOrderByCreatedAtAsc(
                         department,
                         "IN-PROGRESS"
                 )
+
                 .ifPresent(token -> {
 
-                    token.setStatus("SKIPPED");
+                    token.setStatus(
+                            "SKIPPED"
+                    );
 
                     token.setConsultationEndTime(
                             LocalDateTime.now()
                     );
 
-                    queueRepository.save(token);
+                    queueRepository.save(
+                            token
+                    );
+
+                    syncAppointmentStatus(
+                            token,
+                            "SKIPPED"
+                    );
                 });
 
 
@@ -297,21 +514,37 @@ public class QueueController {
 
         if (nextWaiting.isPresent()) {
 
-            QueueToken next = nextWaiting.get();
+            QueueToken next =
+                    nextWaiting.get();
 
-            next.setStatus("IN-PROGRESS");
+            next.setStatus(
+                    "IN-PROGRESS"
+            );
 
             next.setConsultationStartTime(
                     LocalDateTime.now()
             );
 
-            next.setConsultationEndTime(null);
+            next.setConsultationEndTime(
+                    null
+            );
 
-            next.setActualConsultationMinutes(null);
+            next.setActualConsultationMinutes(
+                    null
+            );
 
-            queueRepository.save(next);
+            queueRepository.save(
+                    next
+            );
 
-            return ResponseEntity.ok(next);
+            syncAppointmentStatus(
+                    next,
+                    "IN-PROGRESS"
+            );
+
+            return ResponseEntity.ok(
+                    buildQueueTokenResponse(next)
+            );
         }
 
 
@@ -331,22 +564,73 @@ public class QueueController {
     @GetMapping("/metrics")
     public ResponseEntity<?> getDashboardMetrics() {
 
-        long totalToday = queueRepository.count();
-
-        List<QueueToken> waitingTokens =
-                queueRepository.findByDepartmentAndStatus(
-                        "Cardiology",
-                        "WAITING"
-                );
-
-        long waitingCount = waitingTokens.size();
+        List<QueueToken> allTokens =
+                queueRepository.findAll();
 
 
-        Map<String, Object> metrics = new HashMap<>();
+        // -----------------------------------------------------
+        // TODAY ONLY
+        // -----------------------------------------------------
+
+        LocalDate today =
+                LocalDate.now();
+
+
+        List<QueueToken> todayTokens =
+                allTokens.stream()
+
+                        .filter(token -> {
+
+                            if (token.getCreatedAt() == null) {
+                                return false;
+                            }
+
+                            return token
+                                    .getCreatedAt()
+                                    .toLocalDate()
+                                    .equals(today);
+                        })
+
+                        .collect(
+                                Collectors.toList()
+                        );
+
+
+        long totalToday =
+                todayTokens.size();
+
+
+        long waitingCount =
+                todayTokens.stream()
+
+                        .filter(token ->
+                                "WAITING".equalsIgnoreCase(
+                                        token.getStatus()
+                                )
+                        )
+
+                        .count();
+
+
+        long completedCount =
+                todayTokens.stream()
+
+                        .filter(token ->
+                                "COMPLETED".equalsIgnoreCase(
+                                        token.getStatus()
+                                )
+                        )
+
+                        .count();
+
+
+        Map<String, Object> metrics =
+                new HashMap<>();
+
 
         metrics.put(
                 "patientsToday",
-                totalToday > 0 ? totalToday : 128
+                totalToday
         );
 
         metrics.put(
@@ -355,47 +639,72 @@ public class QueueController {
         );
 
         metrics.put(
+                "completedToday",
+                completedCount
+        );
+
+        metrics.put(
                 "activeDoctors",
                 6
         );
 
+        /*
+         * Fixed 15 minute estimated consultation time.
+         */
         metrics.put(
                 "avgWaitTime",
-                (waitingCount * 15) + " min"
+                (waitingCount
+                        * AVERAGE_CONSULTATION_TIME)
+                        + " min"
         );
 
 
-        return ResponseEntity.ok(metrics);
+        metrics.put(
+                "averageConsultationTime",
+                AVERAGE_CONSULTATION_TIME
+        );
+
+
+        return ResponseEntity.ok(
+                metrics
+        );
     }
 
 
     // =========================================================
-    // DOCTOR LIVE QUEUE (UPDATED TO RETURN APPOINTMENTS WITH AGE/GENDER)
+    // DOCTOR LIVE QUEUE
     // =========================================================
 
     @GetMapping("/doctor-queue/{id}")
     public ResponseEntity<?> getDoctorSpecificQueue(
             @PathVariable Long id) {
 
-        // userId se actual doctorId find karo
         Long actualDoctorId =
-                doctorRepository
-                        .findByUserId(id)
-                        .map(Doctor::getId)
-                        .orElse(id);
+                getActualDoctorId(id);
 
 
-        // Old WAITING appointments ko MISSED karo
+        // -----------------------------------------------------
+        // GET ALL DOCTOR APPOINTMENTS
+        // -----------------------------------------------------
+
         List<Appointment> allAppointments =
                 appointmentRepository.findByDoctorId(
                         actualDoctorId
                 );
 
 
-        for (Appointment appointment : allAppointments) {
+        // -----------------------------------------------------
+        // OLD WAITING APPOINTMENTS -> MISSED
+        // -----------------------------------------------------
 
-            if (appointment.getStatus() == AppointmentStatus.WAITING
+        for (Appointment appointment :
+                allAppointments) {
+
+            if (appointment.getStatus()
+                    == AppointmentStatus.WAITING
+
                     &&
+
                     isPastAppointment(
                             appointment.getAppointmentDate()
                     )) {
@@ -404,30 +713,288 @@ public class QueueController {
                         AppointmentStatus.MISSED
                 );
 
-                appointmentRepository.save(appointment);
+                appointmentRepository.save(
+                        appointment
+                );
             }
         }
 
 
-        String today = LocalDate.now().toString();
+        // -----------------------------------------------------
+        // TODAY
+        // -----------------------------------------------------
 
-        // Sirf aaj ki WAITING aur IN_CONSULTATION appointments return karo
-        List<Appointment> liveAppointments = allAppointments.stream()
-                .filter(app -> {
-                    boolean todayApp = today.equals(app.getAppointmentDate());
-                    boolean activeStatus = app.getStatus() == AppointmentStatus.WAITING
-                            || app.getStatus() == AppointmentStatus.IN_CONSULTATION;
-                    return todayApp && activeStatus;
-                })
-                .toList();
+        String today =
+                LocalDate.now().toString();
 
-        return ResponseEntity.ok(liveAppointments);
+
+        // -----------------------------------------------------
+        // TODAY WAITING + IN CONSULTATION + COMPLETED
+        // -----------------------------------------------------
+
+        List<Appointment> todayAppointments =
+                allAppointments.stream()
+
+                        .filter(app -> {
+
+                            boolean todayAppointment =
+                                    today.equals(
+                                            app.getAppointmentDate()
+                                    );
+
+                            boolean validStatus =
+                                    app.getStatus()
+                                            == AppointmentStatus.WAITING
+
+                                            ||
+
+                                            app.getStatus()
+                                                    == AppointmentStatus.IN_CONSULTATION
+
+                                            ||
+
+                                            app.getStatus()
+                                                    == AppointmentStatus.COMPLETED;
+
+                            return todayAppointment
+                                    && validStatus;
+                        })
+
+                        .collect(
+                                Collectors.toList()
+                        );
+
+
+        // -----------------------------------------------------
+        // RESPONSE
+        // -----------------------------------------------------
+
+        List<Map<String, Object>> response =
+                new ArrayList<>();
+
+
+        for (Appointment appointment :
+                todayAppointments) {
+
+            Map<String, Object> item =
+                    new HashMap<>();
+
+
+            item.put(
+                    "id",
+                    appointment.getId()
+            );
+
+            item.put(
+                    "appointmentId",
+                    appointment.getId()
+            );
+
+            item.put(
+                    "tokenNumber",
+                    appointment.getTokenNumber()
+            );
+
+            item.put(
+                    "appointmentDate",
+                    appointment.getAppointmentDate()
+            );
+
+            item.put(
+                    "status",
+                    appointment.getStatus()
+            );
+
+
+            // -------------------------------------------------
+            // DOCTOR
+            // -------------------------------------------------
+
+            if (appointment.getDoctor() != null) {
+
+                item.put(
+                        "doctorId",
+                        appointment.getDoctor().getId()
+                );
+
+                item.put(
+                        "doctorName",
+                        appointment.getDoctor().getName()
+                );
+            }
+
+
+            // -------------------------------------------------
+            // PATIENT
+            // -------------------------------------------------
+
+            String patientName =
+                    "N/A";
+
+
+            QueueToken queueToken =
+                    findQueueTokenForAppointment(
+                            appointment
+                    ).orElse(null);
+
+
+            if (queueToken != null) {
+
+                item.put(
+                        "queueTokenId",
+                        queueToken.getId()
+                );
+
+                item.put(
+                        "queueStatus",
+                        queueToken.getStatus()
+                );
+
+
+                // ---------------------------------------------
+                // CONSULTATION TIMES
+                // ---------------------------------------------
+
+                item.put(
+                        "consultationStartTime",
+                        queueToken.getConsultationStartTime()
+                );
+
+                item.put(
+                        "consultationEndTime",
+                        queueToken.getConsultationEndTime()
+                );
+
+                item.put(
+                        "actualConsultationMinutes",
+                        queueToken.getActualConsultationMinutes()
+                );
+
+
+                // ---------------------------------------------
+                // CURRENT ELAPSED TIME
+                // ---------------------------------------------
+
+                if (queueToken.getConsultationStartTime()
+                        != null
+                        &&
+
+                        "IN-PROGRESS".equalsIgnoreCase(
+                                queueToken.getStatus()
+                        )) {
+
+                    long elapsedMinutes =
+                            Duration.between(
+                                    queueToken
+                                            .getConsultationStartTime(),
+                                    LocalDateTime.now()
+                            ).toMinutes();
+
+                    item.put(
+                            "elapsedConsultationMinutes",
+                            Math.max(
+                                    0,
+                                    elapsedMinutes
+                            )
+                    );
+
+                } else {
+
+                    item.put(
+                            "elapsedConsultationMinutes",
+                            0
+                    );
+                }
+
+
+                // ---------------------------------------------
+                // PATIENT AGE + GENDER
+                // ---------------------------------------------
+
+                if (queueToken.getPatientId()
+                        != null) {
+
+                    Optional<User> patientOpt =
+                            userRepository.findById(
+                                    queueToken.getPatientId()
+                            );
+
+
+                    if (patientOpt.isPresent()) {
+
+                        User patient =
+                                patientOpt.get();
+
+                        patientName =
+                                patient.getName();
+
+
+                        item.put(
+                                "age",
+                                patient.getAge()
+                        );
+
+                        item.put(
+                                "gender",
+                                patient.getGender()
+                        );
+                    }
+                }
+            }
+
+
+            item.put(
+                    "patientName",
+                    patientName
+            );
+
+
+            response.add(item);
+        }
+
+
+        // -----------------------------------------------------
+        // SORT BY TOKEN
+        // -----------------------------------------------------
+
+        response.sort(
+                Comparator.comparingInt(
+                        item -> {
+
+                            String token =
+                                    normalizeToken(
+                                            item.get(
+                                                    "tokenNumber"
+                                            )
+                                    );
+
+                            if (token.isEmpty()) {
+                                return Integer.MAX_VALUE;
+                            }
+
+                            try {
+
+                                return Integer.parseInt(
+                                        token
+                                );
+
+                            } catch (Exception e) {
+
+                                return Integer.MAX_VALUE;
+                            }
+                        }
+                )
+        );
+
+
+        return ResponseEntity.ok(
+                response
+        );
     }
 
 
     // =========================================================
-    // UPDATE TOKEN STATUS
-    // START / FINISH CONSULTATION
+    // UPDATE STATUS
     // =========================================================
 
     @PutMapping("/update/{id}")
@@ -435,22 +1002,13 @@ public class QueueController {
             @PathVariable Long id,
             @RequestBody Map<String, String> request) {
 
-        Optional<QueueToken> optionalToken =
-                queueRepository.findById(id);
+
+        String newStatus =
+                request.get("status");
 
 
-        if (optionalToken.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-
-        QueueToken token = optionalToken.get();
-
-
-        String newStatus = request.get("status");
-
-
-        if (newStatus == null || newStatus.trim().isEmpty()) {
+        if (newStatus == null
+                || newStatus.trim().isEmpty()) {
 
             return ResponseEntity.badRequest().body(
                     Map.of(
@@ -461,9 +1019,89 @@ public class QueueController {
         }
 
 
-        newStatus = newStatus
-                .trim()
-                .toUpperCase();
+        newStatus =
+                newStatus
+                        .trim()
+                        .toUpperCase();
+
+
+        // -----------------------------------------------------
+        // SERVING -> IN-PROGRESS
+        // -----------------------------------------------------
+
+        if ("SERVING".equals(newStatus)) {
+
+            newStatus =
+                    "IN-PROGRESS";
+        }
+
+
+        // -----------------------------------------------------
+        // APPOINTMENT FIRST
+        // -----------------------------------------------------
+
+        Optional<Appointment> appointmentOpt =
+                appointmentRepository.findById(id);
+
+
+        Appointment appointment;
+
+
+        if (appointmentOpt.isPresent()) {
+
+            appointment =
+                    appointmentOpt.get();
+
+        } else {
+
+            Optional<QueueToken> tokenOpt =
+                    queueRepository.findById(id);
+
+
+            if (tokenOpt.isEmpty()) {
+
+                return ResponseEntity
+                        .notFound()
+                        .build();
+            }
+
+
+            QueueToken token =
+                    tokenOpt.get();
+
+
+            return updateQueueTokenDirectly(
+                    token,
+                    newStatus
+            );
+        }
+
+
+        // -----------------------------------------------------
+        // FIND QUEUE TOKEN
+        // -----------------------------------------------------
+
+        Optional<QueueToken> tokenOpt =
+                findQueueTokenForAppointment(
+                        appointment
+                );
+
+
+        if (tokenOpt.isEmpty()) {
+
+            return ResponseEntity
+                    .badRequest()
+                    .body(
+                            Map.of(
+                                    "message",
+                                    "Queue token not found for this appointment."
+                            )
+                    );
+        }
+
+
+        QueueToken token =
+                tokenOpt.get();
 
 
         // =====================================================
@@ -471,6 +1109,7 @@ public class QueueController {
         // =====================================================
 
         if ("IN-PROGRESS".equals(newStatus)) {
+
 
             List<QueueToken> doctorTokens =
                     queueRepository.findByDoctorId(
@@ -480,6 +1119,7 @@ public class QueueController {
 
             boolean anotherPatientInProgress =
                     doctorTokens.stream()
+
                             .anyMatch(t ->
 
                                     !t.getId().equals(
@@ -497,17 +1137,23 @@ public class QueueController {
 
             if (anotherPatientInProgress) {
 
-                return ResponseEntity.badRequest().body(
-                        Map.of(
-                                "message",
-                                "Please finish the current consultation before starting another patient."
-                        )
-                );
+                return ResponseEntity
+                        .badRequest()
+                        .body(
+                                Map.of(
+                                        "message",
+                                        "Please finish the current consultation before starting another patient."
+                                )
+                        );
             }
 
 
-            // Start time save
-            if (token.getConsultationStartTime() == null) {
+            // -------------------------------------------------
+            // START TIME
+            // -------------------------------------------------
+
+            if (token.getConsultationStartTime()
+                    == null) {
 
                 token.setConsultationStartTime(
                         LocalDateTime.now()
@@ -515,10 +1161,40 @@ public class QueueController {
             }
 
 
-            token.setConsultationEndTime(null);
-            token.setActualConsultationMinutes(null);
+            token.setConsultationEndTime(
+                    null
+            );
 
-            token.setStatus("IN-PROGRESS");
+            token.setActualConsultationMinutes(
+                    null
+            );
+
+            token.setStatus(
+                    "IN-PROGRESS"
+            );
+
+
+            queueRepository.save(
+                    token
+            );
+
+
+            appointment.setStatus(
+                    AppointmentStatus.IN_CONSULTATION
+            );
+
+
+            appointmentRepository.save(
+                    appointment
+            );
+
+
+            return ResponseEntity.ok(
+                    buildStatusResponse(
+                            token,
+                            appointment
+                    )
+            );
         }
 
 
@@ -528,14 +1204,18 @@ public class QueueController {
 
         else if ("COMPLETED".equals(newStatus)) {
 
-            if (token.getConsultationStartTime() == null) {
 
-                return ResponseEntity.badRequest().body(
-                        Map.of(
-                                "message",
-                                "Consultation has not been started yet."
-                        )
-                );
+            if (token.getConsultationStartTime()
+                    == null) {
+
+                return ResponseEntity
+                        .badRequest()
+                        .body(
+                                Map.of(
+                                        "message",
+                                        "Consultation has not been started yet."
+                                )
+                        );
             }
 
 
@@ -556,11 +1236,39 @@ public class QueueController {
 
 
             token.setActualConsultationMinutes(
-                    (int) minutes
+                    (int) Math.max(
+                            0,
+                            minutes
+                    )
             );
 
 
-            token.setStatus("COMPLETED");
+            token.setStatus(
+                    "COMPLETED"
+            );
+
+
+            queueRepository.save(
+                    token
+            );
+
+
+            appointment.setStatus(
+                    AppointmentStatus.COMPLETED
+            );
+
+
+            appointmentRepository.save(
+                    appointment
+            );
+
+
+            return ResponseEntity.ok(
+                    buildStatusResponse(
+                            token,
+                            appointment
+                    )
+            );
         }
 
 
@@ -570,11 +1278,45 @@ public class QueueController {
 
         else if ("WAITING".equals(newStatus)) {
 
-            token.setStatus("WAITING");
 
-            token.setConsultationStartTime(null);
-            token.setConsultationEndTime(null);
-            token.setActualConsultationMinutes(null);
+            token.setStatus(
+                    "WAITING"
+            );
+
+            token.setConsultationStartTime(
+                    null
+            );
+
+            token.setConsultationEndTime(
+                    null
+            );
+
+            token.setActualConsultationMinutes(
+                    null
+            );
+
+
+            queueRepository.save(
+                    token
+            );
+
+
+            appointment.setStatus(
+                    AppointmentStatus.WAITING
+            );
+
+
+            appointmentRepository.save(
+                    appointment
+            );
+
+
+            return ResponseEntity.ok(
+                    buildStatusResponse(
+                            token,
+                            appointment
+                    )
+            );
         }
 
 
@@ -584,132 +1326,456 @@ public class QueueController {
 
         else if ("SKIPPED".equals(newStatus)) {
 
-            token.setStatus("SKIPPED");
-        }
+
+            token.setStatus(
+                    "SKIPPED"
+            );
+
+            token.setConsultationEndTime(
+                    LocalDateTime.now()
+            );
 
 
-        // =====================================================
-        // INVALID STATUS
-        // =====================================================
+            queueRepository.save(
+                    token
+            );
 
-        else {
 
-            return ResponseEntity.badRequest().body(
-                    Map.of(
-                            "message",
-                            "Invalid status: "
-                                    + newStatus
+            appointment.setStatus(
+                    AppointmentStatus.CANCELLED
+            );
+
+
+            appointmentRepository.save(
+                    appointment
+            );
+
+
+            return ResponseEntity.ok(
+                    buildStatusResponse(
+                            token,
+                            appointment
                     )
             );
         }
 
 
-        // Save QueueToken
-        QueueToken savedToken =
-                queueRepository.save(token);
-
-
         // =====================================================
-        // SYNC APPOINTMENT STATUS
+        // INVALID
         // =====================================================
 
-        try {
-
-            List<Appointment> allAppointments =
-                    appointmentRepository.findAll();
-
-
-            String queueTokenNumStr =
-                    token.getTokenNumber() != null
-
-                            ?
-
-                            token.getTokenNumber()
-                                    .replaceAll("[^0-9]", "")
-                                    .trim()
-
-                            :
-
-                            "";
+        return ResponseEntity
+                .badRequest()
+                .body(
+                        Map.of(
+                                "message",
+                                "Invalid status: "
+                                        + newStatus
+                        )
+                );
+    }
 
 
-            for (Appointment app : allAppointments) {
+    // =========================================================
+    // DIRECT QUEUE TOKEN UPDATE
+    // =========================================================
 
-                if (app.getTokenNumber() == null) {
-                    continue;
-                }
+    private ResponseEntity<?> updateQueueTokenDirectly(
+            QueueToken token,
+            String newStatus) {
 
 
-                String appTokenNumStr =
-                        String.valueOf(
-                                        app.getTokenNumber()
+        if ("IN-PROGRESS".equals(newStatus)) {
+
+            List<QueueToken> doctorTokens =
+                    queueRepository.findByDoctorId(
+                            token.getDoctorId()
+                    );
+
+
+            boolean anotherPatientInProgress =
+                    doctorTokens.stream()
+
+                            .anyMatch(t ->
+
+                                    !t.getId().equals(
+                                            token.getId()
+                                    )
+
+                                            &&
+
+                                            "IN-PROGRESS"
+                                                    .equalsIgnoreCase(
+                                                            t.getStatus()
+                                                    )
+                            );
+
+
+            if (anotherPatientInProgress) {
+
+                return ResponseEntity
+                        .badRequest()
+                        .body(
+                                Map.of(
+                                        "message",
+                                        "Please finish the current consultation before starting another patient."
                                 )
-                                .replaceAll(
-                                        "[^0-9]",
-                                        ""
-                                )
-                                .trim();
-
-
-                if (!appTokenNumStr.isEmpty()
-                        &&
-                        appTokenNumStr.equals(
-                                queueTokenNumStr
-                        )) {
-
-
-                    if ("IN-PROGRESS"
-                            .equalsIgnoreCase(newStatus)) {
-
-                        app.setStatus(
-                                AppointmentStatus.IN_CONSULTATION
                         );
-                    }
-
-
-                    else if ("COMPLETED"
-                            .equalsIgnoreCase(newStatus)) {
-
-                        app.setStatus(
-                                AppointmentStatus.COMPLETED
-                        );
-                    }
-
-
-                    else if ("WAITING"
-                            .equalsIgnoreCase(newStatus)) {
-
-                        app.setStatus(
-                                AppointmentStatus.WAITING
-                        );
-                    }
-
-
-                    else if ("SKIPPED"
-                            .equalsIgnoreCase(newStatus)) {
-
-                        app.setStatus(
-                                AppointmentStatus.CANCELLED
-                        );
-                    }
-
-
-                    appointmentRepository.save(app);
-                }
             }
 
-        } catch (Exception e) {
 
-            System.err.println(
-                    "Error syncing appointment status: "
-                            + e.getMessage()
+            if (token.getConsultationStartTime()
+                    == null) {
+
+                token.setConsultationStartTime(
+                        LocalDateTime.now()
+                );
+            }
+
+
+            token.setConsultationEndTime(
+                    null
+            );
+
+            token.setActualConsultationMinutes(
+                    null
+            );
+
+            token.setStatus(
+                    "IN-PROGRESS"
             );
         }
 
 
-        return ResponseEntity.ok(
-                savedToken
+        else if ("COMPLETED".equals(newStatus)) {
+
+            if (token.getConsultationStartTime()
+                    == null) {
+
+                return ResponseEntity
+                        .badRequest()
+                        .body(
+                                Map.of(
+                                        "message",
+                                        "Consultation has not been started yet."
+                                )
+                        );
+            }
+
+
+            LocalDateTime endTime =
+                    LocalDateTime.now();
+
+
+            token.setConsultationEndTime(
+                    endTime
+            );
+
+
+            long minutes =
+                    Duration.between(
+                            token.getConsultationStartTime(),
+                            endTime
+                    ).toMinutes();
+
+
+            token.setActualConsultationMinutes(
+                    (int) Math.max(
+                            0,
+                            minutes
+                    )
+            );
+
+
+            token.setStatus(
+                    "COMPLETED"
+            );
+        }
+
+
+        else if ("WAITING".equals(newStatus)) {
+
+            token.setStatus(
+                    "WAITING"
+            );
+
+            token.setConsultationStartTime(
+                    null
+            );
+
+            token.setConsultationEndTime(
+                    null
+            );
+
+            token.setActualConsultationMinutes(
+                    null
+            );
+        }
+
+
+        else if ("SKIPPED".equals(newStatus)) {
+
+            token.setStatus(
+                    "SKIPPED"
+            );
+
+            token.setConsultationEndTime(
+                    LocalDateTime.now()
+            );
+        }
+
+
+        else {
+
+            return ResponseEntity
+                    .badRequest()
+                    .body(
+                            Map.of(
+                                    "message",
+                                    "Invalid status: "
+                                            + newStatus
+                            )
+                    );
+        }
+
+
+        QueueToken saved =
+                queueRepository.save(
+                        token
+                );
+
+
+        syncAppointmentStatus(
+                saved,
+                newStatus
         );
+
+
+        return ResponseEntity.ok(
+                buildQueueTokenResponse(saved)
+        );
+    }
+
+
+    // =========================================================
+    // SYNC APPOINTMENT STATUS
+    // =========================================================
+
+    private void syncAppointmentStatus(
+            QueueToken token,
+            String newStatus) {
+
+
+        if (token == null
+                || token.getTokenNumber() == null) {
+
+            return;
+        }
+
+
+        String queueTokenNumber =
+                normalizeToken(
+                        token.getTokenNumber()
+                );
+
+
+        List<Appointment> appointments =
+                appointmentRepository.findAll();
+
+
+        for (Appointment appointment :
+                appointments) {
+
+
+            if (appointment.getTokenNumber()
+                    == null) {
+
+                continue;
+            }
+
+
+            String appointmentTokenNumber =
+                    normalizeToken(
+                            appointment.getTokenNumber()
+                    );
+
+
+            if (!queueTokenNumber.equals(
+                    appointmentTokenNumber
+            )) {
+
+                continue;
+            }
+
+
+            // -------------------------------------------------
+            // DOCTOR MATCH
+            // -------------------------------------------------
+
+            if (appointment.getDoctor() != null
+                    && token.getDoctorId() != null
+                    && !appointment.getDoctor()
+                    .getId()
+                    .equals(
+                            token.getDoctorId()
+                    )) {
+
+                continue;
+            }
+
+
+            // -------------------------------------------------
+            // STATUS SYNC
+            // -------------------------------------------------
+
+            if ("IN-PROGRESS".equalsIgnoreCase(
+                    newStatus
+            )) {
+
+                appointment.setStatus(
+                        AppointmentStatus.IN_CONSULTATION
+                );
+            }
+
+
+            else if ("COMPLETED".equalsIgnoreCase(
+                    newStatus
+            )) {
+
+                appointment.setStatus(
+                        AppointmentStatus.COMPLETED
+                );
+            }
+
+
+            else if ("WAITING".equalsIgnoreCase(
+                    newStatus
+            )) {
+
+                appointment.setStatus(
+                        AppointmentStatus.WAITING
+                );
+            }
+
+
+            else if ("SKIPPED".equalsIgnoreCase(
+                    newStatus
+            )) {
+
+                appointment.setStatus(
+                        AppointmentStatus.CANCELLED
+                );
+            }
+
+
+            appointmentRepository.save(
+                    appointment
+            );
+        }
+    }
+
+
+    // =========================================================
+    // STATUS RESPONSE
+    // =========================================================
+
+    private Map<String, Object> buildStatusResponse(
+            QueueToken token,
+            Appointment appointment) {
+
+
+        Map<String, Object> response =
+                new HashMap<>();
+
+
+        response.put(
+                "queueTokenId",
+                token.getId()
+        );
+
+        response.put(
+                "appointmentId",
+                appointment.getId()
+        );
+
+        response.put(
+                "tokenNumber",
+                token.getTokenNumber()
+        );
+
+        response.put(
+                "status",
+                appointment.getStatus()
+        );
+
+        response.put(
+                "queueStatus",
+                token.getStatus()
+        );
+
+        response.put(
+                "consultationStartTime",
+                token.getConsultationStartTime()
+        );
+
+        response.put(
+                "consultationEndTime",
+                token.getConsultationEndTime()
+        );
+
+        response.put(
+                "actualConsultationMinutes",
+                token.getActualConsultationMinutes()
+        );
+
+
+        return response;
+    }
+
+
+    // =========================================================
+    // QUEUE TOKEN RESPONSE
+    // =========================================================
+
+    private Map<String, Object> buildQueueTokenResponse(
+            QueueToken token) {
+
+        Map<String, Object> response =
+                new HashMap<>();
+
+
+        response.put(
+                "queueTokenId",
+                token.getId()
+        );
+
+        response.put(
+                "tokenNumber",
+                token.getTokenNumber()
+        );
+
+        response.put(
+                "status",
+                token.getStatus()
+        );
+
+        response.put(
+                "consultationStartTime",
+                token.getConsultationStartTime()
+        );
+
+        response.put(
+                "consultationEndTime",
+                token.getConsultationEndTime()
+        );
+
+        response.put(
+                "actualConsultationMinutes",
+                token.getActualConsultationMinutes()
+        );
+
+
+        return response;
     }
 
 
@@ -722,10 +1788,7 @@ public class QueueController {
             @PathVariable Long id) {
 
         Long actualDoctorId =
-                doctorRepository
-                        .findByUserId(id)
-                        .map(Doctor::getId)
-                        .orElse(id);
+                getActualDoctorId(id);
 
 
         List<QueueToken> patientHistory =
@@ -748,9 +1811,15 @@ public class QueueController {
     public ResponseEntity<?> getCurrentServingByDoctor(
             @PathVariable Long doctorId) {
 
+        Long actualDoctorId =
+                getActualDoctorId(
+                        doctorId
+                );
+
+
         List<QueueToken> tokens =
                 queueRepository.findByDoctorId(
-                        doctorId
+                        actualDoctorId
                 );
 
 
@@ -758,10 +1827,11 @@ public class QueueController {
                 tokens.stream()
 
                         .filter(
-                                t -> "IN-PROGRESS"
-                                        .equalsIgnoreCase(
-                                                t.getStatus()
-                                        )
+                                t ->
+                                        "IN-PROGRESS"
+                                                .equalsIgnoreCase(
+                                                        t.getStatus()
+                                                )
                         )
 
                         .findFirst();
@@ -790,13 +1860,13 @@ public class QueueController {
 
 
     // =========================================================
-    // APPOINTMENT STATUS
-    // PATIENT SIDE API
+    // PATIENT APPOINTMENT LIVE STATUS
     // =========================================================
 
     @GetMapping("/appointment-status/{appointmentId}")
     public ResponseEntity<?> getStatusByAppointmentId(
             @PathVariable Long appointmentId) {
+
 
         Optional<Appointment> appOpt =
                 appointmentRepository.findById(
@@ -805,50 +1875,68 @@ public class QueueController {
 
 
         if (appOpt.isEmpty()) {
-            return ResponseEntity.notFound().build();
+
+            return ResponseEntity
+                    .notFound()
+                    .build();
         }
 
 
-        Appointment app = appOpt.get();
+        Appointment app =
+                appOpt.get();
 
-
-        String currentServingToken = "None";
-
-        long patientsAhead = 0;
 
         Long doctorId = null;
 
 
         if (app.getDoctor() != null) {
 
-            doctorId = app
-                    .getDoctor()
-                    .getId();
+            doctorId =
+                    app.getDoctor().getId();
         }
+
+
+        String currentServingToken =
+                "None";
+
+
+        long patientsAhead = 0;
 
 
         if (doctorId != null) {
 
-            // Find current consultation from Appointment table
+
+            // -------------------------------------------------
+            // CURRENT SERVING
+            // -------------------------------------------------
+
             List<Appointment> doctorAppointments =
                     appointmentRepository.findByDoctorId(
                             doctorId
                     );
 
 
-            for (Appointment da : doctorAppointments) {
+            for (Appointment doctorAppointment :
+                    doctorAppointments) {
+
 
                 if (AppointmentStatus.IN_CONSULTATION
-                        .equals(da.getStatus())
+                        .equals(
+                                doctorAppointment
+                                        .getStatus()
+                        )
 
                         &&
 
-                        da.getTokenNumber() != null) {
+                        doctorAppointment
+                                .getTokenNumber()
+                                != null) {
 
 
                     currentServingToken =
                             String.valueOf(
-                                    da.getTokenNumber()
+                                    doctorAppointment
+                                            .getTokenNumber()
                             );
 
                     break;
@@ -856,8 +1944,13 @@ public class QueueController {
             }
 
 
-            // Fallback: QueueToken table
-            if ("None".equals(currentServingToken)) {
+            // -------------------------------------------------
+            // FALLBACK QUEUE TOKEN
+            // -------------------------------------------------
+
+            if ("None".equals(
+                    currentServingToken
+            )) {
 
                 List<QueueToken> doctorTokens =
                         queueRepository.findByDoctorId(
@@ -865,26 +1958,38 @@ public class QueueController {
                         );
 
 
-                for (QueueToken qt : doctorTokens) {
+                Optional<QueueToken> currentToken =
+                        doctorTokens.stream()
 
-                    if ("IN-PROGRESS"
-                            .equalsIgnoreCase(
-                                    qt.getStatus()
-                            )) {
+                                .filter(
+                                        qt ->
+                                                "IN-PROGRESS"
+                                                        .equalsIgnoreCase(
+                                                                qt.getStatus()
+                                                        )
+                                )
 
-                        currentServingToken =
-                                qt.getTokenNumber();
+                                .findFirst();
 
-                        break;
-                    }
+
+                if (currentToken.isPresent()) {
+
+                    currentServingToken =
+                            currentToken
+                                    .get()
+                                    .getTokenNumber();
                 }
             }
 
 
-            // Patients Ahead
+            // -------------------------------------------------
+            // PATIENTS AHEAD
+            // -------------------------------------------------
+
             if (app.getTokenNumber() != null
-                    &&
-                    app.getAppointmentDate() != null) {
+                    && app.getAppointmentDate()
+                    != null) {
+
 
                 patientsAhead =
                         appointmentRepository
@@ -911,38 +2016,48 @@ public class QueueController {
                 app.getId()
         );
 
+
         response.put(
                 "tokenNumber",
                 app.getTokenNumber()
         );
 
+
         response.put(
                 "status",
 
                 app.getStatus() != null
-
-                        ?
-
-                        app.getStatus().toString()
-
-                        :
-
-                        "WAITING"
+                        ? app.getStatus().toString()
+                        : "WAITING"
         );
+
 
         response.put(
                 "currentServing",
                 currentServingToken
         );
 
+
         response.put(
                 "patientsAhead",
                 patientsAhead
         );
 
+
+        // -----------------------------------------------------
+        // FIXED 15 MINUTE ESTIMATE
+        // -----------------------------------------------------
+
         response.put(
                 "estimatedWaitTime",
-                patientsAhead * 15
+                patientsAhead
+                        * AVERAGE_CONSULTATION_TIME
+        );
+
+
+        response.put(
+                "averageConsultationTime",
+                AVERAGE_CONSULTATION_TIME
         );
 
 
