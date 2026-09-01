@@ -116,6 +116,42 @@ public class AppointmentController {
     // =========================================================
     // GET ALL PATIENT APPOINTMENTS
     // =========================================================
+    //
+    // IMPORTANT:
+    // Ye API receptionist ke liye hai.
+    //
+    // Patient ne online appointment book ki ho
+    // ya receptionist ne appointment create ki ho,
+    // dono appointments yahan milengi.
+    //
+    // ONLINE + RECEPTION
+    // dono booking source ki appointments show hongi.
+    // =========================================================
+
+    @GetMapping("/all")
+    public ResponseEntity<List<Appointment>> getAllAppointments() {
+
+        try {
+
+            List<Appointment> appointments =
+                    appointmentRepository.findAll();
+
+            return ResponseEntity.ok(
+                    appointments
+            );
+
+        } catch (Exception e) {
+
+            return ResponseEntity
+                    .status(500)
+                    .build();
+        }
+    }
+
+
+    // =========================================================
+    // GET PATIENT APPOINTMENTS
+    // =========================================================
 
     @GetMapping("/patient/{patientId}")
     public ResponseEntity<List<Appointment>> getPatientAppointments(

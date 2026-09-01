@@ -208,6 +208,17 @@ public class AppointmentService {
 
 
     // =====================================================
+    // GET ALL APPOINTMENTS FOR RECEPTIONIST
+    // =====================================================
+
+    public List<Appointment> getAllAppointments() {
+
+        return appointmentRepository
+                .findAllByOrderByCreatedAtDesc();
+    }
+
+
+    // =====================================================
     // GET PATIENT APPOINTMENTS WITH LIVE QUEUE TRACKING
     // =====================================================
 

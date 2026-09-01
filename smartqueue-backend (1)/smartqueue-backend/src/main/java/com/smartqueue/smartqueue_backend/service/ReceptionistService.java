@@ -13,6 +13,7 @@ import com.smartqueue.smartqueue_backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -34,18 +35,14 @@ public class ReceptionistService {
 
     public Appointment bookAppointment(AppointmentDTO dto) {
 
-        Doctor doctor =
-                doctorRepository.findById(dto.getDoctorId())
-                        .orElseThrow(() ->
-                                new RuntimeException(
-                                        "Doctor not found with id: "
-                                                + dto.getDoctorId()
-                                )
-                        );
-
-
-        // Doctor ke total tokens count karke
-        // agla token number set karein
+        Doctor doctor = doctorRepository
+                .findById(dto.getDoctorId())
+                .orElseThrow(() ->
+                        new RuntimeException(
+                                "Doctor not found with id: "
+                                        + dto.getDoctorId()
+                        )
+                );
 
         Long currentCount =
                 appointmentRepository.countByDoctorId(
@@ -55,10 +52,8 @@ public class ReceptionistService {
         int nextTokenNumber =
                 currentCount.intValue() + 1;
 
-
         Appointment appointment =
                 new Appointment();
-
 
         appointment.setPatientName(
                 dto.getPatientName()
@@ -81,6 +76,85 @@ public class ReceptionistService {
         );
 
 
+        // =====================================================
+        // NEW: PATIENT ID
+        // =====================================================
+
+        if (dto.getPatientId() != null) {
+
+            appointment.setPatientId(
+                    dto.getPatientId()
+            );
+        }
+
+
+        // =====================================================
+        // NEW: APPOINTMENT DATE
+        // =====================================================
+
+        if (dto.getAppointmentDate() != null
+                && !dto.getAppointmentDate().trim().isEmpty()) {
+
+            appointment.setAppointmentDate(
+                    dto.getAppointmentDate()
+            );
+
+        } else {
+
+            appointment.setAppointmentDate(
+                    LocalDate.now().toString()
+            );
+        }
+
+
+        // =====================================================
+        // NEW: PATIENT AGE
+        // =====================================================
+
+        if (dto.getAge() != null) {
+
+            appointment.setAge(
+                    dto.getAge()
+            );
+        }
+
+
+        // =====================================================
+        // NEW: PATIENT GENDER
+        // =====================================================
+
+        if (dto.getGender() != null) {
+
+            appointment.setGender(
+                    dto.getGender()
+            );
+        }
+
+
+        // =====================================================
+        // NEW: BOOKING SOURCE
+        // =====================================================
+
+        if (dto.getBookingSource() != null
+                && !dto.getBookingSource().trim().isEmpty()) {
+
+            appointment.setBookingSource(
+                    dto.getBookingSource()
+            );
+
+        } else {
+
+            // Receptionist se booking hui hai
+            appointment.setBookingSource(
+                    "RECEPTION"
+            );
+        }
+
+
+        // =====================================================
+        // SAVE APPOINTMENT
+        // =====================================================
+
         return appointmentRepository.save(
                 appointment
         );
@@ -91,8 +165,7 @@ public class ReceptionistService {
     // 2. GET APPOINTMENTS BY DOCTOR AND STATUS
     // =====================================================
 
-    public List<Appointment>
-    getAppointmentsByDoctorAndStatus(
+    public List<Appointment> getAppointmentsByDoctorAndStatus(
             Long doctorId,
             AppointmentStatus status
     ) {
@@ -106,11 +179,10 @@ public class ReceptionistService {
 
 
     // =====================================================
-    // 3. GET ALL TODAY'S APPOINTMENTS
+    // 3. GET TODAY'S APPOINTMENTS
     // =====================================================
 
-    public List<Appointment>
-    getTodayAppointments() {
+    public List<Appointment> getTodayAppointments() {
 
         return appointmentRepository.findAll();
     }
@@ -135,20 +207,14 @@ public class ReceptionistService {
                                 )
                         );
 
+        appointment.setStatus(status);
 
-        appointment.setStatus(
-                status
-        );
-
-
-        appointmentRepository.save(
-                appointment
-        );
+        appointmentRepository.save(appointment);
     }
 
 
     // =====================================================
-    // 5. GET ALL PATIENTS
+    // 5. GET ALL REGISTERED PATIENTS
     // =====================================================
 
     public List<User> getAllPatients() {
@@ -172,5 +238,83 @@ public class ReceptionistService {
                         Role.PATIENT,
                         name
                 );
+    }
+
+
+    // =====================================================
+    // 7. REGISTER NEW PATIENT
+    // =====================================================
+
+    public User registerPatient(User patient) {
+
+        // Check email
+        if (patient.getEmail() == null
+                || patient.getEmail().trim().isEmpty()) {
+
+            throw new RuntimeException(
+                    "Patient email is required."
+            );
+        }
+
+
+        // Check duplicate email
+        if (userRepository.existsByEmail(
+                patient.getEmail()
+        )) {
+
+            throw new RuntimeException(
+                    "Patient with this email already exists."
+            );
+        }
+
+
+        // Check name
+        if (patient.getName() == null
+                || patient.getName().trim().isEmpty()) {
+
+            throw new RuntimeException(
+                    "Patient name is required."
+            );
+        }
+
+
+        // Check phone
+        if (patient.getPhone() == null
+                || patient.getPhone().trim().isEmpty()) {
+
+            throw new RuntimeException(
+                    "Patient phone is required."
+            );
+        }
+
+
+        // Role automatically PATIENT
+        patient.setRole(
+                Role.PATIENT
+        );
+
+
+        // Active by default
+        patient.setActive(
+                true
+        );
+
+
+        // Default password
+        if (patient.getPassword() == null
+                || patient.getPassword()
+                .trim()
+                .isEmpty()) {
+
+            patient.setPassword(
+                    "Patient@123"
+            );
+        }
+
+
+        // Save patient
+        return userRepository.save(
+                patient
+        );
     }
 }

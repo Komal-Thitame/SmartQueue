@@ -45,6 +45,15 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
 
 
     // ==========================================
+    // RECEPTIONIST - ALL APPOINTMENTS
+    // ==========================================
+
+    // Receptionist ke liye saare appointments
+    // Latest appointment pehle show hogi
+    List<Appointment> findAllByOrderByCreatedAtDesc();
+
+
+    // ==========================================
     // NEW METHODS - DOCTOR QUEUE / MY PATIENTS
     // ==========================================
 

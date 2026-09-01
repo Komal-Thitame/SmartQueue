@@ -3,7 +3,6 @@ package com.smartqueue.smartqueue_backend.controller;
 import com.smartqueue.smartqueue_backend.dto.AppointmentDTO;
 import com.smartqueue.smartqueue_backend.entity.Appointment;
 import com.smartqueue.smartqueue_backend.entity.AppointmentStatus;
-import com.smartqueue.smartqueue_backend.dto.QueueHistoryDTO;
 import com.smartqueue.smartqueue_backend.entity.User;
 import com.smartqueue.smartqueue_backend.service.ReceptionistService;
 
@@ -11,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -28,10 +26,6 @@ public class ReceptionistController {
     // 1. BOOK TOKEN / CREATE APPOINTMENT
     // =====================================================
 
-    /**
-     * Endpoint:
-     * POST http://localhost:8081/api/receptionist/book-token
-     */
     @PostMapping("/book-token")
     public ResponseEntity<?> bookToken(
             @RequestBody AppointmentDTO dto) {
@@ -68,10 +62,6 @@ public class ReceptionistController {
     // 2. GET WAITING QUEUE FOR DOCTOR
     // =====================================================
 
-    /**
-     * Endpoint:
-     * GET http://localhost:8081/api/receptionist/queue/{doctorId}
-     */
     @GetMapping("/queue/{doctorId}")
     public ResponseEntity<?> getWaitingQueue(
             @PathVariable Long doctorId) {
@@ -85,9 +75,7 @@ public class ReceptionistController {
                                     AppointmentStatus.WAITING
                             );
 
-            return ResponseEntity.ok(
-                    waitingList
-            );
+            return ResponseEntity.ok(waitingList);
 
         } catch (Exception e) {
 
@@ -104,13 +92,9 @@ public class ReceptionistController {
 
 
     // =====================================================
-    // 3. GET ALL TODAY'S APPOINTMENTS
+    // 3. GET TODAY'S APPOINTMENTS
     // =====================================================
 
-    /**
-     * Endpoint:
-     * GET http://localhost:8081/api/receptionist/appointments/today
-     */
     @GetMapping("/appointments/today")
     public ResponseEntity<?> getTodayAppointments() {
 
@@ -120,9 +104,7 @@ public class ReceptionistController {
                     receptionistService
                             .getTodayAppointments();
 
-            return ResponseEntity.ok(
-                    todayList
-            );
+            return ResponseEntity.ok(todayList);
 
         } catch (Exception e) {
 
@@ -142,10 +124,6 @@ public class ReceptionistController {
     // 4. CANCEL APPOINTMENT
     // =====================================================
 
-    /**
-     * Endpoint:
-     * PUT http://localhost:8081/api/receptionist/cancel/{appointmentId}
-     */
     @PutMapping("/cancel/{appointmentId}")
     public ResponseEntity<?> cancelAppointment(
             @PathVariable Long appointmentId) {
@@ -179,15 +157,45 @@ public class ReceptionistController {
 
 
     // =====================================================
-    // 5. GET ALL REGISTERED PATIENTS
+    // 5. CHECK-IN PATIENT
     // =====================================================
 
-    /**
-     * Receptionist ko saare registered patients milenge.
-     *
-     * Endpoint:
-     * GET http://localhost:8081/api/receptionist/patients
-     */
+    @PutMapping("/check-in/{appointmentId}")
+    public ResponseEntity<?> checkInPatient(
+            @PathVariable Long appointmentId) {
+
+        try {
+
+            receptionistService.updateAppointmentStatus(
+                    appointmentId,
+                    AppointmentStatus.IN_CONSULTATION
+            );
+
+            return ResponseEntity.ok(
+                    Map.of(
+                            "message",
+                            "Patient checked-in successfully!"
+                    )
+            );
+
+        } catch (Exception e) {
+
+            return ResponseEntity
+                    .badRequest()
+                    .body(
+                            Map.of(
+                                    "message",
+                                    e.getMessage()
+                            )
+                    );
+        }
+    }
+
+
+    // =====================================================
+    // 6. GET ALL REGISTERED PATIENTS
+    // =====================================================
+
     @GetMapping("/patients")
     public ResponseEntity<?> getAllPatients() {
 
@@ -196,9 +204,7 @@ public class ReceptionistController {
             List<User> patients =
                     receptionistService.getAllPatients();
 
-            return ResponseEntity.ok(
-                    patients
-            );
+            return ResponseEntity.ok(patients);
 
         } catch (Exception e) {
 
@@ -215,15 +221,9 @@ public class ReceptionistController {
 
 
     // =====================================================
-    // 6. SEARCH PATIENT BY NAME
+    // 7. SEARCH PATIENT BY NAME
     // =====================================================
 
-    /**
-     * Receptionist patient ko naam se search kar sakta hai.
-     *
-     * Example:
-     * GET http://localhost:8081/api/receptionist/patients/search?name=Rahul
-     */
     @GetMapping("/patients/search")
     public ResponseEntity<?> searchPatients(
             @RequestParam String name) {
@@ -231,13 +231,9 @@ public class ReceptionistController {
         try {
 
             List<User> patients =
-                    receptionistService.searchPatients(
-                            name
-                    );
+                    receptionistService.searchPatients(name);
 
-            return ResponseEntity.ok(
-                    patients
-            );
+            return ResponseEntity.ok(patients);
 
         } catch (Exception e) {
 
@@ -254,100 +250,39 @@ public class ReceptionistController {
 
 
     // =====================================================
-    // PATIENT OVERVIEW DTO
+    // 8. REGISTER NEW PATIENT
     // =====================================================
 
-    public static class PatientOverviewDTO {
+    @PostMapping("/patients")
+    public ResponseEntity<?> registerPatient(
+            @RequestBody User patient) {
 
-        private Long id;
+        try {
 
-        private String patientCustomId;
+            User savedPatient =
+                    receptionistService.registerPatient(
+                            patient
+                    );
 
-        private String name;
+            return ResponseEntity.ok(
+                    Map.of(
+                            "message",
+                            "Patient registered successfully!",
+                            "patient",
+                            savedPatient
+                    )
+            );
 
-        private String email;
+        } catch (Exception e) {
 
-        private String phone;
-
-        private Boolean active;
-
-        private LocalDateTime createdAt;
-
-        private List<QueueHistoryDTO> queueHistory;
-
-
-        // Getters and Setters
-
-        public Long getId() {
-            return id;
-        }
-
-        public void setId(Long id) {
-            this.id = id;
-        }
-
-        public String getPatientCustomId() {
-            return patientCustomId;
-        }
-
-        public void setPatientCustomId(
-                String patientCustomId) {
-
-            this.patientCustomId =
-                    patientCustomId;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public String getEmail() {
-            return email;
-        }
-
-        public void setEmail(String email) {
-            this.email = email;
-        }
-
-        public String getPhone() {
-            return phone;
-        }
-
-        public void setPhone(String phone) {
-            this.phone = phone;
-        }
-
-        public Boolean getActive() {
-            return active;
-        }
-
-        public void setActive(Boolean active) {
-            this.active = active;
-        }
-
-        public LocalDateTime getCreatedAt() {
-            return createdAt;
-        }
-
-        public void setCreatedAt(
-                LocalDateTime createdAt) {
-
-            this.createdAt = createdAt;
-        }
-
-        public List<QueueHistoryDTO> getQueueHistory() {
-            return queueHistory;
-        }
-
-        public void setQueueHistory(
-                List<QueueHistoryDTO> queueHistory) {
-
-            this.queueHistory =
-                    queueHistory;
+            return ResponseEntity
+                    .badRequest()
+                    .body(
+                            Map.of(
+                                    "message",
+                                    e.getMessage()
+                            )
+                    );
         }
     }
 }
