@@ -104,7 +104,7 @@ const ReceptionistAppointments = () => {
     const fetchPatients = async () => {
         try {
             const response = await fetch(
-                `${API_BASE_URL}/api/receptionist/patients`
+                `${API_BASE_URL}/receptionist/patients`
             );
 
             if (!response.ok) {
@@ -136,7 +136,7 @@ const ReceptionistAppointments = () => {
     const fetchDoctors = async () => {
         try {
             const response = await fetch(
-                `${API_BASE_URL}/api/admin/doctors`
+                `${API_BASE_URL}/admin/doctors`
             );
 
             if (!response.ok) {
@@ -171,7 +171,7 @@ const ReceptionistAppointments = () => {
             setError("");
 
             const response = await fetch(
-                `${API_BASE_URL}/api/receptionist/appointments/today`
+                `${API_BASE_URL}/receptionist/appointments/today`
             );
 
             if (!response.ok) {
@@ -388,8 +388,7 @@ const ReceptionistAppointments = () => {
                             walkInForm.newAge
                         )
                         : null
-                    : selectedPatient.age ??
-                    null;
+                    : selectedPatient.age ?? null;
 
             const patientGender =
                 walkInForm.isNewPatient
@@ -449,7 +448,7 @@ const ReceptionistAppointments = () => {
             // -------------------------------------------------
 
             const response = await fetch(
-                `${API_BASE_URL}/api/receptionist/book-token`,
+                `${API_BASE_URL}/receptionist/book-token`,
                 {
                     method: "POST",
 
@@ -557,7 +556,7 @@ const ReceptionistAppointments = () => {
             setSuccessMessage("");
 
             const response = await fetch(
-                `${API_BASE_URL}/api/receptionist/check-in/${appointmentId}`,
+                `${API_BASE_URL}/receptionist/check-in/${appointmentId}`,
                 {
                     method: "PUT"
                 }
@@ -624,7 +623,7 @@ const ReceptionistAppointments = () => {
             setSuccessMessage("");
 
             const response = await fetch(
-                `${API_BASE_URL}/api/receptionist/cancel/${appointmentId}`,
+                `${API_BASE_URL}/receptionist/cancel/${appointmentId}`,
                 {
                     method: "PUT"
                 }
@@ -1613,6 +1612,7 @@ const ReceptionistAppointments = () => {
 
                             {walkInForm.isNewPatient && (
                                 <>
+
                                     {/* NAME */}
 
                                     <div
@@ -1877,6 +1877,7 @@ const ReceptionistAppointments = () => {
                                         />
 
                                     </div>
+
                                 </>
                             )}
 

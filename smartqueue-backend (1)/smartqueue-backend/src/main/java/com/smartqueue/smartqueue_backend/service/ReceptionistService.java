@@ -11,6 +11,7 @@ import com.smartqueue.smartqueue_backend.repository.DoctorRepository;
 import com.smartqueue.smartqueue_backend.repository.UserRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -28,12 +29,19 @@ public class ReceptionistService {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
 
     // =====================================================
     // 1. BOOK / GENERATE NEW TOKEN
     // =====================================================
 
     public Appointment bookAppointment(AppointmentDTO dto) {
+
+        if (dto.getDoctorId() == null) {
+            throw new RuntimeException("Doctor is required.");
+        }
 
         Doctor doctor = doctorRepository
                 .findById(dto.getDoctorId())
@@ -55,29 +63,34 @@ public class ReceptionistService {
         Appointment appointment =
                 new Appointment();
 
+        // Patient Name
         appointment.setPatientName(
                 dto.getPatientName()
         );
 
+        // Patient Phone
         appointment.setPatientPhone(
                 dto.getPatientPhone()
         );
 
+        // Token Number
         appointment.setTokenNumber(
                 nextTokenNumber
         );
 
+        // Status
         appointment.setStatus(
                 AppointmentStatus.WAITING
         );
 
+        // Doctor
         appointment.setDoctor(
                 doctor
         );
 
 
         // =====================================================
-        // NEW: PATIENT ID
+        // PATIENT ID
         // =====================================================
 
         if (dto.getPatientId() != null) {
@@ -89,7 +102,7 @@ public class ReceptionistService {
 
 
         // =====================================================
-        // NEW: APPOINTMENT DATE
+        // APPOINTMENT DATE
         // =====================================================
 
         if (dto.getAppointmentDate() != null
@@ -108,7 +121,7 @@ public class ReceptionistService {
 
 
         // =====================================================
-        // NEW: PATIENT AGE
+        // PATIENT AGE
         // =====================================================
 
         if (dto.getAge() != null) {
@@ -120,7 +133,7 @@ public class ReceptionistService {
 
 
         // =====================================================
-        // NEW: PATIENT GENDER
+        // PATIENT GENDER
         // =====================================================
 
         if (dto.getGender() != null) {
@@ -132,7 +145,7 @@ public class ReceptionistService {
 
 
         // =====================================================
-        // NEW: BOOKING SOURCE
+        // BOOKING SOURCE
         // =====================================================
 
         if (dto.getBookingSource() != null
@@ -144,7 +157,6 @@ public class ReceptionistService {
 
         } else {
 
-            // Receptionist se booking hui hai
             appointment.setBookingSource(
                     "RECEPTION"
             );
@@ -184,7 +196,11 @@ public class ReceptionistService {
 
     public List<Appointment> getTodayAppointments() {
 
-        return appointmentRepository.findAll();
+        String today =
+                LocalDate.now().toString();
+
+        return appointmentRepository
+                .findByAppointmentDate(today);
     }
 
 
@@ -209,7 +225,9 @@ public class ReceptionistService {
 
         appointment.setStatus(status);
 
-        appointmentRepository.save(appointment);
+        appointmentRepository.save(
+                appointment
+        );
     }
 
 
@@ -226,7 +244,17 @@ public class ReceptionistService {
 
 
     // =====================================================
-    // 6. SEARCH PATIENT BY NAME
+    // 6. GET ALL DOCTORS
+    // =====================================================
+
+    public List<Doctor> getAllDoctors() {
+
+        return doctorRepository.findAll();
+    }
+
+
+    // =====================================================
+    // 7. SEARCH PATIENT BY NAME
     // =====================================================
 
     public List<User> searchPatients(
@@ -242,12 +270,15 @@ public class ReceptionistService {
 
 
     // =====================================================
-    // 7. REGISTER NEW PATIENT
+    // 8. REGISTER NEW PATIENT
     // =====================================================
 
     public User registerPatient(User patient) {
 
-        // Check email
+        // -------------------------------------------------
+        // CHECK EMAIL
+        // -------------------------------------------------
+
         if (patient.getEmail() == null
                 || patient.getEmail().trim().isEmpty()) {
 
@@ -257,7 +288,10 @@ public class ReceptionistService {
         }
 
 
-        // Check duplicate email
+        // -------------------------------------------------
+        // CHECK DUPLICATE EMAIL
+        // -------------------------------------------------
+
         if (userRepository.existsByEmail(
                 patient.getEmail()
         )) {
@@ -268,7 +302,10 @@ public class ReceptionistService {
         }
 
 
-        // Check name
+        // -------------------------------------------------
+        // CHECK NAME
+        // -------------------------------------------------
+
         if (patient.getName() == null
                 || patient.getName().trim().isEmpty()) {
 
@@ -278,7 +315,10 @@ public class ReceptionistService {
         }
 
 
-        // Check phone
+        // -------------------------------------------------
+        // CHECK PHONE
+        // -------------------------------------------------
+
         if (patient.getPhone() == null
                 || patient.getPhone().trim().isEmpty()) {
 
@@ -288,31 +328,53 @@ public class ReceptionistService {
         }
 
 
-        // Role automatically PATIENT
+        // -------------------------------------------------
+        // ROLE = PATIENT
+        // -------------------------------------------------
+
         patient.setRole(
                 Role.PATIENT
         );
 
 
-        // Active by default
+        // -------------------------------------------------
+        // ACTIVE = TRUE
+        // -------------------------------------------------
+
         patient.setActive(
                 true
         );
 
 
-        // Default password
+        // -------------------------------------------------
+        // DEFAULT PASSWORD
+        // -------------------------------------------------
+
         if (patient.getPassword() == null
                 || patient.getPassword()
                 .trim()
                 .isEmpty()) {
 
             patient.setPassword(
-                    "Patient@123"
+                    passwordEncoder.encode(
+                            "Patient@123"
+                    )
+            );
+
+        } else {
+
+            patient.setPassword(
+                    passwordEncoder.encode(
+                            patient.getPassword()
+                    )
             );
         }
 
 
-        // Save patient
+        // -------------------------------------------------
+        // SAVE PATIENT
+        // -------------------------------------------------
+
         return userRepository.save(
                 patient
         );

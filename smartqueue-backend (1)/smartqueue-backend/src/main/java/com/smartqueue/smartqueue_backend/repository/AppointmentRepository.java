@@ -82,4 +82,14 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
             String appointmentDate,
             AppointmentStatus status
     );
+
+
+    // ==========================================
+    // ADDED FOR RECEPTIONIST TODAY APPOINTMENTS
+    // ==========================================
+
+    List<Appointment> findByAppointmentDate(
+            String appointmentDate
+    );
+
 }

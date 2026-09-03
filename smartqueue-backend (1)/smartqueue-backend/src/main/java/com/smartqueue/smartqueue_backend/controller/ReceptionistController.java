@@ -3,6 +3,7 @@ package com.smartqueue.smartqueue_backend.controller;
 import com.smartqueue.smartqueue_backend.dto.AppointmentDTO;
 import com.smartqueue.smartqueue_backend.entity.Appointment;
 import com.smartqueue.smartqueue_backend.entity.AppointmentStatus;
+import com.smartqueue.smartqueue_backend.entity.Doctor;
 import com.smartqueue.smartqueue_backend.entity.User;
 import com.smartqueue.smartqueue_backend.service.ReceptionistService;
 
@@ -101,8 +102,7 @@ public class ReceptionistController {
         try {
 
             List<Appointment> todayList =
-                    receptionistService
-                            .getTodayAppointments();
+                    receptionistService.getTodayAppointments();
 
             return ResponseEntity.ok(todayList);
 
@@ -221,7 +221,35 @@ public class ReceptionistController {
 
 
     // =====================================================
-    // 7. SEARCH PATIENT BY NAME
+    // 7. GET ALL DOCTORS  ← NEW
+    // =====================================================
+
+    @GetMapping("/doctors")
+    public ResponseEntity<?> getAllDoctors() {
+
+        try {
+
+            List<Doctor> doctors =
+                    receptionistService.getAllDoctors();
+
+            return ResponseEntity.ok(doctors);
+
+        } catch (Exception e) {
+
+            return ResponseEntity
+                    .badRequest()
+                    .body(
+                            Map.of(
+                                    "message",
+                                    e.getMessage()
+                            )
+                    );
+        }
+    }
+
+
+    // =====================================================
+    // 8. SEARCH PATIENT BY NAME
     // =====================================================
 
     @GetMapping("/patients/search")
@@ -250,7 +278,7 @@ public class ReceptionistController {
 
 
     // =====================================================
-    // 8. REGISTER NEW PATIENT
+    // 9. REGISTER NEW PATIENT
     // =====================================================
 
     @PostMapping("/patients")
@@ -260,9 +288,7 @@ public class ReceptionistController {
         try {
 
             User savedPatient =
-                    receptionistService.registerPatient(
-                            patient
-                    );
+                    receptionistService.registerPatient(patient);
 
             return ResponseEntity.ok(
                     Map.of(
