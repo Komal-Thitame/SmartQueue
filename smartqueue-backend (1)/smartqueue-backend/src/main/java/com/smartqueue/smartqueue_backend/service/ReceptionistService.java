@@ -4,10 +4,12 @@ import com.smartqueue.smartqueue_backend.dto.AppointmentDTO;
 import com.smartqueue.smartqueue_backend.entity.Appointment;
 import com.smartqueue.smartqueue_backend.entity.AppointmentStatus;
 import com.smartqueue.smartqueue_backend.entity.Doctor;
+import com.smartqueue.smartqueue_backend.entity.QueueToken;
 import com.smartqueue.smartqueue_backend.entity.Role;
 import com.smartqueue.smartqueue_backend.entity.User;
 import com.smartqueue.smartqueue_backend.repository.AppointmentRepository;
 import com.smartqueue.smartqueue_backend.repository.DoctorRepository;
+import com.smartqueue.smartqueue_backend.repository.QueueTokenRepository;
 import com.smartqueue.smartqueue_backend.repository.UserRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +27,9 @@ public class ReceptionistService {
 
     @Autowired
     private DoctorRepository doctorRepository;
+
+    @Autowired
+    private QueueTokenRepository queueTokenRepository;
 
     @Autowired
     private UserRepository userRepository;
@@ -52,6 +57,11 @@ public class ReceptionistService {
                         )
                 );
 
+
+        // =====================================================
+        // GET NEXT TOKEN NUMBER
+        // =====================================================
+
         Long currentCount =
                 appointmentRepository.countByDoctorId(
                         doctor.getId()
@@ -60,28 +70,38 @@ public class ReceptionistService {
         int nextTokenNumber =
                 currentCount.intValue() + 1;
 
+
+        // =====================================================
+        // CREATE APPOINTMENT
+        // =====================================================
+
         Appointment appointment =
                 new Appointment();
+
 
         // Patient Name
         appointment.setPatientName(
                 dto.getPatientName()
         );
 
+
         // Patient Phone
         appointment.setPatientPhone(
                 dto.getPatientPhone()
         );
+
 
         // Token Number
         appointment.setTokenNumber(
                 nextTokenNumber
         );
 
+
         // Status
         appointment.setStatus(
                 AppointmentStatus.WAITING
         );
+
 
         // Doctor
         appointment.setDoctor(
@@ -105,19 +125,23 @@ public class ReceptionistService {
         // APPOINTMENT DATE
         // =====================================================
 
+        String appointmentDate;
+
         if (dto.getAppointmentDate() != null
                 && !dto.getAppointmentDate().trim().isEmpty()) {
 
-            appointment.setAppointmentDate(
-                    dto.getAppointmentDate()
-            );
+            appointmentDate =
+                    dto.getAppointmentDate();
 
         } else {
 
-            appointment.setAppointmentDate(
-                    LocalDate.now().toString()
-            );
+            appointmentDate =
+                    LocalDate.now().toString();
         }
+
+        appointment.setAppointmentDate(
+                appointmentDate
+        );
 
 
         // =====================================================
@@ -164,12 +188,86 @@ public class ReceptionistService {
 
 
         // =====================================================
-        // SAVE APPOINTMENT
+        // SAVE APPOINTMENT FIRST
         // =====================================================
 
-        return appointmentRepository.save(
-                appointment
+        Appointment savedAppointment =
+                appointmentRepository.save(
+                        appointment
+                );
+
+
+        // =====================================================
+        // CREATE / CONNECT QUEUE TOKEN
+        // =====================================================
+
+        QueueToken queueToken =
+                new QueueToken();
+
+
+        // Token number
+        queueToken.setTokenNumber(
+                String.valueOf(nextTokenNumber)
         );
+
+
+        // Department
+        queueToken.setDepartment(
+                doctor.getDepartment()
+        );
+
+
+        // Doctor ID
+        queueToken.setDoctorId(
+                doctor.getId()
+        );
+
+
+        // =====================================================
+        // IMPORTANT:
+        // QueueToken.patientId = Appointment.patientId
+        // =====================================================
+
+        if (dto.getPatientId() != null) {
+
+            queueToken.setPatientId(
+                    dto.getPatientId()
+            );
+
+        } else {
+
+            queueToken.setPatientId(
+                    null
+            );
+        }
+
+
+        // Patient name
+        queueToken.setPatientName(
+                dto.getPatientName()
+        );
+
+
+        // Queue status
+        queueToken.setStatus(
+                "WAITING"
+        );
+
+
+        // =====================================================
+        // SAVE QUEUE TOKEN
+        // =====================================================
+
+        queueTokenRepository.save(
+                queueToken
+        );
+
+
+        // =====================================================
+        // RETURN APPOINTMENT
+        // =====================================================
+
+        return savedAppointment;
     }
 
 
