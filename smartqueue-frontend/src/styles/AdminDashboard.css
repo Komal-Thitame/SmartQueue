@@ -337,3 +337,387 @@ body { background-color: var(--sq-bg-page); color: var(--sq-text-main); }
 .status-pill.serving { background: #dcfce7; color: #15803d; }
 .status-pill.busy { background: #fef3c7; color: #b45309; }
 .status-pill.offline { background: #ffe4e6; color: #be123c; }
+
+/* =========================================================
+   ADMIN DASHBOARD KPI CARDS
+   Premium • Soft Background • Hover Activation
+========================================================= */
+
+.sq-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+}
+
+/* =========================================================
+   BASE CARD
+========================================================= */
+
+.metric-card {
+    position: relative;
+    min-height: 145px;
+    padding: 22px 23px;
+    border-radius: 20px;
+    overflow: hidden;
+
+    background: #ffffff;
+
+    border: 1px solid rgba(15, 23, 42, 0.07);
+
+    box-shadow:
+            0 6px 20px rgba(15, 23, 42, 0.055);
+
+    transition:
+            transform 0.3s ease,
+            box-shadow 0.3s ease,
+            border-color 0.3s ease;
+
+    isolation: isolate;
+}
+
+/* =========================================================
+   BACKGROUND DECORATIVE CIRCLES
+========================================================= */
+
+.metric-card::before {
+    content: "";
+    position: absolute;
+
+    width: 150px;
+    height: 150px;
+
+    right: -60px;
+    top: -65px;
+
+    border-radius: 50%;
+
+    opacity: 0.65;
+
+    z-index: -1;
+
+    transition:
+            transform 0.45s ease,
+            opacity 0.3s ease;
+}
+
+.metric-card::after {
+    content: "";
+    position: absolute;
+
+    width: 95px;
+    height: 95px;
+
+    left: -50px;
+    bottom: -55px;
+
+    border-radius: 50%;
+
+    opacity: 0.38;
+
+    z-index: -1;
+
+    transition:
+            transform 0.45s ease,
+            opacity 0.3s ease;
+}
+
+
+/* =========================================================
+   HOVER EFFECT
+========================================================= */
+
+.metric-card:hover {
+    transform: translateY(-5px);
+
+    box-shadow:
+            0 14px 32px rgba(15, 23, 42, 0.10);
+}
+
+.metric-card:hover::before {
+    transform: scale(1.16);
+    opacity: 0.8;
+}
+
+.metric-card:hover::after {
+    transform: scale(1.15);
+    opacity: 0.5;
+}
+
+
+/* =========================================================
+   PATIENTS TODAY
+========================================================= */
+
+.metric-card:nth-child(1) {
+    background:
+            linear-gradient(
+                    135deg,
+                    #ffffff 0%,
+                    #f7f9fc 100%
+            );
+}
+
+.metric-card:nth-child(1)::before {
+    background: #e2e8f0;
+}
+
+.metric-card:nth-child(1)::after {
+    background: #dbeafe;
+}
+
+.metric-card:nth-child(1):hover {
+    border-color: #cbd5e1;
+
+    box-shadow:
+            0 15px 34px rgba(71, 85, 105, 0.12);
+}
+
+
+/* =========================================================
+   WAITING NOW
+========================================================= */
+
+.metric-card.alert-card {
+    background:
+            linear-gradient(
+                    135deg,
+                    #ffffff 0%,
+                    #f5f9ff 100%
+            );
+}
+
+.metric-card.alert-card::before {
+    background: #dbeafe;
+}
+
+.metric-card.alert-card::after {
+    background: #bfdbfe;
+}
+
+.metric-card.alert-card:hover {
+    border-color: #bfdbfe;
+
+    box-shadow:
+            0 15px 34px rgba(59, 130, 246, 0.13);
+}
+
+
+/* =========================================================
+   ACTIVE DOCTORS
+========================================================= */
+
+.metric-card:nth-child(3) {
+    background:
+            linear-gradient(
+                    135deg,
+                    #ffffff 0%,
+                    #f5fbfa 100%
+            );
+}
+
+.metric-card:nth-child(3)::before {
+    background: #ccfbf1;
+}
+
+.metric-card:nth-child(3)::after {
+    background: #d1fae5;
+}
+
+.metric-card:nth-child(3):hover {
+    border-color: #a7f3d0;
+
+    box-shadow:
+            0 15px 34px rgba(13, 148, 136, 0.12);
+}
+
+
+/* =========================================================
+   COMPLETED TODAY
+========================================================= */
+
+.metric-card:nth-child(4) {
+    background:
+            linear-gradient(
+                    135deg,
+                    #ffffff 0%,
+                    #f6fcf8 100%
+            );
+}
+
+.metric-card:nth-child(4)::before {
+    background: #d1fae5;
+}
+
+.metric-card:nth-child(4)::after {
+    background: #bbf7d0;
+}
+
+.metric-card:nth-child(4):hover {
+    border-color: #bbf7d0;
+
+    box-shadow:
+            0 15px 34px rgba(16, 185, 129, 0.12);
+}
+
+
+/* =========================================================
+   LABEL
+========================================================= */
+
+.metric-card .m-lbl {
+    position: relative;
+    z-index: 2;
+
+    display: block;
+
+    font-size: 11px;
+    font-weight: 800;
+
+    letter-spacing: 1.1px;
+
+    color: #64748b;
+
+    margin-bottom: 13px;
+}
+
+
+/* =========================================================
+   VALUE ROW
+========================================================= */
+
+.metric-card .m-val-row {
+    position: relative;
+    z-index: 2;
+
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+}
+
+
+/* =========================================================
+   BIG NUMBER
+========================================================= */
+
+.metric-card .m-val {
+    font-size: 32px;
+
+    line-height: 1;
+
+    font-weight: 800;
+
+    letter-spacing: -1px;
+
+    color: #0f172a;
+
+    transition:
+            transform 0.3s ease;
+}
+
+.metric-card:hover .m-val {
+    transform: translateX(2px);
+}
+
+
+/* =========================================================
+   SUB TEXT
+========================================================= */
+
+.metric-card .m-sub {
+    font-size: 12px;
+
+    color: #94a3b8;
+
+    font-weight: 500;
+}
+
+
+/* =========================================================
+   TEXT COLORS
+========================================================= */
+
+.metric-card .text-amber {
+    color: #d97706;
+}
+
+.metric-card .text-teal {
+    color: #059669;
+}
+
+
+/* =========================================================
+   SMALL ACTIVE INDICATOR
+========================================================= */
+
+.metric-card .m-lbl::before {
+    content: "";
+
+    display: inline-block;
+
+    width: 6px;
+    height: 6px;
+
+    margin-right: 7px;
+
+    border-radius: 50%;
+
+    background: #cbd5e1;
+
+    vertical-align: middle;
+}
+
+
+/* WAITING */
+
+.metric-card.alert-card .m-lbl::before {
+    background: #60a5fa;
+
+    box-shadow:
+            0 0 0 4px rgba(96, 165, 250, 0.10);
+}
+
+
+/* ACTIVE DOCTORS */
+
+.metric-card:nth-child(3) .m-lbl::before {
+    background: #34d399;
+
+    box-shadow:
+            0 0 0 4px rgba(52, 211, 153, 0.10);
+}
+
+
+/* COMPLETED */
+
+.metric-card:nth-child(4) .m-lbl::before {
+    background: #10b981;
+
+    box-shadow:
+            0 0 0 4px rgba(16, 185, 129, 0.10);
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 1200px) {
+
+    .sq-metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+}
+
+
+@media (max-width: 650px) {
+
+    .sq-metrics-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .metric-card {
+        min-height: 130px;
+    }
+
+}

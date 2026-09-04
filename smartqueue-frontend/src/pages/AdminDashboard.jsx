@@ -23,8 +23,8 @@ const AdminDashboard = () => {
     // =========================================================
     // QUEUE
     // =========================================================
-    const [selectedDept, setSelectedDept] = useState('Cardiology');
-    const [currentToken, setCurrentToken] = useState(1);
+    const [selectedDept, setSelectedDept] = useState('');
+    const [currentToken, setCurrentToken] = useState(null);
     const [queueLoading, setQueueLoading] = useState(false);
 
     // =========================================================
@@ -110,7 +110,10 @@ const AdminDashboard = () => {
             }
         };
 
-        document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener(
+            'mousedown',
+            handleClickOutside
+        );
 
         return () => {
             document.removeEventListener(
@@ -158,6 +161,48 @@ const AdminDashboard = () => {
         }
 
         return 'WAITING';
+    };
+
+    // =========================================================
+    // TOKEN NUMBER HELPER
+    // =========================================================
+    const getNumericToken = (token) => {
+        if (
+            token === undefined ||
+            token === null ||
+            token === ''
+        ) {
+            return null;
+        }
+
+        if (typeof token === 'number') {
+            return token;
+        }
+
+        const value = String(token).trim();
+
+        const match = value.match(/\d+/);
+
+        if (!match) {
+            return null;
+        }
+
+        const number = parseInt(match[0], 10);
+
+        return isNaN(number) ? null : number;
+    };
+
+    // =========================================================
+    // FORMAT TOKEN
+    // =========================================================
+    const formatToken = (token) => {
+        const number = getNumericToken(token);
+
+        if (number === null) {
+            return 'N/A';
+        }
+
+        return `A-${String(number).padStart(2, '0')}`;
     };
 
     // =========================================================
@@ -259,9 +304,128 @@ const AdminDashboard = () => {
     }, []);
 
     // =========================================================
+    // REAL DEPARTMENTS
+    // =========================================================
+    const realDepartments = useMemo(() => {
+        const departmentSet = new Set();
+
+        // Departments from doctors
+        doctors.forEach((doctor) => {
+            const department =
+                doctor?.specialization ||
+                doctor?.department;
+
+            if (
+                department &&
+                String(department).trim()
+            ) {
+                departmentSet.add(
+                    String(department).trim()
+                );
+            }
+        });
+
+        // Departments from appointments
+        appointments.forEach((appointment) => {
+            const department =
+                appointment?.doctor?.specialization ||
+                appointment?.doctor?.department ||
+                appointment?.department;
+
+            if (
+                department &&
+                String(department).trim()
+            ) {
+                departmentSet.add(
+                    String(department).trim()
+                );
+            }
+        });
+
+        return Array.from(departmentSet).sort(
+            (a, b) => a.localeCompare(b)
+        );
+    }, [doctors, appointments]);
+
+    // =========================================================
+    // SET FIRST REAL DEPARTMENT
+    // =========================================================
+    useEffect(() => {
+        if (
+            realDepartments.length > 0 &&
+            !realDepartments.includes(selectedDept)
+        ) {
+            setSelectedDept(
+                realDepartments[0]
+            );
+        }
+
+        if (
+            realDepartments.length === 0
+        ) {
+            setSelectedDept('');
+        }
+    }, [
+        realDepartments,
+        selectedDept
+    ]);
+
+    // =========================================================
+    // GET APPOINTMENT DEPARTMENT
+    // =========================================================
+    const getAppointmentDepartment = (
+        appointment
+    ) => {
+        return (
+            appointment?.doctor?.specialization ||
+            appointment?.doctor?.department ||
+            appointment?.department ||
+            ''
+        );
+    };
+
+    // =========================================================
+    // SELECTED DEPARTMENT APPOINTMENTS
+    // =========================================================
+    const selectedDepartmentAppointments =
+        useMemo(() => {
+            if (!selectedDept) {
+                return [];
+            }
+
+            return appointments.filter(
+                (appointment) => {
+                    const department =
+                        getAppointmentDepartment(
+                            appointment
+                        );
+
+                    return (
+                        String(department)
+                            .trim()
+                            .toLowerCase() ===
+                        String(selectedDept)
+                            .trim()
+                            .toLowerCase()
+                    );
+                }
+            );
+        }, [
+            appointments,
+            selectedDept
+        ]);
+
+    // =========================================================
     // FETCH CURRENT TOKEN
     // =========================================================
-    const fetchCurrentToken = async (department) => {
+    const fetchCurrentToken = async (
+        department
+    ) => {
+        if (!department) {
+            setCurrentToken(null);
+            return;
+        }
+
         try {
             setQueueLoading(true);
 
@@ -279,21 +443,26 @@ const AdminDashboard = () => {
 
             const data = await response.json();
 
-            if (data.currentServing) {
-                const parts =
-                    String(data.currentServing).split('-');
+            const currentServing =
+                data?.currentServing;
 
-                const number = parseInt(parts[1]);
+            const number =
+                getNumericToken(
+                    currentServing
+                );
 
-                if (!isNaN(number)) {
-                    setCurrentToken(number);
-                }
+            if (number !== null) {
+                setCurrentToken(number);
+            } else {
+                setCurrentToken(null);
             }
         } catch (error) {
             console.error(
                 'Failed to fetch current token:',
                 error
             );
+
+            setCurrentToken(null);
         } finally {
             setQueueLoading(false);
         }
@@ -303,13 +472,113 @@ const AdminDashboard = () => {
     // DEPARTMENT CHANGE
     // =========================================================
     useEffect(() => {
-        fetchCurrentToken(selectedDept);
+        if (selectedDept) {
+            fetchCurrentToken(
+                selectedDept
+            );
+        } else {
+            setCurrentToken(null);
+        }
     }, [selectedDept]);
+
+    // =========================================================
+    // REAL WAITING TOKENS
+    // =========================================================
+    const nextWaitingTokens = useMemo(() => {
+        if (
+            !selectedDept ||
+            !selectedDepartmentAppointments
+                .length
+        ) {
+            return [];
+        }
+
+        const currentNumber =
+            currentToken ?? 0;
+
+        return selectedDepartmentAppointments
+            .filter((appointment) => {
+                const status =
+                    normalizeStatus(
+                        appointment?.status
+                    );
+
+                const token =
+                    getNumericToken(
+                        appointment?.tokenNumber
+                    );
+
+                return (
+                    status === 'WAITING' &&
+                    token !== null &&
+                    token > currentNumber
+                );
+            })
+            .sort((a, b) => {
+                const tokenA =
+                    getNumericToken(
+                        a?.tokenNumber
+                    ) || 0;
+
+                const tokenB =
+                    getNumericToken(
+                        b?.tokenNumber
+                    ) || 0;
+
+                return tokenA - tokenB;
+            })
+            .slice(0, 3);
+    }, [
+        selectedDept,
+        selectedDepartmentAppointments,
+        currentToken
+    ]);
+
+    // =========================================================
+    // DEPARTMENT QUEUE STATS
+    // =========================================================
+    const departmentQueueStats = useMemo(() => {
+        const waiting =
+            selectedDepartmentAppointments.filter(
+                (appointment) =>
+                    normalizeStatus(
+                        appointment?.status
+                    ) === 'WAITING'
+            ).length;
+
+        const inConsultation =
+            selectedDepartmentAppointments.filter(
+                (appointment) =>
+                    normalizeStatus(
+                        appointment?.status
+                    ) === 'IN_CONSULTATION'
+            ).length;
+
+        const completed =
+            selectedDepartmentAppointments.filter(
+                (appointment) =>
+                    normalizeStatus(
+                        appointment?.status
+                    ) === 'COMPLETED'
+            ).length;
+
+        return {
+            waiting,
+            inConsultation,
+            completed
+        };
+    }, [
+        selectedDepartmentAppointments
+    ]);
 
     // =========================================================
     // NEXT TOKEN
     // =========================================================
     const handleNextToken = async () => {
+        if (!selectedDept) {
+            return;
+        }
+
         try {
             const response = await fetch(
                 `${API_BASE_URL}/queue/next?department=${encodeURIComponent(
@@ -320,17 +589,22 @@ const AdminDashboard = () => {
                 }
             );
 
-            const data = await response.json();
+            const data =
+                await response.json();
 
             if (data.tokenNumber) {
-                const parts =
-                    String(data.tokenNumber).split('-');
+                const number =
+                    getNumericToken(
+                        data.tokenNumber
+                    );
 
-                const number = parseInt(parts[1]);
-
-                if (!isNaN(number)) {
+                if (number !== null) {
                     setCurrentToken(number);
                 }
+
+                // Refresh appointments because
+                // status may have changed
+                await fetchAppointments();
             } else if (data.message) {
                 alert(data.message);
             }
@@ -346,6 +620,10 @@ const AdminDashboard = () => {
     // PREVIOUS TOKEN
     // =========================================================
     const handlePreviousToken = async () => {
+        if (!selectedDept) {
+            return;
+        }
+
         try {
             const response = await fetch(
                 `${API_BASE_URL}/queue/previous?department=${encodeURIComponent(
@@ -356,17 +634,20 @@ const AdminDashboard = () => {
                 }
             );
 
-            const data = await response.json();
+            const data =
+                await response.json();
 
             if (data.tokenNumber) {
-                const parts =
-                    String(data.tokenNumber).split('-');
+                const number =
+                    getNumericToken(
+                        data.tokenNumber
+                    );
 
-                const number = parseInt(parts[1]);
-
-                if (!isNaN(number)) {
+                if (number !== null) {
                     setCurrentToken(number);
                 }
+
+                await fetchAppointments();
             } else if (data.message) {
                 alert(data.message);
             }
@@ -382,6 +663,10 @@ const AdminDashboard = () => {
     // RECALL
     // =========================================================
     const handleRecallToken = async () => {
+        if (!selectedDept) {
+            return;
+        }
+
         try {
             const response = await fetch(
                 `${API_BASE_URL}/queue/recall?department=${encodeURIComponent(
@@ -392,13 +677,20 @@ const AdminDashboard = () => {
                 }
             );
 
-            const data = await response.json();
+            const data =
+                await response.json();
 
             if (data.message) {
-                alert(`🔔 ${data.message}`);
-            } else {
                 alert(
-                    `🔔 Recalling Token A-${currentToken} to Cabin!`
+                    `🔔 ${data.message}`
+                );
+            } else if (
+                currentToken !== null
+            ) {
+                alert(
+                    `🔔 Recalling Token ${formatToken(
+                        currentToken
+                    )} to Cabin!`
                 );
             }
         } catch (error) {
@@ -407,9 +699,15 @@ const AdminDashboard = () => {
                 error
             );
 
-            alert(
-                `🔔 Recalling Token A-${currentToken} to Cabin!`
-            );
+            if (
+                currentToken !== null
+            ) {
+                alert(
+                    `🔔 Recalling Token ${formatToken(
+                        currentToken
+                    )} to Cabin!`
+                );
+            }
         }
     };
 
@@ -417,6 +715,10 @@ const AdminDashboard = () => {
     // SKIP PATIENT
     // =========================================================
     const handleSkipToken = async () => {
+        if (!selectedDept) {
+            return;
+        }
+
         try {
             const response = await fetch(
                 `${API_BASE_URL}/queue/skip?department=${encodeURIComponent(
@@ -427,21 +729,26 @@ const AdminDashboard = () => {
                 }
             );
 
-            const data = await response.json();
+            const data =
+                await response.json();
 
             if (data.tokenNumber) {
-                const parts =
-                    String(data.tokenNumber).split('-');
+                const number =
+                    getNumericToken(
+                        data.tokenNumber
+                    );
 
-                const number = parseInt(parts[1]);
-
-                if (!isNaN(number)) {
+                if (number !== null) {
                     setCurrentToken(number);
                 }
 
                 alert(
-                    `⏭️ Patient Skipped! Now Serving: ${data.tokenNumber}`
+                    `⏭️ Patient Skipped! Now Serving: ${formatToken(
+                        data.tokenNumber
+                    )}`
                 );
+
+                await fetchAppointments();
             } else if (data.message) {
                 alert(data.message);
             }
@@ -457,37 +764,49 @@ const AdminDashboard = () => {
     // DASHBOARD KPI
     // =========================================================
     const dashboardStats = useMemo(() => {
-        const patientsToday = appointments.length;
+        const patientsToday =
+            appointments.length;
 
-        const waiting = appointments.filter(
-            (appointment) =>
-                normalizeStatus(appointment.status) ===
-                'WAITING'
-        ).length;
+        const waiting =
+            appointments.filter(
+                (appointment) =>
+                    normalizeStatus(
+                        appointment.status
+                    ) === 'WAITING'
+            ).length;
 
-        const inConsultation = appointments.filter(
-            (appointment) =>
-                normalizeStatus(appointment.status) ===
-                'IN_CONSULTATION'
-        ).length;
+        const inConsultation =
+            appointments.filter(
+                (appointment) =>
+                    normalizeStatus(
+                        appointment.status
+                    ) ===
+                    'IN_CONSULTATION'
+            ).length;
 
-        const completed = appointments.filter(
-            (appointment) =>
-                normalizeStatus(appointment.status) ===
-                'COMPLETED'
-        ).length;
+        const completed =
+            appointments.filter(
+                (appointment) =>
+                    normalizeStatus(
+                        appointment.status
+                    ) === 'COMPLETED'
+            ).length;
 
-        const cancelled = appointments.filter(
-            (appointment) =>
-                normalizeStatus(appointment.status) ===
-                'CANCELLED'
-        ).length;
+        const cancelled =
+            appointments.filter(
+                (appointment) =>
+                    normalizeStatus(
+                        appointment.status
+                    ) === 'CANCELLED'
+            ).length;
 
-        const missed = appointments.filter(
-            (appointment) =>
-                normalizeStatus(appointment.status) ===
-                'MISSED'
-        ).length;
+        const missed =
+            appointments.filter(
+                (appointment) =>
+                    normalizeStatus(
+                        appointment.status
+                    ) === 'MISSED'
+            ).length;
 
         return {
             patientsToday,
@@ -513,14 +832,18 @@ const AdminDashboard = () => {
     // AVERAGE WAIT TIME
     // =========================================================
     const averageWaitTime = useMemo(() => {
-        if (dashboardStats.waiting === 0) {
+        if (
+            departmentQueueStats.waiting === 0
+        ) {
             return 0;
         }
 
         return (
-            dashboardStats.waiting * 15
+            departmentQueueStats.waiting * 15
         );
-    }, [dashboardStats.waiting]);
+    }, [
+        departmentQueueStats.waiting
+    ]);
 
     // =========================================================
     // RECENT APPOINTMENTS
@@ -528,10 +851,17 @@ const AdminDashboard = () => {
     const recentAppointments = useMemo(() => {
         return [...appointments]
             .sort((a, b) => {
-                return (
-                    Number(b?.tokenNumber || 0) -
-                    Number(a?.tokenNumber || 0)
-                );
+                const tokenA =
+                    getNumericToken(
+                        a?.tokenNumber
+                    ) || 0;
+
+                const tokenB =
+                    getNumericToken(
+                        b?.tokenNumber
+                    ) || 0;
+
+                return tokenB - tokenA;
             })
             .slice(0, 6);
     }, [appointments]);
@@ -540,13 +870,16 @@ const AdminDashboard = () => {
     // DOCTOR STATUS
     // =========================================================
     const getDoctorStatus = (doctor) => {
-        const doctorId = doctor?.id;
+        const doctorId =
+            doctor?.id;
 
         const doctorAppointments =
             appointments.filter(
                 (appointment) =>
-                    appointment?.doctor?.id === doctorId ||
-                    appointment?.doctorId === doctorId
+                    appointment?.doctor?.id ===
+                    doctorId ||
+                    appointment?.doctorId ===
+                    doctorId
             );
 
         const consultation =
@@ -554,7 +887,8 @@ const AdminDashboard = () => {
                 (appointment) =>
                     normalizeStatus(
                         appointment?.status
-                    ) === 'IN_CONSULTATION'
+                    ) ===
+                    'IN_CONSULTATION'
             );
 
         const waiting =
@@ -568,13 +902,9 @@ const AdminDashboard = () => {
         if (consultation) {
             return {
                 type: 'serving',
-                label: `🟢 Serving ${
+                label: `🟢 Serving ${formatToken(
                     consultation.tokenNumber
-                        ? `A-${String(
-                            consultation.tokenNumber
-                        ).padStart(2, '0')}`
-                        : ''
-                }`
+                )}`
             };
         }
 
@@ -625,7 +955,9 @@ const AdminDashboard = () => {
     // =========================================================
     // PATIENT NAME
     // =========================================================
-    const getPatientName = (appointment) => {
+    const getPatientName = (
+        appointment
+    ) => {
         return (
             appointment?.patientName ||
             appointment?.patient?.name ||
@@ -636,41 +968,47 @@ const AdminDashboard = () => {
     // =========================================================
     // TOKEN
     // =========================================================
-    const getToken = (appointment) => {
-        if (
-            appointment?.tokenNumber !== undefined &&
-            appointment?.tokenNumber !== null
-        ) {
-            return `A-${String(
-                appointment.tokenNumber
-            ).padStart(2, '0')}`;
-        }
-
-        return 'N/A';
+    const getToken = (
+        appointment
+    ) => {
+        return formatToken(
+            appointment?.tokenNumber
+        );
     };
 
     // =========================================================
     // STATUS LABEL
     // =========================================================
-    const getStatusLabel = (status) => {
+    const getStatusLabel = (
+        status
+    ) => {
         const normalized =
             normalizeStatus(status);
 
         if (
-            normalized === 'IN_CONSULTATION'
+            normalized ===
+            'IN_CONSULTATION'
         ) {
             return 'IN CONSULTATION';
         }
 
-        if (normalized === 'COMPLETED') {
+        if (
+            normalized ===
+            'COMPLETED'
+        ) {
             return 'COMPLETED';
         }
 
-        if (normalized === 'CANCELLED') {
+        if (
+            normalized ===
+            'CANCELLED'
+        ) {
             return 'CANCELLED';
         }
 
-        if (normalized === 'MISSED') {
+        if (
+            normalized === 'MISSED'
+        ) {
             return 'MISSED';
         }
 
@@ -680,25 +1018,36 @@ const AdminDashboard = () => {
     // =========================================================
     // STATUS CLASS
     // =========================================================
-    const getStatusClass = (status) => {
+    const getStatusClass = (
+        status
+    ) => {
         const normalized =
             normalizeStatus(status);
 
         if (
-            normalized === 'IN_CONSULTATION'
+            normalized ===
+            'IN_CONSULTATION'
         ) {
             return 'status-pill serving';
         }
 
-        if (normalized === 'COMPLETED') {
+        if (
+            normalized ===
+            'COMPLETED'
+        ) {
             return 'status-pill completed';
         }
 
-        if (normalized === 'CANCELLED') {
+        if (
+            normalized ===
+            'CANCELLED'
+        ) {
             return 'status-pill offline';
         }
 
-        if (normalized === 'MISSED') {
+        if (
+            normalized === 'MISSED'
+        ) {
             return 'status-pill busy';
         }
 
@@ -771,7 +1120,9 @@ const AdminDashboard = () => {
                                 : ''
                         }`}
                         onClick={() =>
-                            setActiveTab('control')
+                            setActiveTab(
+                                'control'
+                            )
                         }
                         title="Control Center"
                     >
@@ -791,7 +1142,9 @@ const AdminDashboard = () => {
                                 : ''
                         }`}
                         onClick={() =>
-                            setActiveTab('queue')
+                            setActiveTab(
+                                'queue'
+                            )
                         }
                         title="Queue Operations"
                     >
@@ -811,7 +1164,9 @@ const AdminDashboard = () => {
                                 : ''
                         }`}
                         onClick={() =>
-                            setActiveTab('doctors')
+                            setActiveTab(
+                                'doctors'
+                            )
                         }
                         title="Doctor Matrix"
                     >
@@ -831,7 +1186,9 @@ const AdminDashboard = () => {
                                 : ''
                         }`}
                         onClick={() =>
-                            setActiveTab('reception')
+                            setActiveTab(
+                                'reception'
+                            )
                         }
                         title="Reception Desk"
                     >
@@ -851,7 +1208,9 @@ const AdminDashboard = () => {
                                 : ''
                         }`}
                         onClick={() =>
-                            setActiveTab('patients')
+                            setActiveTab(
+                                'patients'
+                            )
                         }
                         title="Patient Logs"
                     >
@@ -871,7 +1230,9 @@ const AdminDashboard = () => {
                                 : ''
                         }`}
                         onClick={() =>
-                            setActiveTab('bookings')
+                            setActiveTab(
+                                'bookings'
+                            )
                         }
                         title="Appointments"
                     >
@@ -895,7 +1256,9 @@ const AdminDashboard = () => {
                                 : ''
                         }`}
                         onClick={() =>
-                            setActiveTab('settings')
+                            setActiveTab(
+                                'settings'
+                            )
                         }
                         title="Settings"
                     >
@@ -968,7 +1331,8 @@ const AdminDashboard = () => {
                                 }`}
                                 onClick={() =>
                                     setShowProfileMenu(
-                                        (prev) => !prev
+                                        (prev) =>
+                                            !prev
                                     )
                                 }
                             >
@@ -1064,7 +1428,9 @@ const AdminDashboard = () => {
 
                                     <button
                                         className="logout-btn"
-                                        onClick={handleLogout}
+                                        onClick={
+                                            handleLogout
+                                        }
                                     >
                                         <span className="logout-icon">
                                             🚪
@@ -1350,29 +1716,46 @@ const AdminDashboard = () => {
 
                                             <select
                                                 className="dept-dropdown"
-                                                value={selectedDept}
+                                                value={
+                                                    selectedDept
+                                                }
                                                 onChange={(e) =>
                                                     setSelectedDept(
                                                         e.target.value
                                                     )
                                                 }
+                                                disabled={
+                                                    realDepartments.length ===
+                                                    0
+                                                }
                                             >
 
-                                                <option value="Cardiology">
-                                                    Cardiology Department
-                                                </option>
-
-                                                <option value="General OPD">
-                                                    General OPD
-                                                </option>
-
-                                                <option value="Pediatrics">
-                                                    Pediatrics OPD
-                                                </option>
-
-                                                <option value="Orthopedics">
-                                                    Orthopedics
-                                                </option>
+                                                {realDepartments.length ===
+                                                0 ? (
+                                                    <option value="">
+                                                        No departments
+                                                        available
+                                                    </option>
+                                                ) : (
+                                                    realDepartments.map(
+                                                        (
+                                                            department
+                                                        ) => (
+                                                            <option
+                                                                key={
+                                                                    department
+                                                                }
+                                                                value={
+                                                                    department
+                                                                }
+                                                            >
+                                                                {
+                                                                    department
+                                                                }
+                                                            </option>
+                                                        )
+                                                    )
+                                                )}
 
                                             </select>
 
@@ -1390,9 +1773,12 @@ const AdminDashboard = () => {
 
                                             {queueLoading
                                                 ? '...'
-                                                : `A-${String(
-                                                    currentToken
-                                                ).padStart(2, '0')}`}
+                                                : currentToken !==
+                                                null
+                                                    ? formatToken(
+                                                        currentToken
+                                                    )
+                                                    : '—'}
 
                                         </div>
 
@@ -1404,26 +1790,37 @@ const AdminDashboard = () => {
 
                                             <div className="token-chips">
 
-                                                <span className="chip active">
-                                                    A-
-                                                    {String(
-                                                        currentToken + 1
-                                                    ).padStart(2, '0')}
-                                                </span>
-
-                                                <span className="chip">
-                                                    A-
-                                                    {String(
-                                                        currentToken + 2
-                                                    ).padStart(2, '0')}
-                                                </span>
-
-                                                <span className="chip">
-                                                    A-
-                                                    {String(
-                                                        currentToken + 3
-                                                    ).padStart(2, '0')}
-                                                </span>
+                                                {nextWaitingTokens.length ===
+                                                0 ? (
+                                                    <span className="chip">
+                                                        No waiting
+                                                        patients
+                                                    </span>
+                                                ) : (
+                                                    nextWaitingTokens.map(
+                                                        (
+                                                            appointment,
+                                                            index
+                                                        ) => (
+                                                            <span
+                                                                key={
+                                                                    appointment?.id ||
+                                                                    appointment?.tokenNumber
+                                                                }
+                                                                className={`chip ${
+                                                                    index ===
+                                                                    0
+                                                                        ? 'active'
+                                                                        : ''
+                                                                }`}
+                                                            >
+                                                                {getToken(
+                                                                    appointment
+                                                                )}
+                                                            </span>
+                                                        )
+                                                    )
+                                                )}
 
                                             </div>
 
@@ -1436,6 +1833,10 @@ const AdminDashboard = () => {
                                                 onClick={
                                                     handlePreviousToken
                                                 }
+                                                disabled={
+                                                    !selectedDept ||
+                                                    queueLoading
+                                                }
                                             >
                                                 ◀ Call Previous
                                             </button>
@@ -1444,6 +1845,10 @@ const AdminDashboard = () => {
                                                 className="action-btn primary"
                                                 onClick={
                                                     handleNextToken
+                                                }
+                                                disabled={
+                                                    !selectedDept ||
+                                                    queueLoading
                                                 }
                                             >
                                                 ▶ Call Next
@@ -1454,6 +1859,11 @@ const AdminDashboard = () => {
                                                 onClick={
                                                     handleRecallToken
                                                 }
+                                                disabled={
+                                                    !selectedDept ||
+                                                    currentToken ===
+                                                    null
+                                                }
                                             >
                                                 🔔 Recall Token
                                             </button>
@@ -1462,6 +1872,11 @@ const AdminDashboard = () => {
                                                 className="action-btn danger"
                                                 onClick={
                                                     handleSkipToken
+                                                }
+                                                disabled={
+                                                    !selectedDept ||
+                                                    currentToken ===
+                                                    null
                                                 }
                                             >
                                                 ⏭️ Skip Patient
@@ -1476,14 +1891,26 @@ const AdminDashboard = () => {
                                         <span>
                                             ⏱️ Est. Wait Time:{' '}
                                             <strong>
-                                                {averageWaitTime} mins
+                                                {
+                                                    averageWaitTime
+                                                } mins
+                                            </strong>
+                                        </span>
+
+                                        <span>
+                                            👥 Waiting:{' '}
+                                            <strong>
+                                                {
+                                                    departmentQueueStats.waiting
+                                                }
                                             </strong>
                                         </span>
 
                                         <span>
                                             📍 Department:{' '}
                                             <strong>
-                                                {selectedDept}
+                                                {selectedDept ||
+                                                    'No Department'}
                                             </strong>
                                         </span>
 
@@ -1512,61 +1939,66 @@ const AdminDashboard = () => {
                                             <div className="queue-loading">
                                                 Loading doctors...
                                             </div>
-                                        ) : activeDoctors.length === 0 ? (
+                                        ) : activeDoctors.length ===
+                                        0 ? (
                                             <div className="queue-empty">
                                                 No doctors found.
                                             </div>
                                         ) : (
                                             activeDoctors
                                                 .slice(0, 6)
-                                                .map((doctor) => {
+                                                .map(
+                                                    (
+                                                        doctor
+                                                    ) => {
 
-                                                    const status =
-                                                        getDoctorStatus(
-                                                            doctor
-                                                        );
+                                                        const status =
+                                                            getDoctorStatus(
+                                                                doctor
+                                                            );
 
-                                                    return (
-                                                        <div
-                                                            className="doc-row"
-                                                            key={
-                                                                doctor?.id
-                                                            }
-                                                        >
+                                                        return (
+                                                            <div
+                                                                className="doc-row"
+                                                                key={
+                                                                    doctor?.id
+                                                                }
+                                                            >
 
-                                                            <div className="doc-meta">
+                                                                <div className="doc-meta">
 
-                                                                <strong>
-                                                                    {getDoctorName(
-                                                                        doctor
-                                                                    )}
-                                                                </strong>
-
-                                                                <small>
-                                                                    {
-                                                                        getDoctorDepartment(
+                                                                    <strong>
+                                                                        {getDoctorName(
                                                                             doctor
-                                                                        )
-                                                                    }
+                                                                        )}
+                                                                    </strong>
 
-                                                                    {doctor?.cabinNumber
-                                                                        ? ` • Cabin ${doctor.cabinNumber}`
-                                                                        : ''}
-                                                                </small>
+                                                                    <small>
+                                                                        {
+                                                                            getDoctorDepartment(
+                                                                                doctor
+                                                                            )
+                                                                        }
+
+                                                                        {doctor?.cabinNumber
+                                                                            ? ` • Cabin ${doctor.cabinNumber}`
+                                                                            : ''}
+                                                                    </small>
+
+                                                                </div>
+
+                                                                <span
+                                                                    className={`status-pill ${status.type}`}
+                                                                >
+                                                                    {
+                                                                        status.label
+                                                                    }
+                                                                </span>
 
                                                             </div>
-
-                                                            <span
-                                                                className={`status-pill ${status.type}`}
-                                                            >
-                                                                {
-                                                                    status.label
-                                                                }
-                                                            </span>
-
-                                                        </div>
-                                                    );
-                                                })
+                                                        );
+                                                    }
+                                                )
                                         )}
 
                                     </div>
@@ -1607,7 +2039,8 @@ const AdminDashboard = () => {
 
                                 <div className="queue-table-wrapper">
 
-                                    {recentAppointments.length === 0 ? (
+                                    {recentAppointments.length ===
+                                    0 ? (
                                         <div className="queue-empty">
 
                                             <div className="queue-empty-icon">
@@ -1684,15 +2117,15 @@ const AdminDashboard = () => {
 
                                                         <td>
 
-                                                                <span
-                                                                    className={getStatusClass(
-                                                                        appointment?.status
-                                                                    )}
-                                                                >
-                                                                    {getStatusLabel(
-                                                                        appointment?.status
-                                                                    )}
-                                                                </span>
+                                                            <span
+                                                                className={getStatusClass(
+                                                                    appointment?.status
+                                                                )}
+                                                            >
+                                                                {getStatusLabel(
+                                                                    appointment?.status
+                                                                )}
+                                                            </span>
 
                                                         </td>
 
@@ -1729,29 +2162,43 @@ const AdminDashboard = () => {
                     )}
 
                     {/* =================================================
-                        OTHER MODULES
+                        QUEUE OPERATIONS
                     ================================================= */}
                     {activeTab === 'queue' && (
                         <QueueOperations />
                     )}
 
+                    {/* =================================================
+                        DOCTORS
+                    ================================================= */}
                     {activeTab === 'doctors' && (
                         <DoctorSection />
                     )}
 
+                    {/* =================================================
+                        RECEPTION
+                    ================================================= */}
                     {activeTab === 'reception' && (
                         <ReceptionistSection />
                     )}
 
+                    {/* =================================================
+                        PATIENTS
+                    ================================================= */}
                     {activeTab === 'patients' && (
                         <PatientSection />
                     )}
 
+                    {/* =================================================
+                        SETTINGS
+                    ================================================= */}
                     {activeTab === 'settings' && (
                         <AdminSettingsSection />
                     )}
 
-                    {/* BOOKINGS */}
+                    {/* =================================================
+                        BOOKINGS
+                    ================================================= */}
                     {activeTab === 'bookings' && (
                         <div className="sq-glass-card">
 
@@ -1771,7 +2218,8 @@ const AdminDashboard = () => {
 
                             <div className="queue-table-wrapper">
 
-                                {appointments.length === 0 ? (
+                                {appointments.length ===
+                                0 ? (
                                     <div className="queue-empty">
 
                                         <div className="queue-empty-icon">
@@ -1848,15 +2296,15 @@ const AdminDashboard = () => {
 
                                                     <td>
 
-                                                            <span
-                                                                className={getStatusClass(
-                                                                    appointment?.status
-                                                                )}
-                                                            >
-                                                                {getStatusLabel(
-                                                                    appointment?.status
-                                                                )}
-                                                            </span>
+                                                        <span
+                                                            className={getStatusClass(
+                                                                appointment?.status
+                                                            )}
+                                                        >
+                                                            {getStatusLabel(
+                                                                appointment?.status
+                                                            )}
+                                                        </span>
 
                                                     </td>
 

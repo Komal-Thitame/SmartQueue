@@ -82,12 +82,10 @@ public class AdminService {
         Doctor doctor = doctorRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Doctor not found with id: " + id));
 
-        // Agar user account linked hai toh use bhi delete karein
-        if (doctor.getUser() != null) {
-            userRepository.delete(doctor.getUser());
-        }
+        doctor.setActive(false);
 
-        doctorRepository.delete(doctor);
+        doctorRepository.save(doctor);
+
     }
 
     @Transactional
