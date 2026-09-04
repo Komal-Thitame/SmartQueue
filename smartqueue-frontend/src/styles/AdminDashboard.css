@@ -721,3 +721,232 @@ body { background-color: var(--sq-bg-page); color: var(--sq-text-main); }
     }
 
 }
+
+/* =========================================================
+   NOTIFICATION SYSTEM
+========================================================= */
+
+.notification-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.sq-bell-btn {
+    position: relative;
+    width: 42px;
+    height: 42px;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 12px;
+    background: #ffffff;
+    cursor: pointer;
+    font-size: 19px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s ease;
+}
+
+.sq-bell-btn:hover,
+.sq-bell-btn.active {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.10);
+    border-color: rgba(15, 23, 42, 0.14);
+}
+
+.notification-count {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    min-width: 19px;
+    height: 19px;
+    padding: 0 5px;
+    border-radius: 20px;
+    background: #ef4444;
+    color: white;
+    font-size: 10px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #ffffff;
+}
+
+.dot-alert {
+    position: absolute;
+    width: 7px;
+    height: 7px;
+    background: #ef4444;
+    border-radius: 50%;
+    right: 7px;
+    top: 7px;
+    border: 1px solid white;
+}
+
+.notification-dropdown {
+    position: absolute;
+    top: calc(100% + 13px);
+    right: 0;
+    width: 370px;
+    max-width: calc(100vw - 30px);
+    background: #ffffff;
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    border-radius: 18px;
+    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.16);
+    overflow: hidden;
+    z-index: 9999;
+}
+
+.notification-header {
+    padding: 17px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+}
+
+.notification-header h4 {
+    margin: 0;
+    font-size: 15px;
+    color: #172033;
+}
+
+.notification-header span {
+    display: block;
+    margin-top: 3px;
+    font-size: 11px;
+    color: #8a94a6;
+}
+
+.notification-mark-read {
+    border: none;
+    background: transparent;
+    color: #0f766e;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.notification-mark-read:hover {
+    text-decoration: underline;
+}
+
+.notification-divider {
+    height: 1px;
+    background: #edf0f4;
+}
+
+.notification-list {
+    max-height: 390px;
+    overflow-y: auto;
+}
+
+.notification-item {
+    width: 100%;
+    border: none;
+    background: transparent;
+    padding: 14px 17px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.notification-item:hover {
+    background: #f8fafc;
+}
+
+.notification-item.unread {
+    background: #f8fbfc;
+}
+
+.notification-icon {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    border-radius: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+}
+
+.notification-icon.warning {
+    background: #fff7e6;
+}
+
+.notification-icon.success {
+    background: #ecfdf5;
+}
+
+.notification-icon.danger {
+    background: #fef2f2;
+}
+
+.notification-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.notification-title-row {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.notification-title-row strong {
+    color: #172033;
+    font-size: 12px;
+}
+
+.notification-content p {
+    margin: 4px 0 0;
+    color: #7a8495;
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.notification-unread-dot {
+    width: 6px;
+    height: 6px;
+    min-width: 6px;
+    border-radius: 50%;
+    background: #ef4444;
+}
+
+/* =========================================================
+   ANIMATION
+========================================================= */
+
+.animate-fade-in {
+    animation: notificationFadeIn 0.18s ease-out;
+}
+
+@keyframes notificationFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 600px) {
+
+    .notification-dropdown {
+        position: fixed;
+        top: 70px;
+        right: 15px;
+        width: calc(100vw - 30px);
+    }
+
+}
