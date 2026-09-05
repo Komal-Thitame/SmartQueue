@@ -4,154 +4,217 @@ import {
     FaCalendarCheck,
     FaTicketAlt,
     FaWifi,
-    FaUserMd
+    FaUserMd,
+    FaArrowRight
 } from "react-icons/fa";
 
 import "./HowItWorks.css";
 
 
-function HowItWorks(){
+function HowItWorks() {
 
-
-    const steps=[
+    const steps = [
 
         {
-            icon:<FaCalendarCheck/>,
-            number:"01",
-            title:"Book Appointment",
-            desc:"Patients select doctor and book appointment digitally."
+            number: "01",
+            icon: <FaCalendarCheck />,
+            tag: "Appointment",
+            title: "Book an Appointment",
+            desc:
+                "Patients select a doctor, choose an available appointment and book their visit digitally."
         },
 
-
         {
-            icon:<FaTicketAlt/>,
-            number:"02",
-            title:"Receive Digital Token",
-            desc:"SmartQueue automatically generates queue token."
+            number: "02",
+            icon: <FaTicketAlt />,
+            tag: "Digital Token",
+            title: "Receive Your Token",
+            desc:
+                "After booking, SmartQueue provides a digital token that identifies the patient's place in the queue."
         },
 
-
         {
-            icon:<FaWifi/>,
-            number:"03",
-            title:"Track Live Queue",
-            desc:"Patients get real-time updates about their waiting status."
+            number: "03",
+            icon: <FaWifi />,
+            tag: "Live Queue",
+            title: "Track Your Queue",
+            desc:
+                "Patients can check their token status, current serving token and estimated waiting time."
         },
 
-
         {
-            icon:<FaUserMd/>,
-            number:"04",
-            title:"Doctor Consultation",
-            desc:"Doctor manages patients through smart dashboard."
+            number: "04",
+            icon: <FaUserMd />,
+            tag: "Consultation",
+            title: "Meet the Doctor",
+            desc:
+                "When the token reaches its turn, the doctor manages the consultation through the dashboard."
         }
 
     ];
 
 
+    return (
 
-    return(
+        <section
+            className="how-section"
+            id="how"
+        >
 
-        <section className="how-section" id="how">
+            {/* Background decoration */}
+
+            <div className="how-bg-circle how-circle-one"></div>
+
+            <div className="how-bg-circle how-circle-two"></div>
+
+            <div className="how-grid-pattern"></div>
 
 
+            {/* ===============================
+                SECTION HEADING
+            =============================== */}
 
             <div className="how-heading">
 
-
-<span>
-How It Works
-</span>
-
+                <span className="how-label">
+                    How It Works
+                </span>
 
                 <h2>
-                    Simple Process,
-                    Smarter Healthcare
+                    From Booking to
+                    <span> Consultation</span>
                 </h2>
 
-
                 <p>
-                    From appointment booking to consultation,
-                    SmartQueue makes every step faster.
+                    SmartQueue simplifies the complete patient journey,
+                    from booking an appointment to reaching the doctor.
                 </p>
-
 
             </div>
 
 
-
-
+            {/* ===============================
+                PROCESS
+            =============================== */}
 
             <div className="timeline">
 
-
-                {
-                    steps.map((step,index)=>(
+                <div className="timeline-line"></div>
 
 
-                        <div
-                            className={`step ${index%2===0 ? "left":"right"}`}
-                            key={index}
-                        >
+                {steps.map((step, index) => (
 
+                    <div
+                        className={`how-step ${
+                            index % 2 === 0
+                                ? "step-left"
+                                : "step-right"
+                        }`}
+                        key={step.number}
+                    >
 
+                        {/* ===============================
+                            CARD
+                        =============================== */}
 
-                            <div className="step-card">
+                        <div className="how-card">
 
+                            {/* Card top */}
 
-                                <div className="step-icon">
+                            <div className="how-card-top">
+
+                                <div className="how-icon">
 
                                     {step.icon}
 
                                 </div>
 
-
-
-                                <div>
-
-                                    <h3>
-                                        {step.title}
-                                    </h3>
-
-
-                                    <p>
-                                        {step.desc}
-                                    </p>
-
-                                </div>
-
+                                <span className="how-tag">
+                                    {step.tag}
+                                </span>
 
                             </div>
 
 
+                            {/* Content */}
 
+                            <div className="how-card-content">
 
+                                <h3>
+                                    {step.title}
+                                </h3>
 
-                            <div className="step-number">
-
-                                {step.number}
+                                <p>
+                                    {step.desc}
+                                </p>
 
                             </div>
 
 
+                            {/* Bottom */}
+
+                            <div className="how-card-footer">
+
+                                <span>
+                                    Step {step.number}
+                                </span>
+
+                                <span className="how-footer-line"></span>
+
+                                <FaArrowRight />
+
+                            </div>
 
                         </div>
 
 
-                    ))
-                }
+                        {/* ===============================
+                            CENTER NUMBER
+                        =============================== */}
 
+                        <div className="step-node">
 
+                            <span>
+                                {step.number}
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                ))}
 
             </div>
 
 
+            {/* ===============================
+                BOTTOM MESSAGE
+            =============================== */}
 
+            <div className="how-bottom">
+
+                <div className="how-bottom-icon">
+                    <FaWifi />
+                </div>
+
+                <div>
+
+                    <strong>
+                        Everything stays connected
+                    </strong>
+
+                    <span>
+                        Patients, doctors and reception staff stay updated
+                        throughout the queue process.
+                    </span>
+
+                </div>
+
+            </div>
 
         </section>
 
-
-    )
+    );
 
 }
 

@@ -12,138 +12,164 @@ import {
 import "./Features.css";
 
 
-function Features(){
+function Features() {
 
-
-    const features=[
+    const features = [
 
         {
-            icon:<FaCalendarCheck/>,
-            title:"Appointment Management",
-            desc:"Patients can easily book and manage hospital appointments digitally."
+            icon: <FaCalendarCheck />,
+            tag: "Appointments",
+            title: "Appointment Management",
+            desc:
+                "Patients can book appointments digitally, while staff can manage scheduled visits and appointment status."
         },
 
-
         {
-            icon:<FaTicketAlt/>,
-            title:"Smart Token Queue",
-            desc:"Generate digital tokens and track live queue position."
+            icon: <FaTicketAlt />,
+            tag: "Queue Management",
+            title: "Smart Token Queue",
+            desc:
+                "Generate digital tokens and track waiting patients, current serving tokens and queue position in real time."
         },
 
-
         {
-            icon:<FaUserMd/>,
-            title:"Doctor Dashboard",
-            desc:"Doctors can manage appointments and patient information."
+            icon: <FaUserMd />,
+            tag: "Doctor Module",
+            title: "Doctor Dashboard",
+            desc:
+                "Doctors can manage their queue, start consultations, complete appointments and view patient information."
         },
 
-
         {
-            icon:<FaBell/>,
-            title:"Real-Time Notifications",
-            desc:"Receive instant updates about token status and appointments."
+            icon: <FaBell />,
+            tag: "Live Updates",
+            title: "Real-Time Notifications",
+            desc:
+                "Keep patients and staff informed about token changes, appointment status and important queue updates."
         },
 
-
         {
-            icon:<FaChartLine/>,
-            title:"Queue Analytics",
-            desc:"Monitor waiting time and improve hospital efficiency."
+            icon: <FaChartLine />,
+            tag: "Analytics",
+            title: "Queue Analytics",
+            desc:
+                "Monitor waiting patients, completed consultations and queue activity to understand hospital performance."
         },
 
-
         {
-            icon:<FaShieldAlt/>,
-            title:"Role Based Access",
-            desc:"Secure access for Admin, Doctor, Receptionist and Patient."
+            icon: <FaShieldAlt />,
+            tag: "Security",
+            title: "Role-Based Access",
+            desc:
+                "Provide separate access and functionality for Admin, Doctor, Receptionist and Patient roles."
         }
 
     ];
 
 
+    return (
 
-    return(
+        <section
+            className="features-section"
+            id="features"
+        >
 
-
-        <section className="features-section" id="features">
-
-
+            {/* ===============================
+                HEADING
+            =============================== */}
 
             <div className="features-heading">
 
-
-<span>
-Powerful Features
-</span>
-
+                <span className="features-label">
+                    Powerful Features
+                </span>
 
                 <h2>
-                    Everything You Need For
-                    Smart Queue Management
+                    Everything You Need for
+                    <br />
+                    <span>Smart Queue Management</span>
                 </h2>
 
-
                 <p>
-                    A complete digital solution designed
-                    to simplify hospital operations.
+                    SmartQueue brings appointments, digital tokens,
+                    doctor queues and hospital operations together
+                    in one simple platform.
                 </p>
-
 
             </div>
 
 
-
-
+            {/* ===============================
+                FEATURES GRID
+            =============================== */}
 
             <div className="features-grid">
 
+                {features.map((item, index) => (
 
-                {
+                    <div
+                        className="feature-card"
+                        key={index}
+                    >
 
-                    features.map((item,index)=>(
+                        {/* Decorative number */}
+
+                        <span className="feature-number">
+                            0{index + 1}
+                        </span>
 
 
-                        <div
-                            className="feature-card"
-                            key={index}
-                        >
+                        {/* Top */}
 
+                        <div className="feature-top">
 
                             <div className="feature-icon">
-
                                 {item.icon}
-
                             </div>
 
+                            <span className="feature-tag">
+                                {item.tag}
+                            </span>
+
+                        </div>
+
+
+                        {/* Content */}
+
+                        <div className="feature-content">
 
                             <h3>
                                 {item.title}
                             </h3>
 
-
                             <p>
                                 {item.desc}
                             </p>
 
-
                         </div>
 
 
-                    ))
+                        {/* Bottom line */}
 
+                        <div className="feature-bottom">
 
-                }
+                            <span>
+                                SmartQueue
+                            </span>
 
+                            <span className="feature-line"></span>
 
+                        </div>
+
+                    </div>
+
+                ))}
 
             </div>
 
-
-
         </section>
 
-
-    )
+    );
 
 }
 

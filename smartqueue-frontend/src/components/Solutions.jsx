@@ -3,93 +3,156 @@ import React from "react";
 import {
     FaUserTie,
     FaUserMd,
-    FaClipboard,
-    FaUser
+    FaClipboardCheck,
+    FaUser,
+    FaArrowRight,
+    FaCheckCircle,
+    FaHospital,
+    FaStethoscope,
+    FaTicketAlt,
+    FaCalendarCheck
 } from "react-icons/fa";
 
 import "./Solutions.css";
 
 
-function Solutions(){
+function Solutions() {
 
-
-    const solutions=[
+    const solutions = [
 
         {
-            icon:<FaUserTie/>,
-            title:"Admin",
-            desc:"Manage hospital operations, users and performance analytics."
+            icon: <FaUserTie />,
+            roleIcon: <FaHospital />,
+            title: "Admin",
+            subtitle: "Hospital Management",
+
+            desc:
+                "Manage doctors, receptionists, patients and overall hospital queue operations from one centralized dashboard.",
+
+            features: [
+                "User Management",
+                "Doctor Management",
+                "Queue Monitoring"
+            ],
+
+            color: "admin"
         },
 
 
         {
-            icon:<FaUserMd/>,
-            title:"Doctor",
-            desc:"View patient queue and manage consultations efficiently."
+            icon: <FaUserMd />,
+            roleIcon: <FaStethoscope />,
+            title: "Doctor",
+            subtitle: "Consultation Management",
+
+            desc:
+                "Doctors can view their live patient queue, manage consultations and access patient information efficiently.",
+
+            features: [
+                "Live Patient Queue",
+                "Consultation Management",
+                "Patient Information"
+            ],
+
+            color: "doctor"
         },
 
 
         {
-            icon:<FaClipboard/>,
-            title:"Receptionist",
-            desc:"Handle appointments, tokens and patient check-ins."
+            icon: <FaClipboardCheck />,
+            roleIcon: <FaTicketAlt />,
+            title: "Receptionist",
+            subtitle: "Front Desk Operations",
+
+            desc:
+                "Receptionists can book appointments, generate tokens, check in patients and manage daily appointments.",
+
+            features: [
+                "Appointment Booking",
+                "Token Management",
+                "Patient Check-in"
+            ],
+
+            color: "receptionist"
         },
 
 
         {
-            icon:<FaUser/>,
-            title:"Patient",
-            desc:"Book appointments and track live queue status."
+            icon: <FaUser />,
+            roleIcon: <FaCalendarCheck />,
+            title: "Patient",
+            subtitle: "Easy Healthcare Access",
+
+            desc:
+                "Patients can book appointments, receive digital tokens and track their queue status without unnecessary waiting.",
+
+            features: [
+                "Book Appointment",
+                "Digital Token",
+                "Live Queue Tracking"
+            ],
+
+            color: "patient"
         }
 
     ];
 
 
+    return (
 
-    return(
+        <section
+            className="solutions-section"
+            id="solutions"
+        >
+
+            {/* Background Decorations */}
+
+            <div className="solutions-bg-shape shape-one"></div>
+
+            <div className="solutions-bg-shape shape-two"></div>
+
+            <div className="solutions-grid-pattern"></div>
 
 
-        <section className="solutions-section" id="solutions">
-
+            {/* Heading */}
 
             <div className="solutions-heading">
 
-
-<span>
-Solutions
-</span>
+                <span className="solutions-label">
+                    <FaHospital />
+                    One Platform • Four Roles
+                </span>
 
 
                 <h2>
-                    Built For Everyone In
-                    Healthcare
+                    Designed For Every
+                    <span> Healthcare Role</span>
                 </h2>
 
 
                 <p>
-                    One smart platform connecting patients,
-                    doctors and hospital staff.
+                    SmartQueue connects hospital staff and patients
+                    through role-based dashboards, making appointments,
+                    queues and consultations easier to manage.
                 </p>
-
 
             </div>
 
 
-
-
+            {/* Role Cards */}
 
             <div className="solutions-grid">
 
+                {solutions.map((item, index) => (
 
-                {
-                    solutions.map((item,index)=>(
+                    <article
+                        className={`solution-role-card ${item.color}`}
+                        key={index}
+                    >
 
+                        {/* Top */}
 
-                        <div
-                            className="solution-role-card"
-                            key={index}
-                        >
-
+                        <div className="solution-card-top">
 
                             <div className="role-icon">
 
@@ -98,39 +161,126 @@ Solutions
                             </div>
 
 
-
-                            <h3>
-                                {item.title}
-                            </h3>
-
-
-
-                            <p>
-                                {item.desc}
-                            </p>
-
-
-                            <button>
-                                Explore
-                            </button>
-
+                            <span className="role-number">
+                                0{index + 1}
+                            </span>
 
                         </div>
 
 
-                    ))
-                }
+                        {/* Title */}
+
+                        <div className="solution-title-row">
+
+                            <div>
+
+                                <h3>
+                                    {item.title}
+                                </h3>
+
+                                <span className="solution-subtitle">
+                                    {item.subtitle}
+                                </span>
+
+                            </div>
+
+                        </div>
 
 
+                        {/* Description */}
+
+                        <p className="solution-description">
+                            {item.desc}
+                        </p>
+
+
+                        {/* Responsibilities */}
+
+                        <div className="solution-features">
+
+                            {item.features.map(
+                                (feature, featureIndex) => (
+
+                                    <div
+                                        className="solution-feature"
+                                        key={featureIndex}
+                                    >
+
+                                        <span className="feature-check">
+                                            <FaCheckCircle />
+                                        </span>
+
+                                        <span>
+                                            {feature}
+                                        </span>
+
+                                    </div>
+
+                                )
+                            )}
+
+                        </div>
+
+
+                        {/* Bottom */}
+
+                        <div className="solution-card-footer">
+
+                            <span className="role-access">
+
+                                {item.roleIcon}
+
+                                Role-based access
+
+                            </span>
+
+
+                            <span className="solution-arrow">
+
+                                <FaArrowRight />
+
+                            </span>
+
+                        </div>
+
+                    </article>
+
+                ))}
 
             </div>
 
 
+            {/* Architecture Note */}
+
+            <div className="solutions-bottom">
+
+                <div className="solutions-bottom-icon">
+
+                    <FaCheckCircle />
+
+                </div>
+
+
+                <div>
+
+                    <strong>
+                        Role-Based Access Control
+                    </strong>
+
+                    <p>
+                        Each user gets access only to the features
+                        required for their role, keeping hospital
+                        operations organized and secure.
+                    </p>
+
+                </div>
+
+            </div>
+
 
         </section>
 
-
-    )
+    );
 
 }
 
