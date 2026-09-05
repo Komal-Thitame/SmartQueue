@@ -10,7 +10,8 @@ import {
     FaStethoscope,
     FaHospital,
     FaChevronRight,
-    FaCircle
+    FaCircle,
+    FaUserClock
 } from "react-icons/fa";
 
 import { API_BASE_URL } from "../config";
@@ -71,6 +72,22 @@ function Hero() {
 
 
     /* =========================================================
+       DOCTOR ID
+    ========================================================= */
+
+    const getDoctorId = (appointment) => {
+
+        return (
+            appointment?.doctorId ??
+            appointment?.doctor?.id ??
+            appointment?.doctor?.user?.id ??
+            null
+        );
+
+    };
+
+
+    /* =========================================================
        DOCTOR NAME
     ========================================================= */
 
@@ -98,6 +115,7 @@ function Hero() {
             appointment?.department ||
             appointment?.doctor?.department ||
             appointment?.doctor?.specialization ||
+            appointment?.doctor?.speciality ||
             "General"
         );
 
@@ -208,17 +226,17 @@ function Hero() {
             );
 
 
-        /* -----------------------------------------------------
-           TOTAL
-        ----------------------------------------------------- */
+        /* =====================================================
+           TOTAL PATIENTS
+        ===================================================== */
 
         const totalPatients =
             validAppointments.length;
 
 
-        /* -----------------------------------------------------
+        /* =====================================================
            WAITING
-        ----------------------------------------------------- */
+        ===================================================== */
 
         const waitingAppointments =
             validAppointments
@@ -241,9 +259,9 @@ function Hero() {
                 );
 
 
-        /* -----------------------------------------------------
-           CONSULTATION
-        ----------------------------------------------------- */
+        /* =====================================================
+           IN CONSULTATION
+        ===================================================== */
 
         const consultationAppointments =
             validAppointments
@@ -274,9 +292,9 @@ function Hero() {
                 );
 
 
-        /* -----------------------------------------------------
+        /* =====================================================
            COMPLETED
-        ----------------------------------------------------- */
+        ===================================================== */
 
         const completedAppointments =
             validAppointments.filter(
@@ -287,51 +305,70 @@ function Hero() {
             );
 
 
-        /* -----------------------------------------------------
+        /* =====================================================
+           CANCELLED
+        ===================================================== */
+
+        const cancelledAppointments =
+            validAppointments.filter(
+                (appointment) =>
+                    normalizeStatus(
+                        appointment.status
+                    ) === "CANCELLED"
+            );
+
+
+        /* =====================================================
            CURRENT SERVING
-        ----------------------------------------------------- */
+        ===================================================== */
 
         const currentServing =
             consultationAppointments[0] || null;
 
 
-        /* -----------------------------------------------------
-           TOTAL WAIT
-        ----------------------------------------------------- */
+        /* =====================================================
+           ESTIMATED WAIT
+
+           15 MINUTES PER WAITING PATIENT
+        ===================================================== */
 
         const estimatedWait =
             waitingAppointments.length * 15;
 
 
-        /* -----------------------------------------------------
-           SUCCESS
-        ----------------------------------------------------- */
-
-        const successPercentage =
-            totalPatients > 0
-                ? Math.round(
-                    (
-                        completedAppointments.length /
-                        totalPatients
-                    ) * 100
-                )
-                : 0;
-
-
-        /* -----------------------------------------------------
+        /* =====================================================
            DOCTOR GROUPS
-        ----------------------------------------------------- */
+
+           Group appointments doctor-wise.
+        ===================================================== */
 
         const doctorMap = {};
 
+
         validAppointments.forEach((appointment) => {
+
+            const doctorId =
+                getDoctorId(appointment);
 
             const doctorName =
                 getDoctorName(appointment);
 
-            if (!doctorMap[doctorName]) {
+            /*
+             * Prefer doctor ID.
+             * If ID is not available, use doctor name.
+             */
 
-                doctorMap[doctorName] = {
+            const key =
+                doctorId !== null
+                    ? `doctor-${doctorId}`
+                    : `doctor-${doctorName}`;
+
+
+            if (!doctorMap[key]) {
+
+                doctorMap[key] = {
+
+                    doctorId,
 
                     doctorName,
 
@@ -344,16 +381,17 @@ function Hero() {
 
             }
 
-            doctorMap[doctorName]
+
+            doctorMap[key]
                 .appointments
                 .push(appointment);
 
         });
 
 
-        /* -----------------------------------------------------
+        /* =====================================================
            DOCTOR QUEUES
-        ----------------------------------------------------- */
+        ===================================================== */
 
         const doctorQueues =
             Object.values(doctorMap)
@@ -362,12 +400,17 @@ function Hero() {
                     const doctorAppointments =
                         doctor.appointments;
 
+
+                    /* -----------------------------------------
+                       WAITING
+                    ----------------------------------------- */
+
                     const waiting =
                         doctorAppointments
                             .filter(
-                                (a) =>
+                                (appointment) =>
                                     normalizeStatus(
-                                        a.status
+                                        appointment.status
                                     ) === "WAITING"
                             )
                             .sort(
@@ -382,19 +425,27 @@ function Hero() {
                                     )
                             );
 
+
+                    /* -----------------------------------------
+                       SERVING
+                    ----------------------------------------- */
+
                     const serving =
                         doctorAppointments
-                            .filter((a) => {
+                            .filter((appointment) => {
 
                                 const status =
                                     normalizeStatus(
-                                        a.status
+                                        appointment.status
                                     );
 
                                 return (
-                                    status === "IN_CONSULTATION" ||
-                                    status === "IN_PROGRESS" ||
-                                    status === "SERVING"
+                                    status ===
+                                    "IN_CONSULTATION" ||
+                                    status ===
+                                    "IN_PROGRESS" ||
+                                    status ===
+                                    "SERVING"
                                 );
 
                             })
@@ -411,24 +462,65 @@ function Hero() {
                             )[0] || null;
 
 
+                    /* -----------------------------------------
+                       COMPLETED
+                    ----------------------------------------- */
+
                     const completed =
                         doctorAppointments.filter(
-                            (a) =>
+                            (appointment) =>
                                 normalizeStatus(
-                                    a.status
+                                    appointment.status
                                 ) === "COMPLETED"
                         );
 
 
+                    /* -----------------------------------------
+                       CANCELLED
+                    ----------------------------------------- */
+
+                    const cancelled =
+                        doctorAppointments.filter(
+                            (appointment) =>
+                                normalizeStatus(
+                                    appointment.status
+                                ) === "CANCELLED"
+                        );
+
+
+                    /* -----------------------------------------
+                       CURRENT TOKEN
+                    ----------------------------------------- */
+
                     const currentToken =
                         serving
                             ? getTokenNumber(serving)
-                            : waiting[0]
+                            : waiting.length > 0
                                 ? getTokenNumber(waiting[0])
                                 : null;
 
 
+                    /* -----------------------------------------
+                       DOCTOR STATUS
+                    ----------------------------------------- */
+
+                    let status = "AVAILABLE";
+
+                    if (serving) {
+
+                        status = "IN CONSULTATION";
+
+                    } else if (waiting.length > 0) {
+
+                        status = "WAITING";
+
+                    }
+
+
                     return {
+
+                        doctorId:
+                        doctor.doctorId,
 
                         doctorName:
                         doctor.doctorName,
@@ -442,16 +534,14 @@ function Hero() {
                         completedCount:
                         completed.length,
 
+                        cancelledCount:
+                        cancelled.length,
+
                         serving,
 
                         currentToken,
 
-                        status:
-                            serving
-                                ? "IN CONSULTATION"
-                                : waiting.length > 0
-                                    ? "WAITING"
-                                    : "AVAILABLE"
+                        status
 
                     };
 
@@ -459,9 +549,13 @@ function Hero() {
                 .sort((a, b) => {
 
                     const order = {
+
                         "IN CONSULTATION": 1,
+
                         "WAITING": 2,
+
                         "AVAILABLE": 3
+
                     };
 
                     return (
@@ -470,6 +564,35 @@ function Hero() {
                     );
 
                 });
+
+
+        /* =====================================================
+           ACTIVE DOCTORS
+        ===================================================== */
+
+        const activeDoctors =
+            doctorQueues.filter(
+                (doctor) =>
+                    doctor.status ===
+                    "IN CONSULTATION" ||
+                    doctor.status ===
+                    "WAITING"
+            ).length;
+
+
+        /* =====================================================
+           COMPLETION RATE
+        ===================================================== */
+
+        const completionPercentage =
+            totalPatients > 0
+                ? Math.round(
+                    (
+                        completedAppointments.length /
+                        totalPatients
+                    ) * 100
+                )
+                : 0;
 
 
         return {
@@ -485,9 +608,17 @@ function Hero() {
             completedCount:
             completedAppointments.length,
 
+            cancelledCount:
+            cancelledAppointments.length,
+
             estimatedWait,
 
-            successPercentage,
+            completionPercentage,
+
+            activeDoctors,
+
+            totalDoctors:
+            doctorQueues.length,
 
             currentServing,
 
@@ -513,6 +644,26 @@ function Hero() {
         return "Updated just now";
 
     }, [lastUpdated]);
+
+
+    /* =========================================================
+       TOKEN FORMAT
+    ========================================================= */
+
+    const formatToken = (token) => {
+
+        if (
+            token === null ||
+            token === undefined
+        ) {
+
+            return "--";
+
+        }
+
+        return `A${String(token).padStart(2, "0")}`;
+
+    };
 
 
     /* =========================================================
@@ -549,6 +700,8 @@ function Hero() {
                 <div className="hero-content">
 
 
+                    {/* BADGE */}
+
                     <div className="hero-badge">
 
                         <span className="badge-icon">
@@ -572,6 +725,8 @@ function Hero() {
                     </div>
 
 
+                    {/* HEADING */}
+
                     <h1>
 
                         SmartQueue
@@ -589,6 +744,8 @@ function Hero() {
                     </h1>
 
 
+                    {/* DESCRIPTION */}
+
                     <p className="hero-description">
 
                         A smarter way to manage hospital queues.
@@ -598,6 +755,8 @@ function Hero() {
 
                     </p>
 
+
+                    {/* BUTTONS */}
 
                     <div className="hero-buttons">
 
@@ -632,6 +791,8 @@ function Hero() {
 
                     </div>
 
+
+                    {/* TRUST */}
 
                     <div className="hero-trust">
 
@@ -707,12 +868,12 @@ function Hero() {
 
                     </div>
 
+
                 </div>
 
 
                 {/* =================================================
                     RIGHT SIDE
-                    LIVE HOSPITAL OVERVIEW
                 ================================================= */}
 
                 <div className="queue-preview">
@@ -729,23 +890,33 @@ function Hero() {
 
 
                     {/* =================================================
-                        SINGLE MAIN PANEL
+                        MAIN HOSPITAL PANEL
                     ================================================= */}
 
                     <div className="hospital-live-panel">
 
 
-                        {/* TOP HEADER */}
+                        {/* TOP ACCENT */}
+
+                        <div className="panel-top-accent"></div>
+
+
+                        {/* =================================================
+                            HEADER
+                        ================================================= */}
 
                         <div className="hospital-panel-header">
 
+
                             <div className="hospital-panel-title">
+
 
                                 <div className="hospital-panel-icon">
 
                                     <FaHospital />
 
                                 </div>
+
 
                                 <div>
 
@@ -754,10 +925,11 @@ function Hero() {
                                     </h3>
 
                                     <span>
-                                        Today's queue overview
+                                        Real-time queue overview
                                     </span>
 
                                 </div>
+
 
                             </div>
 
@@ -770,15 +942,18 @@ function Hero() {
 
                             </div>
 
+
                         </div>
 
 
                         {/* =================================================
-                            SUMMARY
+                            SUMMARY CARDS
                         ================================================= */}
 
                         <div className="hospital-summary">
 
+
+                            {/* PATIENTS */}
 
                             <div className="hospital-summary-item">
 
@@ -811,6 +986,41 @@ function Hero() {
                             <div className="summary-divider"></div>
 
 
+                            {/* DOCTORS */}
+
+                            <div className="hospital-summary-item">
+
+                                <span className="summary-icon blue">
+
+                                    <FaUserMd />
+
+                                </span>
+
+                                <div>
+
+                                    <strong>
+
+                                        {loading
+                                            ? "..."
+                                            : heroData.totalDoctors
+                                        }
+
+                                    </strong>
+
+                                    <small>
+                                        Doctors
+                                    </small>
+
+                                </div>
+
+                            </div>
+
+
+                            <div className="summary-divider"></div>
+
+
+                            {/* WAITING */}
+
                             <div className="hospital-summary-item">
 
                                 <span className="summary-icon orange">
@@ -825,19 +1035,13 @@ function Hero() {
 
                                         {loading
                                             ? "..."
-                                            : `${heroData.estimatedWait}`
+                                            : heroData.waitingCount
                                         }
-
-                                        {!loading && (
-                                            <em>
-                                                min
-                                            </em>
-                                        )}
 
                                     </strong>
 
                                     <small>
-                                        Avg. Wait
+                                        Waiting
                                     </small>
 
                                 </div>
@@ -847,6 +1051,8 @@ function Hero() {
 
                             <div className="summary-divider"></div>
 
+
+                            {/* COMPLETED */}
 
                             <div className="hospital-summary-item">
 
@@ -875,6 +1081,7 @@ function Hero() {
 
                             </div>
 
+
                         </div>
 
 
@@ -887,96 +1094,146 @@ function Hero() {
 
                             <div className="now-serving-heading">
 
-                                <span>
-                                    NOW SERVING
-                                </span>
+                                <div>
 
-                                <small>
-                                    Live token
-                                </small>
+                                    <span>
+                                        NOW SERVING
+                                    </span>
 
-                            </div>
-
-
-                            <div className="now-serving-content">
-
-
-                                <div className="token-display">
-
-                                    {loading
-
-                                        ? "..."
-
-                                        : heroData.currentServing
-
-                                            ? `A${String(
-                                                getTokenNumber(
-                                                    heroData.currentServing
-                                                )
-                                            ).padStart(2, "0")}`
-
-                                            : "--"
-
-                                    }
+                                    <small>
+                                        Current consultation
+                                    </small>
 
                                 </div>
 
 
-                                <div className="serving-doctor">
+                                {heroData.currentServing && (
 
-                                    <div className="serving-doctor-icon">
+                                    <span className="live-token-label">
 
-                                        <FaUserMd />
+                                        LIVE TOKEN
+
+                                    </span>
+
+                                )}
+
+                            </div>
+
+
+                            {loading ? (
+
+                                <div className="now-serving-loading">
+
+                                    <span></span>
+
+                                    Loading live queue...
+
+                                </div>
+
+                            ) : heroData.currentServing ? (
+
+                                <div className="now-serving-content">
+
+
+                                    {/* TOKEN */}
+
+                                    <div className="token-display">
+
+                                        {formatToken(
+                                            getTokenNumber(
+                                                heroData.currentServing
+                                            )
+                                        )}
+
+                                    </div>
+
+
+                                    {/* DOCTOR */}
+
+                                    <div className="serving-doctor">
+
+
+                                        <div className="serving-doctor-icon">
+
+                                            <FaUserMd />
+
+                                            <span></span>
+
+                                        </div>
+
+
+                                        <div>
+
+                                            <strong>
+
+                                                {getDoctorName(
+                                                    heroData.currentServing
+                                                )}
+
+                                            </strong>
+
+                                            <span>
+
+                                                {getDepartment(
+                                                    heroData.currentServing
+                                                )}
+
+                                            </span>
+
+                                        </div>
+
+
+                                    </div>
+
+
+                                    {/* ACTIVE */}
+
+                                    <div className="serving-active">
+
+                                        <span></span>
+
+                                        Serving
+
+                                    </div>
+
+
+                                </div>
+
+                            ) : (
+
+                                <div className="no-serving">
+
+                                    <div className="no-serving-icon">
+
+                                        <FaUserClock />
 
                                     </div>
 
                                     <div>
 
                                         <strong>
-
-                                            {heroData.currentServing
-                                                ? getDoctorName(
-                                                    heroData.currentServing
-                                                )
-                                                : "Waiting for doctor"
-                                            }
-
+                                            No consultation in progress
                                         </strong>
 
                                         <span>
-
-                                            {heroData.currentServing
-                                                ? getDepartment(
-                                                    heroData.currentServing
-                                                )
-                                                : "Queue will update automatically"
-                                            }
-
+                                            Queue will update automatically
                                         </span>
 
                                     </div>
 
                                 </div>
 
-
-                                <div className="serving-active">
-
-                                    <span></span>
-
-                                    Active
-
-                                </div>
-
-                            </div>
+                            )}
 
                         </div>
 
 
                         {/* =================================================
-                            DOCTOR QUEUE
+                            DOCTOR QUEUES
                         ================================================= */}
 
                         <div className="doctor-queue-heading">
+
 
                             <div>
 
@@ -990,10 +1247,24 @@ function Hero() {
 
                             </div>
 
-                            <FaChevronRight />
+
+                            <div className="doctor-count">
+
+                                {heroData.totalDoctors}
+
+                                <span>
+                                    doctors
+                                </span>
+
+                            </div>
+
 
                         </div>
 
+
+                        {/* =================================================
+                            DOCTOR LIST
+                        ================================================= */}
 
                         <div className="doctor-queue-list">
 
@@ -1016,9 +1287,14 @@ function Hero() {
 
                                         <div
                                             className="doctor-queue-row"
-                                            key={`${doctor.doctorName}-${index}`}
+                                            key={
+                                                doctor.doctorId ??
+                                                `${doctor.doctorName}-${index}`
+                                            }
                                         >
 
+
+                                            {/* AVATAR */}
 
                                             <div className="doctor-row-avatar">
 
@@ -1039,6 +1315,8 @@ function Hero() {
                                             </div>
 
 
+                                            {/* INFO */}
+
                                             <div className="doctor-row-info">
 
                                                 <strong>
@@ -1052,6 +1330,8 @@ function Hero() {
                                             </div>
 
 
+                                            {/* TOKEN */}
+
                                             <div className="doctor-token">
 
                                                 <small>
@@ -1060,17 +1340,16 @@ function Hero() {
 
                                                 <strong>
 
-                                                    {doctor.currentToken !== null
-                                                        ? `A${String(
-                                                            doctor.currentToken
-                                                        ).padStart(2, "0")}`
-                                                        : "--"
-                                                    }
+                                                    {formatToken(
+                                                        doctor.currentToken
+                                                    )}
 
                                                 </strong>
 
                                             </div>
 
+
+                                            {/* WAITING */}
 
                                             <div className="doctor-waiting">
 
@@ -1084,6 +1363,8 @@ function Hero() {
 
                                             </div>
 
+
+                                            {/* STATUS */}
 
                                             <div
                                                 className={
@@ -1119,7 +1400,11 @@ function Hero() {
 
                                 <div className="queue-empty-state">
 
-                                    <FaStethoscope />
+                                    <div className="queue-empty-icon">
+
+                                        <FaStethoscope />
+
+                                    </div>
 
                                     <div>
 
@@ -1136,6 +1421,30 @@ function Hero() {
                                 </div>
 
                             )}
+
+
+                            {/* MORE DOCTORS */}
+
+                            {!loading &&
+                                heroData.doctorQueues.length > 3 && (
+
+                                    <div className="more-doctors">
+
+                                        <span>
+
+                                            +{heroData.doctorQueues.length - 3}
+
+                                            {" "}
+
+                                            more doctors with active queues
+
+                                        </span>
+
+                                        <FaChevronRight />
+
+                                    </div>
+
+                                )}
 
                         </div>
 
@@ -1162,13 +1471,18 @@ function Hero() {
                                 {updatedText}
                             </span>
 
+
                         </div>
+
 
                     </div>
 
+
                 </div>
 
+
             </div>
+
 
         </section>
 
