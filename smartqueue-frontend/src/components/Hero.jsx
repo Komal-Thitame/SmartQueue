@@ -7,22 +7,26 @@ import {
     FaHeartbeat,
     FaCheckCircle,
     FaClock,
-    FaUserMd
+    FaUserMd,
+    FaUsers,
+    FaStethoscope
 } from "react-icons/fa";
 
 import "./Hero.css";
 
 function Hero() {
-
     return (
-
         <section className="hero" id="home">
 
-            {/* Background decorations */}
+            {/* =====================================================
+                BACKGROUND DECORATIONS
+            ===================================================== */}
+
             <div className="hero-bg-circle one"></div>
             <div className="hero-bg-circle two"></div>
 
             <div className="hero-grid"></div>
+
 
             <div className="hero-container">
 
@@ -31,6 +35,8 @@ function Hero() {
                 ===================================================== */}
 
                 <div className="hero-content">
+
+                    {/* Badge */}
 
                     <div className="hero-badge">
 
@@ -49,8 +55,9 @@ function Hero() {
                     </div>
 
 
-                    <h1>
+                    {/* Heading */}
 
+                    <h1>
                         SmartQueue
 
                         <span>
@@ -58,17 +65,16 @@ function Hero() {
                             <br />
                             Better Healthcare
                         </span>
-
                     </h1>
 
 
-                    <p className="hero-description">
+                    {/* Description */}
 
+                    <p className="hero-description">
                         A smarter way to manage hospital queues.
                         Book appointments, track your token and
                         stay updated with real-time queue information
                         without waiting unnecessarily.
-
                     </p>
 
 
@@ -80,13 +86,11 @@ function Hero() {
                             href="/register"
                             className="primary-btn"
                         >
-
                             Get Started
 
                             <span className="btn-icon">
                                 <FaArrowRight />
                             </span>
-
                         </a>
 
 
@@ -94,15 +98,13 @@ function Hero() {
                             href="#features"
                             className="secondary-btn"
                         >
-
                             Explore Features
-
                         </a>
 
                     </div>
 
 
-                    {/* Trust */}
+                    {/* Trust Items */}
 
                     <div className="hero-trust">
 
@@ -173,12 +175,14 @@ function Hero() {
 
                 <div className="queue-preview">
 
-                    {/* Decorative circle */}
+                    {/* Background Orbit */}
 
                     <div className="queue-orbit"></div>
 
 
-                    {/* TOP FLOATING CARD */}
+                    {/* =================================================
+                        TOP FLOATING CARD
+                    ================================================= */}
 
                     <div className="floating-card top">
 
@@ -196,14 +200,43 @@ function Hero() {
                                 Patients Today
                             </small>
 
+                            {/* Mini Patient Avatars */}
+
+                            <div className="mini-patient-row">
+
+                                <span>
+                                    <FaUsers />
+                                </span>
+
+                                <span>
+                                    <FaUserMd />
+                                </span>
+
+                                <span>
+                                    <FaStethoscope />
+                                </span>
+
+                                <b>
+                                    +117
+                                </b>
+
+                            </div>
+
                         </div>
 
                     </div>
 
 
-                    {/* MAIN QUEUE CARD */}
+                    {/* =================================================
+                        MAIN QUEUE CARD
+                    ================================================= */}
 
                     <div className="queue-card">
+
+                        {/* Top Accent */}
+
+                        <div className="queue-accent"></div>
+
 
                         {/* Header */}
 
@@ -246,7 +279,30 @@ function Hero() {
                         <div className="queue-divider"></div>
 
 
-                        {/* Current serving */}
+                        {/* =================================================
+                            QUEUE VISUAL / DOCTOR
+                        ================================================= */}
+
+                        <div className="doctor-visual">
+
+                            <div className="doctor-glow"></div>
+
+                            <div className="doctor-avatar">
+
+                                <FaUserMd />
+
+                            </div>
+
+                            <div className="doctor-status-dot"></div>
+
+                            <div className="doctor-mini-badge">
+                                <FaHeartbeat />
+                            </div>
+
+                        </div>
+
+
+                        {/* Current Serving */}
 
                         <div className="serving">
 
@@ -263,7 +319,9 @@ function Hero() {
                                 <FaUserMd />
 
                                 Dr. Sharma
+
                                 <span>•</span>
+
                                 Room 03
 
                             </div>
@@ -271,9 +329,11 @@ function Hero() {
                         </div>
 
 
-                        {/* Queue information */}
+                        {/* Queue Information */}
 
                         <div className="queue-info">
+
+                            {/* Waiting */}
 
                             <div className="queue-info-item">
 
@@ -302,6 +362,8 @@ function Hero() {
 
                             <div className="queue-info-divider"></div>
 
+
+                            {/* Estimated Wait */}
 
                             <div className="queue-info-item">
 
@@ -333,7 +395,7 @@ function Hero() {
                         </div>
 
 
-                        {/* Progress */}
+                        {/* Queue Progress */}
 
                         <div className="queue-progress">
 
@@ -349,6 +411,7 @@ function Hero() {
 
                             </div>
 
+
                             <div className="progress-bar">
 
                                 <span></span>
@@ -358,13 +421,43 @@ function Hero() {
                         </div>
 
 
+                        {/* Next Patient */}
+
+                        <div className="next-patient">
+
+                            <div className="next-patient-icon">
+                                <FaUserClock />
+                            </div>
+
+                            <div className="next-patient-content">
+
+                                <small>
+                                    NEXT PATIENT
+                                </small>
+
+                                <strong>
+                                    A103
+                                </strong>
+
+                            </div>
+
+                            <span className="next-arrow">
+                                →
+                            </span>
+
+                        </div>
+
+
                         {/* Footer */}
 
                         <div className="queue-footer">
 
                             <span>
+
                                 <span className="footer-dot"></span>
+
                                 Queue is moving smoothly
+
                             </span>
 
                             <span>
@@ -376,7 +469,9 @@ function Hero() {
                     </div>
 
 
-                    {/* BOTTOM FLOATING CARD */}
+                    {/* =================================================
+                        BOTTOM FLOATING CARD
+                    ================================================= */}
 
                     <div className="floating-card bottom">
 
@@ -394,6 +489,10 @@ function Hero() {
                                 Appointment Success
                             </small>
 
+                            <div className="success-progress">
+                                <span></span>
+                            </div>
+
                         </div>
 
                         <span className="floating-check">
@@ -403,20 +502,24 @@ function Hero() {
                     </div>
 
 
-                    {/* SMALL DECORATIVE DOTS */}
+                    {/* =================================================
+                        DECORATIVE DOTS
+                    ================================================= */}
 
                     <span className="visual-dot dot-one"></span>
+
                     <span className="visual-dot dot-two"></span>
+
                     <span className="visual-dot dot-three"></span>
+
+                    <span className="visual-dot dot-four"></span>
 
                 </div>
 
             </div>
 
         </section>
-
     );
-
 }
 
 export default Hero;
