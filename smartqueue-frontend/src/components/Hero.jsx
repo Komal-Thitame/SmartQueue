@@ -2,8 +2,6 @@ import React, { useEffect, useMemo, useState } from "react";
 
 import {
     FaArrowRight,
-    FaUserClock,
-    FaCalendarCheck,
     FaHeartbeat,
     FaCheckCircle,
     FaClock,
@@ -11,7 +9,8 @@ import {
     FaUsers,
     FaStethoscope,
     FaHospital,
-    FaChevronRight
+    FaChevronRight,
+    FaCircle
 } from "react-icons/fa";
 
 import { API_BASE_URL } from "../config";
@@ -39,6 +38,7 @@ function Hero() {
         return String(status)
             .toUpperCase()
             .replace(/[- ]/g, "_");
+
     };
 
 
@@ -66,6 +66,7 @@ function Hero() {
         return Number.isFinite(number)
             ? number
             : null;
+
     };
 
 
@@ -83,6 +84,7 @@ function Hero() {
             appointment?.doctor?.user?.fullName ||
             "Doctor"
         );
+
     };
 
 
@@ -98,6 +100,22 @@ function Hero() {
             appointment?.doctor?.specialization ||
             "General"
         );
+
+    };
+
+
+    /* =========================================================
+       PATIENT NAME
+    ========================================================= */
+
+    const getPatientName = (appointment) => {
+
+        return (
+            appointment?.patientName ||
+            appointment?.patient?.name ||
+            "Patient"
+        );
+
     };
 
 
@@ -113,7 +131,6 @@ function Hero() {
                 `${API_BASE_URL}/receptionist/appointments/today`
             );
 
-
             if (!response.ok) {
 
                 throw new Error(
@@ -122,9 +139,7 @@ function Hero() {
 
             }
 
-
             const data = await response.json();
-
 
             if (Array.isArray(data)) {
 
@@ -136,9 +151,7 @@ function Hero() {
 
             }
 
-
             setLastUpdated(new Date());
-
 
         } catch (error) {
 
@@ -166,13 +179,11 @@ function Hero() {
 
         fetchAppointments();
 
-
         const interval = setInterval(() => {
 
             fetchAppointments();
 
         }, 15000);
-
 
         return () => {
 
@@ -184,7 +195,7 @@ function Hero() {
 
 
     /* =========================================================
-       REAL HERO DATA
+       HERO DATA
     ========================================================= */
 
     const heroData = useMemo(() => {
@@ -197,17 +208,17 @@ function Hero() {
             );
 
 
-        /* =====================================================
+        /* -----------------------------------------------------
            TOTAL
-        ===================================================== */
+        ----------------------------------------------------- */
 
         const totalPatients =
             validAppointments.length;
 
 
-        /* =====================================================
+        /* -----------------------------------------------------
            WAITING
-        ===================================================== */
+        ----------------------------------------------------- */
 
         const waitingAppointments =
             validAppointments
@@ -230,28 +241,26 @@ function Hero() {
                 );
 
 
-        /* =====================================================
-           IN CONSULTATION
-        ===================================================== */
+        /* -----------------------------------------------------
+           CONSULTATION
+        ----------------------------------------------------- */
 
         const consultationAppointments =
             validAppointments
-                .filter(
-                    (appointment) => {
+                .filter((appointment) => {
 
-                        const status =
-                            normalizeStatus(
-                                appointment.status
-                            );
-
-                        return (
-                            status === "IN_CONSULTATION" ||
-                            status === "IN_PROGRESS" ||
-                            status === "SERVING"
+                    const status =
+                        normalizeStatus(
+                            appointment.status
                         );
 
-                    }
-                )
+                    return (
+                        status === "IN_CONSULTATION" ||
+                        status === "IN_PROGRESS" ||
+                        status === "SERVING"
+                    );
+
+                })
                 .sort(
                     (a, b) =>
                         (
@@ -265,9 +274,9 @@ function Hero() {
                 );
 
 
-        /* =====================================================
+        /* -----------------------------------------------------
            COMPLETED
-        ===================================================== */
+        ----------------------------------------------------- */
 
         const completedAppointments =
             validAppointments.filter(
@@ -278,81 +287,25 @@ function Hero() {
             );
 
 
-        /* =====================================================
-           CANCELLED
-        ===================================================== */
-
-        const cancelledAppointments =
-            validAppointments.filter(
-                (appointment) =>
-                    normalizeStatus(
-                        appointment.status
-                    ) === "CANCELLED"
-            );
-
-
-        /* =====================================================
-           MISSED
-        ===================================================== */
-
-        const missedAppointments =
-            validAppointments.filter(
-                (appointment) =>
-                    normalizeStatus(
-                        appointment.status
-                    ) === "MISSED"
-            );
-
-
-        /* =====================================================
+        /* -----------------------------------------------------
            CURRENT SERVING
-        ===================================================== */
+        ----------------------------------------------------- */
 
         const currentServing =
             consultationAppointments[0] || null;
 
 
-        /* =====================================================
-           NEXT WAITING PATIENT
-        ===================================================== */
-
-        const nextPatient =
-            waitingAppointments[0] || null;
-
-
-        /* =====================================================
-           CURRENT TOKEN
-        ===================================================== */
-
-        const currentToken =
-            currentServing
-                ? getTokenNumber(currentServing)
-                : null;
-
-
-        /* =====================================================
-           NEXT TOKEN
-        ===================================================== */
-
-        const nextToken =
-            nextPatient
-                ? getTokenNumber(nextPatient)
-                : null;
-
-
-        /* =====================================================
-           ESTIMATED WAIT
-
-           15 minutes / waiting patient
-        ===================================================== */
+        /* -----------------------------------------------------
+           TOTAL WAIT
+        ----------------------------------------------------- */
 
         const estimatedWait =
             waitingAppointments.length * 15;
 
 
-        /* =====================================================
-           COMPLETION %
-        ===================================================== */
+        /* -----------------------------------------------------
+           SUCCESS
+        ----------------------------------------------------- */
 
         const successPercentage =
             totalPatients > 0
@@ -365,48 +318,158 @@ function Hero() {
                 : 0;
 
 
-        /* =====================================================
-           CURRENT DOCTOR
-        ===================================================== */
+        /* -----------------------------------------------------
+           DOCTOR GROUPS
+        ----------------------------------------------------- */
 
-        const doctorName =
-            currentServing
-                ? getDoctorName(currentServing)
-                : nextPatient
-                    ? getDoctorName(nextPatient)
-                    : "No doctor serving";
+        const doctorMap = {};
+
+        validAppointments.forEach((appointment) => {
+
+            const doctorName =
+                getDoctorName(appointment);
+
+            if (!doctorMap[doctorName]) {
+
+                doctorMap[doctorName] = {
+
+                    doctorName,
+
+                    department:
+                        getDepartment(appointment),
+
+                    appointments: []
+
+                };
+
+            }
+
+            doctorMap[doctorName]
+                .appointments
+                .push(appointment);
+
+        });
 
 
-        /* =====================================================
-           DEPARTMENT
-        ===================================================== */
+        /* -----------------------------------------------------
+           DOCTOR QUEUES
+        ----------------------------------------------------- */
 
-        const department =
-            currentServing
-                ? getDepartment(currentServing)
-                : nextPatient
-                    ? getDepartment(nextPatient)
-                    : "Hospital Queue";
+        const doctorQueues =
+            Object.values(doctorMap)
+                .map((doctor) => {
+
+                    const doctorAppointments =
+                        doctor.appointments;
+
+                    const waiting =
+                        doctorAppointments
+                            .filter(
+                                (a) =>
+                                    normalizeStatus(
+                                        a.status
+                                    ) === "WAITING"
+                            )
+                            .sort(
+                                (a, b) =>
+                                    (
+                                        getTokenNumber(a) ??
+                                        999999
+                                    ) -
+                                    (
+                                        getTokenNumber(b) ??
+                                        999999
+                                    )
+                            );
+
+                    const serving =
+                        doctorAppointments
+                            .filter((a) => {
+
+                                const status =
+                                    normalizeStatus(
+                                        a.status
+                                    );
+
+                                return (
+                                    status === "IN_CONSULTATION" ||
+                                    status === "IN_PROGRESS" ||
+                                    status === "SERVING"
+                                );
+
+                            })
+                            .sort(
+                                (a, b) =>
+                                    (
+                                        getTokenNumber(a) ??
+                                        999999
+                                    ) -
+                                    (
+                                        getTokenNumber(b) ??
+                                        999999
+                                    )
+                            )[0] || null;
 
 
-        /* =====================================================
-           CURRENT PATIENT
-        ===================================================== */
+                    const completed =
+                        doctorAppointments.filter(
+                            (a) =>
+                                normalizeStatus(
+                                    a.status
+                                ) === "COMPLETED"
+                        );
 
-        const currentPatient =
-            currentServing?.patientName ||
-            currentServing?.patient?.name ||
-            "Patient";
+
+                    const currentToken =
+                        serving
+                            ? getTokenNumber(serving)
+                            : waiting[0]
+                                ? getTokenNumber(waiting[0])
+                                : null;
 
 
-        /* =====================================================
-           NEXT PATIENT NAME
-        ===================================================== */
+                    return {
 
-        const nextPatientName =
-            nextPatient?.patientName ||
-            nextPatient?.patient?.name ||
-            "Next Patient";
+                        doctorName:
+                        doctor.doctorName,
+
+                        department:
+                        doctor.department,
+
+                        waitingCount:
+                        waiting.length,
+
+                        completedCount:
+                        completed.length,
+
+                        serving,
+
+                        currentToken,
+
+                        status:
+                            serving
+                                ? "IN CONSULTATION"
+                                : waiting.length > 0
+                                    ? "WAITING"
+                                    : "AVAILABLE"
+
+                    };
+
+                })
+                .sort((a, b) => {
+
+                    const order = {
+                        "IN CONSULTATION": 1,
+                        "WAITING": 2,
+                        "AVAILABLE": 3
+                    };
+
+                    return (
+                        order[a.status] -
+                        order[b.status]
+                    );
+
+                });
 
 
         return {
@@ -422,31 +485,13 @@ function Hero() {
             completedCount:
             completedAppointments.length,
 
-            cancelledCount:
-            cancelledAppointments.length,
-
-            missedCount:
-            missedAppointments.length,
+            estimatedWait,
 
             successPercentage,
 
-            estimatedWait,
-
             currentServing,
 
-            nextPatient,
-
-            currentToken,
-
-            nextToken,
-
-            doctorName,
-
-            department,
-
-            currentPatient,
-
-            nextPatientName
+            doctorQueues
 
         };
 
@@ -454,7 +499,7 @@ function Hero() {
 
 
     /* =========================================================
-       UPDATED TIME TEXT
+       UPDATED TEXT
     ========================================================= */
 
     const updatedText = useMemo(() => {
@@ -470,13 +515,16 @@ function Hero() {
     }, [lastUpdated]);
 
 
+    /* =========================================================
+       RENDER
+    ========================================================= */
+
     return (
 
         <section
             className="hero"
             id="home"
         >
-
 
             {/* =================================================
                 BACKGROUND
@@ -486,23 +534,20 @@ function Hero() {
 
             <div className="hero-bg-circle two"></div>
 
-            <div className="hero-grid"></div>
-
             <div className="hero-glow"></div>
 
+            <div className="hero-grid"></div>
 
 
             <div className="hero-container">
 
 
                 {/* =================================================
-                    LEFT SIDE
+                    LEFT CONTENT
                 ================================================= */}
 
                 <div className="hero-content">
 
-
-                    {/* Badge */}
 
                     <div className="hero-badge">
 
@@ -512,11 +557,9 @@ function Hero() {
 
                         </span>
 
-
                         <span>
                             Smart Healthcare Queue System
                         </span>
-
 
                         <span className="badge-live">
 
@@ -528,9 +571,6 @@ function Hero() {
 
                     </div>
 
-
-
-                    {/* Heading */}
 
                     <h1>
 
@@ -549,9 +589,6 @@ function Hero() {
                     </h1>
 
 
-
-                    {/* Description */}
-
                     <p className="hero-description">
 
                         A smarter way to manage hospital queues.
@@ -561,9 +598,6 @@ function Hero() {
 
                     </p>
 
-
-
-                    {/* Buttons */}
 
                     <div className="hero-buttons">
 
@@ -575,7 +609,6 @@ function Hero() {
                             <span>
                                 Get Started
                             </span>
-
 
                             <span className="btn-icon">
 
@@ -599,9 +632,6 @@ function Hero() {
 
                     </div>
 
-
-
-                    {/* Trust */}
 
                     <div className="hero-trust">
 
@@ -629,7 +659,6 @@ function Hero() {
                         </div>
 
 
-
                         <div className="trust-item">
 
                             <span className="trust-icon">
@@ -651,7 +680,6 @@ function Hero() {
                             </div>
 
                         </div>
-
 
 
                         <div className="trust-item">
@@ -682,132 +710,61 @@ function Hero() {
                 </div>
 
 
-
                 {/* =================================================
                     RIGHT SIDE
+                    LIVE HOSPITAL OVERVIEW
                 ================================================= */}
 
                 <div className="queue-preview">
 
 
-                    {/* Decorative circle */}
-
                     <div className="queue-orbit"></div>
 
 
+                    <div className="visual-dot dot-one"></div>
 
-                    {/* =================================================
-                        TOP REAL DATA CARD
-                    ================================================= */}
+                    <div className="visual-dot dot-two"></div>
 
-                    <div className="floating-card top">
-
-
-                        <div className="floating-icon">
-
-                            <FaUsers />
-
-                        </div>
-
-
-                        <div className="floating-content">
-
-                            <strong>
-
-                                {loading
-                                    ? "..."
-                                    : heroData.totalPatients
-                                }
-
-                            </strong>
-
-
-                            <small>
-                                Patients Today
-                            </small>
-
-
-                            <div className="mini-patient-row">
-
-                                <span>
-                                    <FaUserMd />
-                                </span>
-
-                                <span>
-                                    <FaStethoscope />
-                                </span>
-
-                                <span>
-                                    <FaHeartbeat />
-                                </span>
-
-
-                                {heroData.totalPatients > 3 && (
-
-                                    <b>
-
-                                        +{heroData.totalPatients - 3}
-
-                                    </b>
-
-                                )}
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
+                    <div className="visual-dot dot-three"></div>
 
 
                     {/* =================================================
-                        MAIN QUEUE CARD
-                        ONLY ONE MAIN CARD
+                        SINGLE MAIN PANEL
                     ================================================= */}
 
-                    <div className="queue-card">
+                    <div className="hospital-live-panel">
 
 
-                        {/* Accent */}
+                        {/* TOP HEADER */}
 
-                        <div className="queue-accent"></div>
+                        <div className="hospital-panel-header">
 
+                            <div className="hospital-panel-title">
 
-
-                        {/* Header */}
-
-                        <div className="queue-header">
-
-
-                            <div className="queue-title">
-
-
-                                <span className="queue-title-icon">
+                                <div className="hospital-panel-icon">
 
                                     <FaHospital />
 
-                                </span>
-
+                                </div>
 
                                 <div>
 
                                     <h3>
-                                        Live Queue
+                                        Live Hospital Queue
                                     </h3>
 
-                                    <small>
-                                        {heroData.department}
-                                    </small>
+                                    <span>
+                                        Today's queue overview
+                                    </span>
 
                                 </div>
 
                             </div>
 
 
+                            <div className="hospital-live-status">
 
-                            <div className="online-status">
-
-                                <span></span>
+                                <FaCircle />
 
                                 LIVE
 
@@ -816,332 +773,389 @@ function Hero() {
                         </div>
 
 
-
-                        <div className="queue-divider"></div>
-
-
-
                         {/* =================================================
-                            DOCTOR VISUAL
+                            SUMMARY
                         ================================================= */}
 
-                        <div className="doctor-visual">
+                        <div className="hospital-summary">
 
 
-                            <div className="doctor-glow"></div>
+                            <div className="hospital-summary-item">
 
+                                <span className="summary-icon teal">
 
-                            <div className="doctor-avatar">
+                                    <FaUsers />
 
-                                <FaUserMd />
+                                </span>
+
+                                <div>
+
+                                    <strong>
+
+                                        {loading
+                                            ? "..."
+                                            : heroData.totalPatients
+                                        }
+
+                                    </strong>
+
+                                    <small>
+                                        Patients Today
+                                    </small>
+
+                                </div>
 
                             </div>
 
 
-                            <div className="doctor-status-dot"></div>
+                            <div className="summary-divider"></div>
 
 
-                            <div className="doctor-mini-badge">
+                            <div className="hospital-summary-item">
 
-                                <FaHeartbeat />
+                                <span className="summary-icon orange">
+
+                                    <FaClock />
+
+                                </span>
+
+                                <div>
+
+                                    <strong>
+
+                                        {loading
+                                            ? "..."
+                                            : `${heroData.estimatedWait}`
+                                        }
+
+                                        {!loading && (
+                                            <em>
+                                                min
+                                            </em>
+                                        )}
+
+                                    </strong>
+
+                                    <small>
+                                        Avg. Wait
+                                    </small>
+
+                                </div>
+
+                            </div>
+
+
+                            <div className="summary-divider"></div>
+
+
+                            <div className="hospital-summary-item">
+
+                                <span className="summary-icon green">
+
+                                    <FaCheckCircle />
+
+                                </span>
+
+                                <div>
+
+                                    <strong>
+
+                                        {loading
+                                            ? "..."
+                                            : heroData.completedCount
+                                        }
+
+                                    </strong>
+
+                                    <small>
+                                        Completed
+                                    </small>
+
+                                </div>
 
                             </div>
 
                         </div>
-
 
 
                         {/* =================================================
                             NOW SERVING
                         ================================================= */}
 
-                        <div className="serving">
+                        <div className="now-serving-box">
 
 
-                            <p>
-                                NOW SERVING
-                            </p>
-
-
-                            <h2>
-
-                                {loading
-
-                                    ? "..."
-
-                                    : heroData.currentToken !== null
-
-                                        ? `A${String(
-                                            heroData.currentToken
-                                        ).padStart(2, "0")}`
-
-                                        : "--"
-
-                                }
-
-                            </h2>
-
-
-                            <div className="doctor-room">
-
-                                <FaUserMd />
-
-
-                                <span className="doctor-name-text">
-
-                                    {heroData.doctorName}
-
-                                </span>
-
-
-                                <span className="room-separator">
-                                    •
-                                </span>
-
+                            <div className="now-serving-heading">
 
                                 <span>
-
-                                    {heroData.currentServing?.roomNumber ||
-                                        heroData.currentServing?.doctorRoom ||
-                                        "Queue Active"
-                                    }
-
+                                    NOW SERVING
                                 </span>
-
-                            </div>
-
-                        </div>
-
-
-
-                        {/* =================================================
-                            INFO
-                        ================================================= */}
-
-                        <div className="queue-info">
-
-
-                            {/* Waiting */}
-
-                            <div className="queue-info-item">
-
-
-                                <span className="info-icon">
-
-                                    <FaUserClock />
-
-                                </span>
-
-
-                                <div>
-
-                                    <small>
-                                        Waiting
-                                    </small>
-
-
-                                    <strong>
-
-                                        {loading
-                                            ? "..."
-                                            : heroData.waitingCount
-                                        }
-
-                                    </strong>
-
-
-                                    <span>
-                                        Patients
-                                    </span>
-
-                                </div>
-
-                            </div>
-
-
-
-                            <div className="queue-info-divider"></div>
-
-
-
-                            {/* Estimated */}
-
-                            <div className="queue-info-item">
-
-
-                                <span className="info-icon clock">
-
-                                    <FaClock />
-
-                                </span>
-
-
-                                <div>
-
-                                    <small>
-                                        Estimated Wait
-                                    </small>
-
-
-                                    <strong>
-
-                                        {loading
-                                            ? "..."
-                                            : heroData.estimatedWait
-                                        }
-
-
-                                        {!loading && (
-
-                                            <em>
-                                                min
-                                            </em>
-
-                                        )}
-
-                                    </strong>
-
-
-                                    <span>
-                                        Approx.
-                                    </span>
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-
-
-                        {/* =================================================
-                            COMPLETION
-                        ================================================= */}
-
-                        <div className="queue-progress">
-
-
-                            <div className="progress-header">
-
-                                <span>
-                                    Today's Completed
-                                </span>
-
-
-                                <strong>
-
-                                    {loading
-                                        ? "..."
-                                        : `${heroData.successPercentage}%`
-                                    }
-
-                                </strong>
-
-                            </div>
-
-
-                            <div className="progress-bar">
-
-                                <span
-                                    style={{
-                                        width:
-                                            `${heroData.successPercentage}%`
-                                    }}
-                                ></span>
-
-                            </div>
-
-                        </div>
-
-
-
-                        {/* =================================================
-                            NEXT PATIENT
-                        ================================================= */}
-
-                        <div className="next-patient">
-
-
-                            <div className="next-patient-icon">
-
-                                <FaUserClock />
-
-                            </div>
-
-
-                            <div className="next-patient-content">
 
                                 <small>
-                                    NEXT PATIENT
+                                    Live token
                                 </small>
 
+                            </div>
 
-                                <strong>
+
+                            <div className="now-serving-content">
+
+
+                                <div className="token-display">
 
                                     {loading
 
                                         ? "..."
 
-                                        : heroData.nextToken !== null
+                                        : heroData.currentServing
 
                                             ? `A${String(
-                                                heroData.nextToken
+                                                getTokenNumber(
+                                                    heroData.currentServing
+                                                )
                                             ).padStart(2, "0")}`
 
-                                            : "No waiting patient"
+                                            : "--"
 
                                     }
 
-                                </strong>
+                                </div>
+
+
+                                <div className="serving-doctor">
+
+                                    <div className="serving-doctor-icon">
+
+                                        <FaUserMd />
+
+                                    </div>
+
+                                    <div>
+
+                                        <strong>
+
+                                            {heroData.currentServing
+                                                ? getDoctorName(
+                                                    heroData.currentServing
+                                                )
+                                                : "Waiting for doctor"
+                                            }
+
+                                        </strong>
+
+                                        <span>
+
+                                            {heroData.currentServing
+                                                ? getDepartment(
+                                                    heroData.currentServing
+                                                )
+                                                : "Queue will update automatically"
+                                            }
+
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+
+                                <div className="serving-active">
+
+                                    <span></span>
+
+                                    Active
+
+                                </div>
 
                             </div>
 
-
-                            <span className="next-patient-name">
-
-                                {!loading &&
-                                    heroData.nextPatient &&
-                                    heroData.nextPatientName
-                                }
-
-                            </span>
+                        </div>
 
 
-                            <span className="next-arrow">
+                        {/* =================================================
+                            DOCTOR QUEUE
+                        ================================================= */}
 
-                                →
+                        <div className="doctor-queue-heading">
 
-                            </span>
+                            <div>
+
+                                <strong>
+                                    Doctor Queues
+                                </strong>
+
+                                <span>
+                                    Live status across departments
+                                </span>
+
+                            </div>
+
+                            <FaChevronRight />
 
                         </div>
 
+
+                        <div className="doctor-queue-list">
+
+
+                            {loading ? (
+
+                                <div className="queue-loading-state">
+
+                                    <span className="loading-dot"></span>
+
+                                    Loading live queues...
+
+                                </div>
+
+                            ) : heroData.doctorQueues.length > 0 ? (
+
+                                heroData.doctorQueues
+                                    .slice(0, 3)
+                                    .map((doctor, index) => (
+
+                                        <div
+                                            className="doctor-queue-row"
+                                            key={`${doctor.doctorName}-${index}`}
+                                        >
+
+
+                                            <div className="doctor-row-avatar">
+
+                                                <FaUserMd />
+
+                                                <span
+                                                    className={
+                                                        doctor.status ===
+                                                        "IN CONSULTATION"
+                                                            ? "status-green"
+                                                            : doctor.status ===
+                                                            "WAITING"
+                                                                ? "status-orange"
+                                                                : "status-gray"
+                                                    }
+                                                ></span>
+
+                                            </div>
+
+
+                                            <div className="doctor-row-info">
+
+                                                <strong>
+                                                    {doctor.doctorName}
+                                                </strong>
+
+                                                <span>
+                                                    {doctor.department}
+                                                </span>
+
+                                            </div>
+
+
+                                            <div className="doctor-token">
+
+                                                <small>
+                                                    Token
+                                                </small>
+
+                                                <strong>
+
+                                                    {doctor.currentToken !== null
+                                                        ? `A${String(
+                                                            doctor.currentToken
+                                                        ).padStart(2, "0")}`
+                                                        : "--"
+                                                    }
+
+                                                </strong>
+
+                                            </div>
+
+
+                                            <div className="doctor-waiting">
+
+                                                <strong>
+                                                    {doctor.waitingCount}
+                                                </strong>
+
+                                                <small>
+                                                    waiting
+                                                </small>
+
+                                            </div>
+
+
+                                            <div
+                                                className={
+                                                    `doctor-status ${
+                                                        doctor.status ===
+                                                        "IN CONSULTATION"
+                                                            ? "status-active"
+                                                            : doctor.status ===
+                                                            "WAITING"
+                                                                ? "status-waiting"
+                                                                : "status-available"
+                                                    }`
+                                                }
+                                            >
+
+                                                {doctor.status ===
+                                                "IN CONSULTATION"
+                                                    ? "Serving"
+                                                    : doctor.status ===
+                                                    "WAITING"
+                                                        ? "Waiting"
+                                                        : "Available"
+                                                }
+
+                                            </div>
+
+
+                                        </div>
+
+                                    ))
+
+                            ) : (
+
+                                <div className="queue-empty-state">
+
+                                    <FaStethoscope />
+
+                                    <div>
+
+                                        <strong>
+                                            No active queues
+                                        </strong>
+
+                                        <span>
+                                            Doctor queues will appear here
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                            )}
+
+                        </div>
 
 
                         {/* =================================================
                             FOOTER
                         ================================================= */}
 
-                        <div className="queue-footer">
+                        <div className="hospital-panel-footer">
 
 
-                            <span>
+                            <div>
 
-                                <span className="footer-dot"></span>
+                                <span className="footer-live-dot"></span>
 
+                                <span>
+                                    Queue system is active
+                                </span>
 
-                                {heroData.waitingCount > 0
-
-                                    ? "Queue is active"
-
-                                    : heroData.consultationCount > 0
-
-                                        ? "Consultation in progress"
-
-                                        : "No patients waiting"
-
-                                }
-
-                            </span>
+                            </div>
 
 
                             <span>
@@ -1150,77 +1164,7 @@ function Hero() {
 
                         </div>
 
-
                     </div>
-
-
-
-                    {/* =================================================
-                        BOTTOM SUCCESS CARD
-                    ================================================= */}
-
-                    <div className="floating-card bottom">
-
-
-                        <div className="floating-icon calendar">
-
-                            <FaCalendarCheck />
-
-                        </div>
-
-
-                        <div className="floating-content">
-
-
-                            <strong>
-
-                                {loading
-                                    ? "..."
-                                    : `${heroData.successPercentage}%`
-                                }
-
-                            </strong>
-
-
-                            <small>
-                                Appointment Success
-                            </small>
-
-
-                            <div className="success-progress">
-
-                                <span
-                                    style={{
-                                        width:
-                                            `${heroData.successPercentage}%`
-                                    }}
-                                ></span>
-
-                            </div>
-
-                        </div>
-
-
-                        <span className="floating-check">
-
-                            ✓
-
-                        </span>
-
-                    </div>
-
-
-
-                    {/* Decorative dots */}
-
-                    <span className="visual-dot dot-one"></span>
-
-                    <span className="visual-dot dot-two"></span>
-
-                    <span className="visual-dot dot-three"></span>
-
-                    <span className="visual-dot dot-four"></span>
-
 
                 </div>
 

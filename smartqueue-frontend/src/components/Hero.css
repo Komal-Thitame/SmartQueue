@@ -7,12 +7,22 @@
 
     min-height: calc(100vh - 88px);
 
+    /*
+       IMPORTANT:
+       Header fixed/sticky hone ki wajah se hero
+       header ke andar nahi jayega.
+    */
+    margin-top: 88px;
+
     padding:
-            70px
+            65px
             5%
-            75px;
+            70px;
+
+    box-sizing: border-box;
 
     display: flex;
+
     align-items: center;
 
     overflow: hidden;
@@ -21,14 +31,14 @@
             linear-gradient(
                     135deg,
                     #f8fafc 0%,
-                    #ffffff 45%,
+                    #ffffff 46%,
                     #ecfeff 100%
             );
 }
 
 
 /* =========================================================
-   BACKGROUND
+   BACKGROUND GRID
 ========================================================= */
 
 .hero::before {
@@ -49,42 +59,45 @@
                     transparent 1px
             );
 
-    background-size:
-            45px 45px;
+    background-size: 45px 45px;
 
     mask-image:
             linear-gradient(
                     to bottom,
                     black,
-                    transparent 90%
+                    transparent 92%
             );
 
     pointer-events: none;
 }
 
 
+/* =========================================================
+   BACKGROUND GLOW
+========================================================= */
+
 .hero-bg-circle {
     position: absolute;
 
     border-radius: 50%;
 
-    filter: blur(90px);
+    filter: blur(100px);
 
     pointer-events: none;
 
-    opacity: 0.55;
+    opacity: 0.5;
 }
 
 
 .hero-bg-circle.one {
-    width: 420px;
-    height: 420px;
+    width: 430px;
+    height: 430px;
 
     top: -170px;
-    right: -100px;
+    right: -110px;
 
     background:
-            rgba(45, 212, 191, 0.20);
+            rgba(45, 212, 191, 0.18);
 
     animation:
             heroFloatOne
@@ -95,14 +108,14 @@
 
 
 .hero-bg-circle.two {
-    width: 360px;
-    height: 360px;
+    width: 370px;
+    height: 370px;
 
-    bottom: -170px;
-    left: -100px;
+    bottom: -180px;
+    left: -110px;
 
     background:
-            rgba(34, 197, 94, 0.12);
+            rgba(34, 197, 94, 0.10);
 
     animation:
             heroFloatTwo
@@ -115,10 +128,11 @@
 .hero-glow {
     position: absolute;
 
-    width: 600px;
-    height: 600px;
+    width: 650px;
+    height: 650px;
 
-    right: 4%;
+    right: 0;
+
     top: 50%;
 
     transform:
@@ -127,7 +141,7 @@
     background:
             radial-gradient(
                     circle,
-                    rgba(20, 184, 166, 0.08),
+                    rgba(20, 184, 166, 0.09),
                     transparent 68%
             );
 
@@ -135,13 +149,18 @@
 }
 
 
+/* =========================================================
+   CONCENTRIC CIRCLES
+========================================================= */
+
 .hero-grid {
     position: absolute;
 
-    width: 480px;
-    height: 480px;
+    width: 520px;
+    height: 520px;
 
-    right: -160px;
+    right: -170px;
+
     top: 50%;
 
     transform:
@@ -149,14 +168,19 @@
 
     border:
             1px solid
-            rgba(20, 184, 166, 0.08);
+            rgba(20, 184, 166, 0.07);
 
     border-radius: 50%;
 
     box-shadow:
-            0 0 0 50px rgba(20, 184, 166, 0.025),
-            0 0 0 100px rgba(20, 184, 166, 0.018),
-            0 0 0 150px rgba(20, 184, 166, 0.012);
+            0 0 0 55px
+            rgba(20, 184, 166, 0.022),
+
+            0 0 0 110px
+            rgba(20, 184, 166, 0.016),
+
+            0 0 0 165px
+            rgba(20, 184, 166, 0.010);
 
     pointer-events: none;
 }
@@ -175,8 +199,7 @@
 
     max-width: 1380px;
 
-    margin:
-            0 auto;
+    margin: 0 auto;
 
     display: flex;
 
@@ -219,8 +242,8 @@
     gap: 10px;
 
     padding:
-            8px
-            11px;
+            7px
+            9px;
 
     border:
             1px solid
@@ -229,11 +252,11 @@
     border-radius: 999px;
 
     background:
-            rgba(255, 255, 255, 0.82);
+            rgba(255, 255, 255, 0.86);
 
     box-shadow:
             0 8px 30px
-            rgba(15, 118, 110, 0.07);
+            rgba(15, 118, 110, 0.06);
 
     color:
             #087f73;
@@ -242,13 +265,13 @@
 
     font-weight: 700;
 
-    margin-bottom: 30px;
+    margin-bottom: 28px;
 }
 
 
 .badge-icon {
-    width: 29px;
-    height: 29px;
+    width: 30px;
+    height: 30px;
 
     display: flex;
 
@@ -268,7 +291,7 @@
 
     box-shadow:
             0 5px 15px
-            rgba(20, 184, 166, 0.25);
+            rgba(20, 184, 166, 0.22);
 }
 
 
@@ -280,8 +303,7 @@
     gap: 5px;
 
     padding:
-            4px
-            8px;
+            4px 8px;
 
     border-radius: 999px;
 
@@ -291,9 +313,9 @@
     color:
             #059669;
 
-    font-size: 10px;
+    font-size: 9px;
 
-    font-weight: 800;
+    font-weight: 850;
 
     letter-spacing: 0.5px;
 }
@@ -387,9 +409,6 @@
 
     line-height:
             1.75;
-
-    letter-spacing:
-            -0.1px;
 }
 
 
@@ -428,9 +447,11 @@
     border-radius:
             13px;
 
-    font-size: 14px;
+    font-size:
+            14px;
 
-    font-weight: 750;
+    font-weight:
+            750;
 
     transition:
             0.25s ease;
@@ -528,9 +549,9 @@
 
     align-items: center;
 
-    gap: 26px;
+    gap: 25px;
 
-    margin-top: 36px;
+    margin-top: 35px;
 
     padding-top: 22px;
 
@@ -605,15 +626,16 @@
     position: relative;
 
     flex:
-            0 0 500px;
+            0 0 535px;
 
-    width: 500px;
+    width: 535px;
 
-    height: 570px;
+    min-height: 555px;
 
     display: flex;
 
     align-items: center;
+
     justify-content: center;
 
     animation:
@@ -632,17 +654,17 @@
 .queue-orbit {
     position: absolute;
 
-    width: 455px;
-    height: 455px;
+    width: 485px;
+    height: 485px;
 
     border:
             1px dashed
-            rgba(20, 184, 166, 0.15);
+            rgba(20, 184, 166, 0.13);
 
     border-radius: 50%;
 
     transform:
-            rotate(-14deg);
+            rotate(-12deg);
 
     pointer-events: none;
 }
@@ -656,8 +678,8 @@
     width: 8px;
     height: 8px;
 
-    top: 42px;
-    right: 75px;
+    top: 45px;
+    right: 80px;
 
     border-radius: 50%;
 
@@ -666,40 +688,40 @@
 
     box-shadow:
             0 0 0 7px
-            rgba(20, 184, 166, 0.10);
+            rgba(20, 184, 166, 0.09);
 }
 
 
 /* =========================================================
-   MAIN QUEUE CARD
-   IMPORTANT: ONLY ONE CARD
+   SINGLE HOSPITAL PANEL
 ========================================================= */
 
-.queue-card {
+.hospital-live-panel {
     position: relative;
 
     z-index: 5;
 
-    width: 405px;
+    width: 485px;
 
     padding:
-            25px;
+            23px;
+
+    border:
+            1px solid
+            rgba(226, 232, 240, 0.95);
 
     border-radius:
             30px;
 
     background:
-            rgba(255, 255, 255, 0.97);
-
-    border:
-            1px solid
-            rgba(226, 232, 240, 0.9);
+            rgba(255, 255, 255, 0.94);
 
     box-shadow:
-            0 35px 75px
-            rgba(15, 23, 42, 0.13),
-            0 10px 30px
-            rgba(20, 184, 166, 0.07);
+            0 35px 80px
+            rgba(15, 23, 42, 0.12),
+
+            0 10px 35px
+            rgba(20, 184, 166, 0.06);
 
     backdrop-filter:
             blur(20px);
@@ -712,30 +734,16 @@
 }
 
 
-.queue-card:hover {
-    transform:
-            translateY(-5px);
+.hospital-live-panel::before {
+    content: "";
 
-    box-shadow:
-            0 42px 85px
-            rgba(15, 23, 42, 0.16),
-            0 15px 35px
-            rgba(20, 184, 166, 0.09);
-}
-
-
-/* =========================================================
-   ACCENT
-========================================================= */
-
-.queue-accent {
     position: absolute;
 
     top: 0;
 
-    left: 12%;
+    left: 8%;
 
-    right: 12%;
+    right: 8%;
 
     height: 3px;
 
@@ -751,20 +759,39 @@
 }
 
 
+.hospital-live-panel:hover {
+    transform:
+            translateY(-5px);
+
+    box-shadow:
+            0 42px 90px
+            rgba(15, 23, 42, 0.15),
+
+            0 15px 40px
+            rgba(20, 184, 166, 0.08);
+}
+
+
 /* =========================================================
-   HEADER
+   PANEL HEADER
 ========================================================= */
 
-.queue-header {
+.hospital-panel-header {
     display: flex;
 
     align-items: center;
 
     justify-content: space-between;
+
+    padding-bottom: 17px;
+
+    border-bottom:
+            1px solid
+            #f1f5f9;
 }
 
 
-.queue-title {
+.hospital-panel-title {
     display: flex;
 
     align-items: center;
@@ -773,9 +800,9 @@
 }
 
 
-.queue-title-icon {
-    width: 42px;
-    height: 42px;
+.hospital-panel-icon {
+    width: 43px;
+    height: 43px;
 
     display: flex;
 
@@ -798,7 +825,7 @@
 }
 
 
-.queue-title h3 {
+.hospital-panel-title h3 {
     margin: 0;
 
     color:
@@ -806,11 +833,11 @@
 
     font-size: 17px;
 
-    font-weight: 800;
+    font-weight: 850;
 }
 
 
-.queue-title small {
+.hospital-panel-title span {
     display: block;
 
     margin-top: 3px;
@@ -818,13 +845,13 @@
     color:
             #94a3b8;
 
-    font-size: 10px;
+    font-size: 9px;
 
     font-weight: 600;
 }
 
 
-.online-status {
+.hospital-live-status {
     display: flex;
 
     align-items: center;
@@ -834,8 +861,7 @@
     padding:
             6px 9px;
 
-    border-radius:
-            999px;
+    border-radius: 999px;
 
     color:
             #059669;
@@ -847,23 +873,15 @@
 
     font-weight: 850;
 
-    letter-spacing:
-            0.5px;
+    letter-spacing: 0.5px;
 }
 
 
-.online-status > span {
-    width: 6px;
-    height: 6px;
-
-    border-radius: 50%;
-
-    background:
+.hospital-live-status svg {
+    color:
             #10b981;
 
-    box-shadow:
-            0 0 0 4px
-            rgba(16, 185, 129, 0.10);
+    font-size: 6px;
 
     animation:
             livePulse
@@ -873,484 +891,47 @@
 }
 
 
-.queue-divider {
-    height: 1px;
-
-    margin:
-            18px 0;
-
-    background:
-            #f1f5f9;
-}
-
-
 /* =========================================================
-   DOCTOR VISUAL
+   SUMMARY
 ========================================================= */
 
-.doctor-visual {
-    position: relative;
-
-    width: 75px;
-    height: 75px;
-
-    margin:
-            0 auto 7px;
-
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-}
-
-
-.doctor-glow {
-    position: absolute;
-
-    width: 75px;
-    height: 75px;
-
-    border-radius: 50%;
-
-    background:
-            rgba(20, 184, 166, 0.08);
-
-    filter:
-            blur(5px);
-}
-
-
-.doctor-avatar {
-    position: relative;
-
-    z-index: 2;
-
-    width: 58px;
-    height: 58px;
-
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-
-    border-radius: 19px;
-
-    color:
-            #0d9488;
-
-    background:
-            linear-gradient(
-                    145deg,
-                    #ecfeff,
-                    #f0fdf4
-            );
-
-    border:
-            1px solid
-            #ccfbf1;
-
-    box-shadow:
-            0 12px 25px
-            rgba(20, 184, 166, 0.12);
-
-    font-size: 26px;
-}
-
-
-.doctor-status-dot {
-    position: absolute;
-
-    z-index: 3;
-
-    right: 3px;
-    bottom: 7px;
-
-    width: 14px;
-    height: 14px;
-
-    border-radius: 50%;
-
-    background:
-            #22c55e;
-
-    border:
-            3px solid
-            white;
-}
-
-
-.doctor-mini-badge {
-    position: absolute;
-
-    z-index: 4;
-
-    left: -4px;
-    bottom: -1px;
-
-    width: 25px;
-    height: 25px;
-
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-
-    border-radius: 8px;
-
-    color:
-            #0d9488;
-
-    background:
-            white;
-
-    border:
-            1px solid
-            #ccfbf1;
-
-    box-shadow:
-            0 5px 14px
-            rgba(15, 23, 42, 0.10);
-
-    font-size: 10px;
-}
-
-
-/* =========================================================
-   SERVING
-========================================================= */
-
-.serving {
-    text-align: center;
-
-    margin-top: 5px;
-}
-
-
-.serving p {
-    margin:
-            0 0 2px;
-
-    color:
-            #94a3b8;
-
-    font-size: 9px;
-
-    font-weight: 850;
-
-    letter-spacing:
-            1.5px;
-}
-
-
-.serving h2 {
-    margin:
-            0;
-
-    color:
-            #0d9488;
-
-    font-size:
-            62px;
-
-    line-height:
-            1;
-
-    font-weight:
-            900;
-
-    letter-spacing:
-            -2px;
-}
-
-
-.doctor-room {
-    margin-top: 9px;
-
-    display: flex;
-
-    align-items: center;
-
-    justify-content: center;
-
-    flex-wrap: wrap;
-
-    gap: 6px;
-
-    color:
-            #64748b;
-
-    font-size: 10px;
-
-    font-weight: 600;
-}
-
-
-.doctor-room svg {
-    color:
-            #14b8a6;
-
-    font-size: 10px;
-}
-
-
-.doctor-name-text {
-    color:
-            #334155;
-
-    font-weight:
-            750;
-}
-
-
-.room-separator {
-    color:
-            #cbd5e1;
-}
-
-
-/* =========================================================
-   QUEUE INFO
-========================================================= */
-
-.queue-info {
+.hospital-summary {
     display: grid;
 
     grid-template-columns:
-        1fr auto 1fr;
+        1fr auto 1fr auto 1fr;
 
     align-items: center;
 
-    margin-top: 22px;
+    margin-top: 17px;
 
     padding:
-            15px;
+            12px;
+
+    border:
+            1px solid
+            #f1f5f9;
 
     border-radius:
             17px;
 
     background:
             #f8fafc;
-
-    border:
-            1px solid
-            #f1f5f9;
 }
 
 
-.queue-info-item {
+.hospital-summary-item {
     display: flex;
 
     align-items: center;
 
-    gap: 10px;
+    gap: 9px;
+
+    min-width: 0;
 }
 
 
-.info-icon {
-    width: 35px;
-    height: 35px;
-
-    flex-shrink: 0;
-
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-
-    border-radius: 10px;
-
-    color:
-            #0d9488;
-
-    background:
-            #ecfeff;
-
-    font-size: 12px;
-}
-
-
-.info-icon.clock {
-    color:
-            #059669;
-
-    background:
-            #ecfdf5;
-}
-
-
-.queue-info-item div {
-    display: flex;
-
-    flex-direction: column;
-
-    gap: 1px;
-}
-
-
-.queue-info-item small {
-    color:
-            #94a3b8;
-
-    font-size: 9px;
-
-    font-weight: 700;
-}
-
-
-.queue-info-item strong {
-    color:
-            #0f172a;
-
-    font-size: 20px;
-
-    line-height: 1;
-
-    font-weight: 850;
-}
-
-
-.queue-info-item strong em {
-    margin-left: 3px;
-
-    color:
-            #64748b;
-
-    font-size: 9px;
-
-    font-style: normal;
-
-    font-weight: 700;
-}
-
-
-.queue-info-item > div > span {
-    color:
-            #94a3b8;
-
-    font-size: 8px;
-}
-
-
-.queue-info-divider {
-    width: 1px;
-
-    height: 35px;
-
-    background:
-            #e2e8f0;
-
-    margin:
-            0 12px;
-}
-
-
-/* =========================================================
-   PROGRESS
-========================================================= */
-
-.queue-progress {
-    margin-top: 18px;
-}
-
-
-.progress-header {
-    display: flex;
-
-    align-items: center;
-
-    justify-content: space-between;
-
-    margin-bottom: 7px;
-}
-
-
-.progress-header span {
-    color:
-            #64748b;
-
-    font-size: 9px;
-
-    font-weight: 700;
-}
-
-
-.progress-header strong {
-    color:
-            #059669;
-
-    font-size: 10px;
-
-    font-weight: 850;
-}
-
-
-.progress-bar {
-    width: 100%;
-
-    height: 6px;
-
-    overflow: hidden;
-
-    border-radius:
-            999px;
-
-    background:
-            #e2e8f0;
-}
-
-
-.progress-bar span {
-    display: block;
-
-    height: 100%;
-
-    min-width:
-            0;
-
-    border-radius:
-            inherit;
-
-    background:
-            linear-gradient(
-                    90deg,
-                    #14b8a6,
-                    #22c55e
-            );
-
-    transition:
-            width 0.5s ease;
-}
-
-
-/* =========================================================
-   NEXT PATIENT
-========================================================= */
-
-.next-patient {
-    display: flex;
-
-    align-items: center;
-
-    gap: 10px;
-
-    margin-top: 17px;
-
-    padding:
-            11px;
-
-    border-radius:
-            14px;
-
-    background:
-            #ffffff;
-
-    border:
-            1px solid
-            #e2e8f0;
-}
-
-
-.next-patient-icon {
+.summary-icon {
     width: 34px;
     height: 34px;
 
@@ -1363,223 +944,29 @@
 
     border-radius: 10px;
 
-    color:
-            #0d9488;
-
-    background:
-            #ecfeff;
-
     font-size: 11px;
 }
 
 
-.next-patient-content {
-    display: flex;
-
-    flex-direction: column;
-
-    min-width:
-            70px;
-}
-
-
-.next-patient-content small {
-    color:
-            #94a3b8;
-
-    font-size: 8px;
-
-    font-weight: 800;
-
-    letter-spacing:
-            0.5px;
-}
-
-
-.next-patient-content strong {
-    margin-top: 2px;
-
-    color:
-            #0f172a;
-
-    font-size: 15px;
-
-    font-weight: 850;
-}
-
-
-.next-patient-name {
-    flex: 1;
-
-    overflow: hidden;
-
-    white-space: nowrap;
-
-    text-overflow: ellipsis;
-
-    color:
-            #64748b;
-
-    font-size: 9px;
-
-    font-weight: 600;
-
-    text-align: right;
-}
-
-
-.next-arrow {
-    color:
-            #14b8a6;
-
-    font-size: 18px;
-
-    font-weight: 800;
-}
-
-
-/* =========================================================
-   FOOTER
-========================================================= */
-
-.queue-footer {
-    display: flex;
-
-    align-items: center;
-
-    justify-content: space-between;
-
-    margin-top: 15px;
-
-    padding-top: 12px;
-
-    border-top:
-            1px solid
-            #f1f5f9;
-
-    color:
-            #94a3b8;
-
-    font-size: 8px;
-
-    font-weight: 600;
-}
-
-
-.queue-footer > span:first-child {
-    display: flex;
-
-    align-items: center;
-
-    gap: 5px;
-}
-
-
-.footer-dot {
-    width: 5px;
-    height: 5px;
-
-    border-radius: 50%;
-
-    background:
-            #22c55e;
-}
-
-
-/* =========================================================
-   FLOATING CARDS
-========================================================= */
-
-.floating-card {
-    position: absolute;
-
-    z-index: 8;
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 10px;
-
-    padding:
-            13px 15px;
-
-    min-width:
-            190px;
-
-    border-radius:
-            18px;
-
-    background:
-            rgba(255, 255, 255, 0.94);
-
-    border:
-            1px solid
-            rgba(226, 232, 240, 0.90);
-
-    box-shadow:
-            0 18px 40px
-            rgba(15, 23, 42, 0.10);
-
-    backdrop-filter:
-            blur(15px);
-}
-
-
-.floating-card.top {
-    top:
-            58px;
-
-    right:
-            -2px;
-
-    animation:
-            floatingTop
-            5s
-            ease-in-out
-            infinite;
-}
-
-
-.floating-card.bottom {
-    bottom:
-            55px;
-
-    left:
-            3px;
-
-    animation:
-            floatingBottom
-            5.5s
-            ease-in-out
-            infinite;
-}
-
-
-.floating-icon {
-    width: 38px;
-    height: 38px;
-
-    flex-shrink: 0;
-
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-
-    border-radius: 12px;
-
+.summary-icon.teal {
     color:
             #0d9488;
 
     background:
             #ecfeff;
-
-    font-size: 14px;
 }
 
 
-.floating-icon.calendar {
+.summary-icon.orange {
+    color:
+            #d97706;
+
+    background:
+            #fffbeb;
+}
+
+
+.summary-icon.green {
     color:
             #059669;
 
@@ -1588,60 +975,436 @@
 }
 
 
-.floating-content {
+.hospital-summary-item div {
     display: flex;
 
     flex-direction: column;
 
-    min-width: 80px;
+    gap: 2px;
 }
 
 
-.floating-content strong {
+.hospital-summary-item strong {
     color:
             #0f172a;
 
-    font-size: 17px;
+    font-size:
+            17px;
 
     line-height: 1;
 
-    font-weight: 900;
+    font-weight:
+            900;
 }
 
 
-.floating-content small {
-    margin-top: 3px;
+.hospital-summary-item strong em {
+    margin-left: 2px;
 
     color:
             #64748b;
 
-    font-size: 8px;
+    font-size:
+            8px;
 
-    font-weight: 700;
+    font-style:
+            normal;
 }
 
 
-.mini-patient-row {
+.hospital-summary-item small {
+    color:
+            #94a3b8;
+
+    font-size:
+            8px;
+
+    font-weight:
+            700;
+}
+
+
+.summary-divider {
+    width: 1px;
+
+    height: 31px;
+
+    margin:
+            0 8px;
+
+    background:
+            #e2e8f0;
+}
+
+
+/* =========================================================
+   NOW SERVING
+========================================================= */
+
+.now-serving-box {
+    margin-top: 17px;
+
+    padding:
+            17px;
+
+    border-radius:
+            19px;
+
+    background:
+            linear-gradient(
+                    135deg,
+                    #f0fdfa,
+                    #f8fafc
+            );
+
+    border:
+            1px solid
+            #ccfbf1;
+}
+
+
+.now-serving-heading {
     display: flex;
 
     align-items: center;
 
-    gap: 2px;
+    justify-content: space-between;
 
-    margin-top: 7px;
+    margin-bottom: 10px;
 }
 
 
-.mini-patient-row span {
-    width: 17px;
-    height: 17px;
+.now-serving-heading span {
+    color:
+            #0d9488;
+
+    font-size:
+            8px;
+
+    font-weight:
+            900;
+
+    letter-spacing:
+            1.4px;
+}
+
+
+.now-serving-heading small {
+    color:
+            #94a3b8;
+
+    font-size:
+            8px;
+
+    font-weight:
+            600;
+}
+
+
+.now-serving-content {
+    display: flex;
+
+    align-items: center;
+
+    gap: 13px;
+}
+
+
+.token-display {
+    width: 77px;
+    height: 65px;
+
+    flex-shrink: 0;
 
     display: flex;
 
     align-items: center;
     justify-content: center;
 
-    border-radius: 50%;
+    border-radius:
+            16px;
+
+    color:
+            #0d9488;
+
+    background:
+            white;
+
+    border:
+            1px solid
+            #ccfbf1;
+
+    box-shadow:
+            0 8px 20px
+            rgba(20, 184, 166, 0.09);
+
+    font-size:
+            28px;
+
+    font-weight:
+            900;
+
+    letter-spacing:
+            -1px;
+}
+
+
+.serving-doctor {
+    display: flex;
+
+    align-items: center;
+
+    gap: 9px;
+
+    flex: 1;
+
+    min-width: 0;
+}
+
+
+.serving-doctor-icon {
+    width: 39px;
+    height: 39px;
+
+    flex-shrink: 0;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 11px;
+
+    color:
+            #0d9488;
+
+    background:
+            white;
+
+    border:
+            1px solid
+            #ccfbf1;
+
+    font-size:
+            13px;
+}
+
+
+.serving-doctor div:last-child {
+    min-width:
+            0;
+
+    display: flex;
+
+    flex-direction: column;
+}
+
+
+.serving-doctor strong {
+    overflow:
+            hidden;
+
+    white-space:
+            nowrap;
+
+    text-overflow:
+            ellipsis;
+
+    color:
+            #0f172a;
+
+    font-size:
+            11px;
+
+    font-weight:
+            850;
+}
+
+
+.serving-doctor span {
+    margin-top:
+            3px;
+
+    color:
+            #94a3b8;
+
+    font-size:
+            8px;
+
+    font-weight:
+            650;
+}
+
+
+.serving-active {
+    display: flex;
+
+    align-items: center;
+
+    gap: 5px;
+
+    color:
+            #059669;
+
+    font-size:
+            8px;
+
+    font-weight:
+            800;
+}
+
+
+.serving-active span {
+    width: 6px;
+    height: 6px;
+
+    border-radius:
+            50%;
+
+    background:
+            #22c55e;
+
+    box-shadow:
+            0 0 0 4px
+            rgba(34, 197, 94, 0.10);
+}
+
+
+/* =========================================================
+   DOCTOR QUEUE HEADING
+========================================================= */
+
+.doctor-queue-heading {
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    margin-top:
+            19px;
+
+    margin-bottom:
+            9px;
+}
+
+
+.doctor-queue-heading div {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 3px;
+}
+
+
+.doctor-queue-heading strong {
+    color:
+            #334155;
+
+    font-size:
+            11px;
+
+    font-weight:
+            850;
+}
+
+
+.doctor-queue-heading span {
+    color:
+            #94a3b8;
+
+    font-size:
+            8px;
+
+    font-weight:
+            600;
+}
+
+
+.doctor-queue-heading > svg {
+    color:
+            #cbd5e1;
+
+    font-size:
+            10px;
+}
+
+
+/* =========================================================
+   DOCTOR QUEUE LIST
+========================================================= */
+
+.doctor-queue-list {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 7px;
+}
+
+
+.doctor-queue-row {
+    display: grid;
+
+    grid-template-columns:
+        38px
+        minmax(100px, 1fr)
+        45px
+        48px
+        auto;
+
+    align-items: center;
+
+    gap: 8px;
+
+    padding:
+            10px;
+
+    border:
+            1px solid
+            #edf2f7;
+
+    border-radius:
+            14px;
+
+    background:
+            white;
+
+    transition:
+            0.2s ease;
+}
+
+
+.doctor-queue-row:hover {
+    border-color:
+            #ccfbf1;
+
+    background:
+            #fbfffe;
+
+    transform:
+            translateX(2px);
+}
+
+
+/* =========================================================
+   DOCTOR AVATAR
+========================================================= */
+
+.doctor-row-avatar {
+    position: relative;
+
+    width: 35px;
+    height: 35px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border-radius:
+            11px;
 
     color:
             #0d9488;
@@ -1649,79 +1412,419 @@
     background:
             #ecfeff;
 
+    font-size:
+            12px;
+}
+
+
+.doctor-row-avatar > span {
+    position: absolute;
+
+    right: -2px;
+
+    bottom: -2px;
+
+    width: 9px;
+    height: 9px;
+
     border:
             2px solid
             white;
 
-    font-size: 6px;
+    border-radius:
+            50%;
 }
 
 
-.mini-patient-row b {
+.status-green {
+    background:
+            #22c55e;
+}
+
+
+.status-orange {
+    background:
+            #f59e0b;
+}
+
+
+.status-gray {
+    background:
+            #94a3b8;
+}
+
+
+/* =========================================================
+   DOCTOR INFO
+========================================================= */
+
+.doctor-row-info {
+    min-width:
+            0;
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 2px;
+}
+
+
+.doctor-row-info strong {
+    overflow:
+            hidden;
+
+    white-space:
+            nowrap;
+
+    text-overflow:
+            ellipsis;
+
+    color:
+            #334155;
+
+    font-size:
+            9px;
+
+    font-weight:
+            800;
+}
+
+
+.doctor-row-info span {
+    overflow:
+            hidden;
+
+    white-space:
+            nowrap;
+
+    text-overflow:
+            ellipsis;
+
     color:
             #94a3b8;
 
-    font-size: 7px;
+    font-size:
+            7px;
 
-    margin-left: 2px;
+    font-weight:
+            600;
 }
 
 
-.success-progress {
-    width: 74px;
+/* =========================================================
+   TOKEN
+========================================================= */
 
-    height: 4px;
+.doctor-token {
+    display:
+            flex;
 
-    margin-top: 7px;
+    flex-direction:
+            column;
 
-    overflow: hidden;
+    gap:
+            2px;
+
+    text-align:
+            center;
+}
+
+
+.doctor-token small {
+    color:
+            #94a3b8;
+
+    font-size:
+            6px;
+
+    font-weight:
+            700;
+}
+
+
+.doctor-token strong {
+    color:
+            #0d9488;
+
+    font-size:
+            11px;
+
+    font-weight:
+            900;
+}
+
+
+/* =========================================================
+   WAITING
+========================================================= */
+
+.doctor-waiting {
+    display:
+            flex;
+
+    flex-direction:
+            column;
+
+    gap:
+            2px;
+
+    text-align:
+            center;
+}
+
+
+.doctor-waiting strong {
+    color:
+            #0f172a;
+
+    font-size:
+            11px;
+
+    font-weight:
+            900;
+}
+
+
+.doctor-waiting small {
+    color:
+            #94a3b8;
+
+    font-size:
+            6px;
+
+    font-weight:
+            700;
+}
+
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+.doctor-status {
+    padding:
+            5px 7px;
 
     border-radius:
             999px;
 
-    background:
-            #e2e8f0;
+    font-size:
+            6px;
+
+    font-weight:
+            850;
+
+    white-space:
+            nowrap;
 }
 
 
-.success-progress span {
-    display: block;
-
-    height: 100%;
-
-    border-radius:
-            inherit;
-
-    background:
-            #10b981;
-
-    transition:
-            width 0.5s ease;
-}
-
-
-.floating-check {
-    width: 22px;
-    height: 22px;
-
-    display: flex;
-
-    align-items: center;
-    justify-content: center;
-
-    margin-left: auto;
-
-    border-radius: 50%;
-
+.status-active {
     color:
-            #10b981;
+            #059669;
 
     background:
             #ecfdf5;
+}
 
-    font-size: 11px;
 
-    font-weight: 900;
+.status-waiting {
+    color:
+            #d97706;
+
+    background:
+            #fffbeb;
+}
+
+
+.status-available {
+    color:
+            #64748b;
+
+    background:
+            #f1f5f9;
+}
+
+
+/* =========================================================
+   LOADING
+========================================================= */
+
+.queue-loading-state {
+    display:
+            flex;
+
+    align-items:
+            center;
+
+    justify-content:
+            center;
+
+    gap:
+            8px;
+
+    min-height:
+            105px;
+
+    color:
+            #94a3b8;
+
+    font-size:
+            9px;
+
+    font-weight:
+            650;
+}
+
+
+.loading-dot {
+    width:
+            7px;
+
+    height:
+            7px;
+
+    border-radius:
+            50%;
+
+    background:
+            #14b8a6;
+
+    animation:
+            livePulse
+            1.4s
+            ease
+            infinite;
+}
+
+
+/* =========================================================
+   EMPTY
+========================================================= */
+
+.queue-empty-state {
+    display:
+            flex;
+
+    align-items:
+            center;
+
+    gap:
+            10px;
+
+    padding:
+            16px;
+
+    border-radius:
+            14px;
+
+    background:
+            #f8fafc;
+
+    color:
+            #94a3b8;
+}
+
+
+.queue-empty-state > svg {
+    color:
+            #14b8a6;
+
+    font-size:
+            16px;
+}
+
+
+.queue-empty-state div {
+    display:
+            flex;
+
+    flex-direction:
+            column;
+
+    gap:
+            3px;
+}
+
+
+.queue-empty-state strong {
+    color:
+            #475569;
+
+    font-size:
+            9px;
+
+    font-weight:
+            800;
+}
+
+
+.queue-empty-state span {
+    font-size:
+            7px;
+}
+
+
+/* =========================================================
+   PANEL FOOTER
+========================================================= */
+
+.hospital-panel-footer {
+    display:
+            flex;
+
+    align-items:
+            center;
+
+    justify-content:
+            space-between;
+
+    margin-top:
+            15px;
+
+    padding-top:
+            12px;
+
+    border-top:
+            1px solid
+            #f1f5f9;
+
+    color:
+            #94a3b8;
+
+    font-size:
+            7px;
+
+    font-weight:
+            650;
+}
+
+
+.hospital-panel-footer > div {
+    display:
+            flex;
+
+    align-items:
+            center;
+
+    gap:
+            5px;
+}
+
+
+.footer-live-dot {
+    width:
+            5px;
+
+    height:
+            5px;
+
+    border-radius:
+            50%;
+
+    background:
+            #22c55e;
 }
 
 
@@ -1730,20 +1833,29 @@
 ========================================================= */
 
 .visual-dot {
-    position: absolute;
+    position:
+            absolute;
 
-    border-radius: 50%;
+    border-radius:
+            50%;
 
-    pointer-events: none;
+    pointer-events:
+            none;
 }
 
 
 .dot-one {
-    width: 7px;
-    height: 7px;
+    width:
+            7px;
 
-    top: 130px;
-    left: 12px;
+    height:
+            7px;
+
+    top:
+            105px;
+
+    left:
+            12px;
 
     background:
             #14b8a6;
@@ -1755,11 +1867,17 @@
 
 
 .dot-two {
-    width: 5px;
-    height: 5px;
+    width:
+            5px;
 
-    right: 20px;
-    top: 230px;
+    height:
+            5px;
+
+    right:
+            5px;
+
+    top:
+            205px;
 
     background:
             #22c55e;
@@ -1767,26 +1885,20 @@
 
 
 .dot-three {
-    width: 6px;
-    height: 6px;
+    width:
+            6px;
 
-    left: 55px;
-    bottom: 120px;
+    height:
+            6px;
+
+    left:
+            38px;
+
+    bottom:
+            80px;
 
     background:
             #5eead4;
-}
-
-
-.dot-four {
-    width: 4px;
-    height: 4px;
-
-    right: 65px;
-    bottom: 125px;
-
-    background:
-            #86efac;
 }
 
 
@@ -1829,38 +1941,6 @@
         transform:
                 translateX(0)
                 scale(1);
-    }
-
-}
-
-
-@keyframes floatingTop {
-
-    0%,
-    100% {
-        transform:
-                translateY(0);
-    }
-
-    50% {
-        transform:
-                translateY(-9px);
-    }
-
-}
-
-
-@keyframes floatingBottom {
-
-    0%,
-    100% {
-        transform:
-                translateY(0);
-    }
-
-    50% {
-        transform:
-                translateY(8px);
     }
 
 }
@@ -1928,14 +2008,14 @@
 @media (max-width: 1150px) {
 
     .hero {
-        padding-top:
-                55px;
+        padding:
+                55px 5% 70px;
     }
 
 
     .hero-container {
         gap:
-                30px;
+                35px;
     }
 
 
@@ -1953,44 +2033,36 @@
 
     .queue-preview {
         flex-basis:
-                440px;
+                480px;
 
         width:
-                440px;
+                480px;
 
-        height:
+        min-height:
                 540px;
     }
 
 
-    .queue-card {
+    .hospital-live-panel {
         width:
-                370px;
+                445px;
     }
 
 
     .queue-orbit {
         width:
-                410px;
+                420px;
 
         height:
-                410px;
-    }
-
-
-    .floating-card.top {
-        right:
-                -10px;
-    }
-
-
-    .floating-card.bottom {
-        left:
-                -5px;
+                420px;
     }
 
 }
 
+
+/* =========================================================
+   TABLET
+========================================================= */
 
 @media (max-width: 950px) {
 
@@ -1999,7 +2071,7 @@
                 auto;
 
         padding:
-                60px 6% 80px;
+                65px 6% 80px;
     }
 
 
@@ -2050,18 +2122,25 @@
 
     .queue-preview {
         width:
-                500px;
+                535px;
 
         flex-basis:
-                570px;
+                555px;
     }
 
 }
 
 
+/* =========================================================
+   MOBILE
+========================================================= */
+
 @media (max-width: 600px) {
 
     .hero {
+        margin-top:
+                75px;
+
         padding:
                 45px 20px 65px;
     }
@@ -2126,20 +2205,20 @@
         width:
                 100%;
 
-        height:
-                520px;
+        min-height:
+                510px;
 
         flex-basis:
-                520px;
+                510px;
     }
 
 
-    .queue-card {
+    .hospital-live-panel {
         width:
-                min(100%, 355px);
+                min(100%, 420px);
 
         padding:
-                21px;
+                18px;
 
         border-radius:
                 25px;
@@ -2155,64 +2234,80 @@
     }
 
 
-    .floating-card {
-        min-width:
-                160px;
+    .hospital-summary {
+        grid-template-columns:
+            1fr auto 1fr auto 1fr;
 
         padding:
-                10px 12px;
+                9px;
     }
 
 
-    .floating-card.top {
-        top:
-                25px;
-
-        right:
-                0;
+    .hospital-summary-item {
+        gap:
+                5px;
     }
 
 
-    .floating-card.bottom {
-        bottom:
-                25px;
+    .summary-icon {
+        width:
+                29px;
 
-        left:
-                0;
+        height:
+                29px;
     }
 
 
-    .floating-content strong {
+    .hospital-summary-item strong {
         font-size:
-                15px;
+                14px;
     }
 
 
-    .doctor-visual {
-        transform:
-                scale(0.9);
-    }
-
-
-    .serving h2 {
+    .hospital-summary-item small {
         font-size:
-                55px;
+                7px;
     }
 
 
-    .queue-info {
+    .doctor-queue-row {
+        grid-template-columns:
+            35px
+            minmax(75px, 1fr)
+            40px
+            40px
+            auto;
+
+        gap:
+                5px;
+
         padding:
-                12px;
+                8px;
     }
 
 
-    .queue-info-item strong {
+    .doctor-status {
+        padding:
+                4px 5px;
+
         font-size:
-                18px;
+                5px;
     }
 
 
-    .next-patient-name {
+    .doctor-row-info strong {
+        font-size:
+                8px;
+    }
+
+
+    .doctor-row-info span {
+        font-size:
+                6px;
+    }
+
+
+    .serving-active {
         display:
                 none;
     }
@@ -2226,6 +2321,10 @@
 }
 
 
+/* =========================================================
+   SMALL MOBILE
+========================================================= */
+
 @media (max-width: 400px) {
 
     .hero h1 {
@@ -2234,48 +2333,99 @@
     }
 
 
-    .queue-preview {
-        height:
-                500px;
-
-        flex-basis:
-                500px;
+    .hero {
+        margin-top:
+                70px;
     }
 
 
-    .queue-card {
+    .queue-preview {
+        min-height:
+                490px;
+
+        flex-basis:
+                490px;
+    }
+
+
+    .hospital-live-panel {
         width:
                 310px;
 
         padding:
-                18px;
+                15px;
+
+        border-radius:
+                22px;
     }
 
 
-    .floating-card.top {
-        transform:
-                scale(0.88);
-
-        transform-origin:
-                right center;
+    .hospital-panel-title h3 {
+        font-size:
+                14px;
     }
 
 
-    .floating-card.bottom {
-        transform:
-                scale(0.88);
-
-        transform-origin:
-                left center;
+    .hospital-panel-title span {
+        font-size:
+                7px;
     }
 
 
-    .queue-orbit {
+    .hospital-summary {
+        gap:
+                2px;
+    }
+
+
+    .summary-divider {
+        margin:
+                0 3px;
+    }
+
+
+    .summary-icon {
+        display:
+                none;
+    }
+
+
+    .hospital-summary-item strong {
+        font-size:
+                13px;
+    }
+
+
+    .doctor-queue-row {
+        grid-template-columns:
+            32px
+            1fr
+            36px
+            36px;
+    }
+
+
+    .doctor-status {
+        display:
+                none;
+    }
+
+
+    .token-display {
         width:
-                320px;
+                65px;
 
         height:
-                320px;
+                57px;
+
+        font-size:
+                23px;
+    }
+
+
+    .serving-doctor strong {
+        font-size:
+                9px;
     }
 
 }
