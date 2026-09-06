@@ -1,127 +1,142 @@
 import React from "react";
+
 import {
     FaCheckCircle,
-    FaBullseye,
-    FaEye,
-    FaShieldAlt
+    FaHeartbeat,
+    FaArrowRight
 } from "react-icons/fa";
 
 import "./About.css";
 
+
 function About() {
+
     return (
+
         <section className="about-section" id="about">
 
             <div className="about-container">
 
-                {/* LEFT */}
+                {/* ================= LEFT : IMAGE ================= */}
 
-                <div className="about-image">
+                <div className="about-image-area">
 
-                    <img
-                        src="/images/about-dashboard.png"
-                        alt="SmartQueue Dashboard"
-                    />
+                    <div className="about-image-card">
 
-                    <div className="floating-card">
-
-                        <h3>Smart Healthcare</h3>
-
-                        <p>Digital Queue & Appointment Management</p>
+                        <img
+                            src="/about-healthcare.jpg"
+                            alt="SmartQueue Healthcare"
+                        />
 
                     </div>
+
+
+                    {/* Floating Card */}
+
 
                 </div>
 
-                {/* RIGHT */}
+
+                {/* ================= RIGHT : CONTENT ================= */}
 
                 <div className="about-content">
 
-                    <span>About SmartQueue</span>
+                    <span className="about-label">
+                        <span></span>
+                        About SmartQueue
+                    </span>
+
 
                     <h2>
-                        Modern Queue Management
-                        For Better Healthcare
+                        Making Every
+                        <strong> Patient Visit Simpler</strong>
                     </h2>
 
-                    <p>
-                        SmartQueue is a Hospital Queue &
-                        Appointment Management System designed
-                        to simplify hospital operations through
-                        digital appointments, real-time queue
-                        tracking and efficient patient management.
+
+                    <p className="about-description">
+
+                        SmartQueue is a digital Hospital Queue &
+                        Appointment Management System created to make
+                        the hospital experience simpler for patients
+                        and easier for healthcare staff.
+
                     </p>
 
-                    <div className="about-feature">
 
-                        <FaBullseye />
+                    <p className="about-description">
+
+                        From booking an appointment to receiving a
+                        digital token and reaching the doctor,
+                        SmartQueue keeps the entire patient journey
+                        organized in one connected platform.
+
+                    </p>
+
+
+                    {/* ================= HIGHLIGHT ================= */}
+
+                    <div className="about-highlight">
+
+                        <div className="highlight-icon">
+                            <FaCheckCircle />
+                        </div>
 
                         <div>
 
-                            <h4>Our Mission</h4>
+                            <strong>
+                                Less Waiting. Better Experience.
+                            </strong>
 
                             <p>
-                                Reduce waiting time and improve
-                                hospital efficiency using smart
-                                digital solutions.
+                                SmartQueue brings patients and
+                                healthcare staff onto one simple
+                                digital platform.
                             </p>
 
                         </div>
 
                     </div>
 
-                    <div className="about-feature">
 
-                        <FaEye />
+                    {/* ================= SMALL POINTS ================= */}
 
-                        <div>
+                    <div className="about-points">
 
-                            <h4>Our Vision</h4>
+                        <div className="about-point">
+                            <FaCheckCircle />
+                            <span>Digital & Paperless</span>
+                        </div>
 
-                            <p>
-                                Build a faster, transparent and
-                                patient-friendly healthcare system.
-                            </p>
+                        <div className="about-point">
+                            <FaCheckCircle />
+                            <span>Real-Time Queue Tracking</span>
+                        </div>
 
+                        <div className="about-point">
+                            <FaCheckCircle />
+                            <span>Connected Healthcare</span>
                         </div>
 
                     </div>
 
-                    <ul>
 
-                        <li>
-                            <FaCheckCircle />
-                            Digital Appointment Booking
-                        </li>
-
-                        <li>
-                            <FaCheckCircle />
-                            Live Queue Tracking
-                        </li>
-
-                        <li>
-                            <FaCheckCircle />
-                            Role Based Dashboard
-                        </li>
-
-                        <li>
-                            <FaCheckCircle />
-                            Secure Patient Management
-                        </li>
-
-                        <li>
-                            <FaShieldAlt />
-                            Secure & Scalable Architecture
-                        </li>
-
-                    </ul>
+                    <a
+                        href="#features"
+                        className="about-link"
+                    >
+                        Explore SmartQueue
+                        <FaArrowRight />
+                    </a>
 
                 </div>
 
             </div>
 
         </section>
+
     );
+
 }
+
 
 export default About;

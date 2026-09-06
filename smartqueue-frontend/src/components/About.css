@@ -2,365 +2,711 @@
    ABOUT SECTION
 ========================================== */
 
-.about-section{
-    padding:110px 7%;
-    background:#F8FAFC;
-    position:relative;
-    overflow:hidden;
-}
+.about-section {
 
-/* Background Glow */
+    position: relative;
 
-.about-section::before{
-    content:"";
-    position:absolute;
-    width:350px;
-    height:350px;
-    background:#CCFBF1;
-    border-radius:50%;
-    top:-120px;
-    left:-120px;
-    filter:blur(120px);
-    opacity:.8;
-}
+    padding: 105px 7%;
 
-.about-section::after{
-    content:"";
-    position:absolute;
-    width:320px;
-    height:320px;
-    background:#DCFCE7;
-    border-radius:50%;
-    right:-120px;
-    bottom:-120px;
-    filter:blur(120px);
-    opacity:.7;
+    background:
+            radial-gradient(
+                    circle at 5% 45%,
+                    rgba(20, 184, 166, 0.07),
+                    transparent 25%
+            ),
+            radial-gradient(
+                    circle at 95% 70%,
+                    rgba(34, 197, 94, 0.05),
+                    transparent 24%
+            ),
+            #ffffff;
+
+    overflow: hidden;
 }
 
 
-/* Layout */
+/* ==========================================
+   BACKGROUND DECORATION
+========================================== */
 
-.about-container{
+.about-section::before {
 
-    max-width:1300px;
+    content: "";
 
-    margin:auto;
+    position: absolute;
 
-    display:grid;
+    width: 320px;
+    height: 320px;
 
-    grid-template-columns:1fr 1fr;
+    border: 1px solid rgba(20, 184, 166, 0.10);
 
-    gap:70px;
+    border-radius: 50%;
 
-    align-items:center;
+    left: -190px;
+    top: 80px;
 
-    position:relative;
-
-    z-index:2;
-
+    pointer-events: none;
 }
 
 
+.about-section::after {
 
-/* ================= IMAGE ================= */
+    content: "";
 
-.about-image{
+    position: absolute;
 
-    position:relative;
+    width: 240px;
+    height: 240px;
 
+    border: 1px solid rgba(34, 197, 94, 0.10);
+
+    border-radius: 50%;
+
+    right: -130px;
+    bottom: 40px;
+
+    pointer-events: none;
 }
 
 
+/* ==========================================
+   MAIN CONTAINER
+========================================== */
 
-.about-image img{
+.about-container {
 
-    width:100%;
+    max-width: 1180px;
 
-    border-radius:28px;
+    margin: auto;
 
-    display:block;
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    gap: 70px;
+
+    align-items: center;
+
+    position: relative;
+
+    z-index: 2;
+}
+
+
+/* ==========================================
+   LEFT IMAGE AREA
+========================================== */
+
+.about-image-area {
+
+    position: relative;
+
+    padding: 15px 30px 50px 0;
+}
+
+
+/* ==========================================
+   IMAGE CARD
+========================================== */
+
+.about-image-card {
+
+    position: relative;
+
+    width: 100%;
+
+    height: 450px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    overflow: hidden;
+
+    border-radius: 26px;
+
+    background: #f8fafc;
+
+    border: 1px solid #e2e8f0;
 
     box-shadow:
-            0 25px 60px rgba(15,23,42,.15);
+            0 22px 55px rgba(15, 23, 42, 0.09);
 
+    transition:
+            transform 0.35s ease,
+            box-shadow 0.35s ease;
 }
 
 
+/* ==========================================
+   IMAGE
+========================================== */
 
-/* Floating Card */
+.about-image-card img {
 
-.floating-card{
+    width: 100%;
 
-    position:absolute;
+    height: 100%;
 
-    bottom:35px;
+    display: block;
 
-    left:-30px;
+    object-fit: contain;
 
-    background:white;
+    object-position: center;
 
-    padding:20px 24px;
+    background: #f8fafc;
 
-    border-radius:20px;
+    transition: transform 0.45s ease;
+}
+
+
+/* Image hover */
+
+.about-image-card:hover {
+
+    transform: translateY(-5px);
 
     box-shadow:
-            0 20px 50px rgba(15,23,42,.15);
+            0 30px 65px rgba(15, 23, 42, 0.13);
+}
 
-    border:1px solid #E2E8F0;
+
+.about-image-card:hover img {
+
+    transform: scale(1.02);
+}
+
+
+/* ==========================================
+   VERY SOFT IMAGE OVERLAY
+========================================== */
+
+.about-image-card::after {
+
+    content: "";
+
+    position: absolute;
+
+    inset: 0;
+
+    background:
+            linear-gradient(
+                    180deg,
+                    transparent 65%,
+                    rgba(15, 23, 42, 0.05)
+            );
+
+    pointer-events: none;
+}
+
+
+/* ==========================================
+   FLOATING CARD
+========================================== */
+
+.about-floating-card {
+
+    position: absolute;
+
+    left: -15px;
+
+    bottom: 0;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    padding: 13px 17px;
+
+    min-width: 215px;
+
+    background: rgba(255, 255, 255, 0.97);
+
+    border: 1px solid #e2e8f0;
+
+    border-radius: 15px;
+
+    box-shadow:
+            0 16px 38px rgba(15, 23, 42, 0.12);
+
+    backdrop-filter: blur(10px);
+
+    z-index: 5;
+
+    transition: transform 0.3s ease;
+}
+
+
+.about-floating-card:hover {
+
+    transform: translateY(-4px);
+}
+
+
+/* ==========================================
+   FLOATING ICON
+========================================== */
+
+.about-floating-icon {
+
+    width: 40px;
+
+    height: 40px;
+
+    min-width: 40px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border-radius: 11px;
+
+    background: #ecfdf9;
+
+    color: #0f9f91;
+
+    font-size: 17px;
+}
+
+
+.about-floating-card div:last-child {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 3px;
+}
+
+
+.about-floating-card strong {
+
+    color: #0f172a;
+
+    font-size: 13px;
+
+    font-weight: 800;
+}
+
+
+.about-floating-card span {
+
+    color: #64748b;
+
+    font-size: 10px;
 
 }
 
 
+/* ==========================================
+   RIGHT CONTENT
+========================================== */
 
-.floating-card h3{
+.about-content {
 
-    margin:0 0 8px;
-
-    color:#0F172A;
-
-    font-size:18px;
-
+    max-width: 560px;
 }
 
 
+/* ==========================================
+   ABOUT LABEL
+========================================== */
 
-.floating-card p{
+.about-label {
 
-    margin:0;
+    display: inline-flex;
 
-    color:#64748B;
+    align-items: center;
 
-    font-size:14px;
+    gap: 8px;
 
+    padding: 7px 14px;
+
+    border-radius: 30px;
+
+    background: #f0fdfa;
+
+    border: 1px solid #ccfbf1;
+
+    color: #0f766e;
+
+    font-size: 12px;
+
+    font-weight: 700;
 }
 
 
+.about-label > span {
 
-/* ================= CONTENT ================= */
+    width: 6px;
 
-.about-content span{
+    height: 6px;
 
-    display:inline-block;
+    min-width: 6px;
 
-    padding:8px 20px;
+    border-radius: 50%;
 
-    border-radius:30px;
+    background: #14b8a6;
 
-    background:#CCFBF1;
-
-    color:#0F766E;
-
-    font-size:14px;
-
-    font-weight:700;
-
+    box-shadow:
+            0 0 0 4px rgba(20, 184, 166, 0.10);
 }
 
 
+/* ==========================================
+   HEADING
+========================================== */
 
-.about-content h2{
+.about-content h2 {
 
-    margin:25px 0 18px;
+    margin: 21px 0 19px;
 
-    font-size:46px;
+    color: #0f172a;
 
-    line-height:1.2;
+    font-size: 44px;
 
-    color:#0F172A;
+    line-height: 1.15;
 
-    font-weight:900;
+    letter-spacing: -1.3px;
 
+    font-weight: 800;
 }
 
 
+.about-content h2 strong {
 
-.about-content>p{
+    display: block;
 
-    color:#64748B;
+    color: #129f91;
 
-    line-height:1.9;
-
-    font-size:17px;
-
-    margin-bottom:35px;
-
+    font-weight: 800;
 }
 
 
+/* ==========================================
+   DESCRIPTION
+========================================== */
 
-/* Feature Box */
+.about-description {
 
-.about-feature{
+    margin: 0 0 14px;
 
-    display:flex;
+    color: #64748b;
 
-    align-items:flex-start;
+    font-size: 15px;
 
-    gap:18px;
-
-    margin-bottom:28px;
-
+    line-height: 1.8;
 }
 
 
+/* ==========================================
+   HIGHLIGHT BOX
+========================================== */
 
-.about-feature svg{
+.about-highlight {
 
-    width:55px;
+    display: flex;
 
-    height:55px;
+    align-items: flex-start;
 
-    min-width:55px;
+    gap: 13px;
 
-    display:flex;
+    margin-top: 24px;
 
-    align-items:center;
+    padding: 15px 17px;
 
-    justify-content:center;
+    border-radius: 15px;
 
-    padding:15px;
+    background: #f0fdfa;
 
-    border-radius:16px;
-
-    background:linear-gradient(
-            135deg,
-            #14B8A6,
-            #22C55E
-    );
-
-    color:white;
-
-    font-size:22px;
-
+    border: 1px solid #ccfbf1;
 }
 
 
+/* Highlight icon */
 
-.about-feature h4{
+.highlight-icon {
 
-    margin:0 0 8px;
+    width: 35px;
 
-    color:#0F172A;
+    height: 35px;
 
-    font-size:20px;
+    min-width: 35px;
 
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border-radius: 10px;
+
+    background: #14b8a6;
+
+    color: #ffffff;
+
+    font-size: 14px;
 }
 
 
+.about-highlight strong {
 
-.about-feature p{
+    display: block;
 
-    margin:0;
+    margin-bottom: 4px;
 
-    color:#64748B;
+    color: #0f172a;
 
-    line-height:1.7;
+    font-size: 13px;
 
+    font-weight: 800;
 }
 
 
+.about-highlight p {
 
-/* List */
+    margin: 0;
 
-.about-content ul{
+    color: #64748b;
 
-    list-style:none;
+    font-size: 11px;
 
-    padding:0;
-
-    margin:40px 0 0;
-
+    line-height: 1.55;
 }
 
 
+/* ==========================================
+   SMALL POINTS
+========================================== */
 
-.about-content ul li{
+.about-points {
 
-    display:flex;
+    display: flex;
 
-    align-items:center;
+    flex-wrap: wrap;
 
-    gap:12px;
+    gap: 18px;
 
-    margin-bottom:18px;
-
-    color:#334155;
-
-    font-weight:600;
-
+    margin-top: 21px;
 }
 
 
+.about-point {
 
-.about-content ul li svg{
+    display: flex;
 
-    color:#14B8A6;
+    align-items: center;
 
-    font-size:18px;
+    gap: 7px;
 
+    color: #334155;
+
+    font-size: 12px;
+
+    font-weight: 600;
 }
 
 
+.about-point svg {
 
-/* ================= Responsive ================= */
+    color: #16a37f;
 
-@media(max-width:1000px){
+    font-size: 13px;
+}
 
-    .about-container{
 
-        grid-template-columns:1fr;
+/* ==========================================
+   EXPLORE LINK
+========================================== */
+
+.about-link {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    gap: 8px;
+
+    margin-top: 25px;
+
+    color: #0f9f91;
+
+    font-size: 13px;
+
+    font-weight: 800;
+
+    text-decoration: none;
+
+    transition: 0.25s ease;
+}
+
+
+.about-link svg {
+
+    font-size: 11px;
+
+    transition: transform 0.25s ease;
+}
+
+
+.about-link:hover {
+
+    color: #087f73;
+}
+
+
+.about-link:hover svg {
+
+    transform: translateX(4px);
+}
+
+
+/* ==========================================
+   RESPONSIVE
+========================================== */
+
+@media (max-width: 1050px) {
+
+    .about-container {
+
+        grid-template-columns: 1fr;
+
+        gap: 55px;
 
     }
 
-    .about-image{
 
-        order:2;
+    .about-image-area {
+
+        max-width: 650px;
+
+        width: 100%;
+
+        margin: auto;
 
     }
 
-    .about-content{
 
-        order:1;
+    .about-content {
 
-    }
+        max-width: 700px;
 
-    .floating-card{
-
-        left:20px;
-
-        bottom:20px;
+        margin: auto;
 
     }
 
 }
 
 
+/* ==========================================
+   TABLET / MOBILE
+========================================== */
 
-@media(max-width:768px){
+@media (max-width: 700px) {
 
-    .about-section{
+    .about-section {
 
-        padding:80px 20px;
-
-    }
-
-    .about-content h2{
-
-        font-size:32px;
+        padding: 80px 20px;
 
     }
 
-    .about-content>p{
 
-        font-size:16px;
+    .about-image-area {
+
+        padding: 10px 10px 50px;
 
     }
 
-    .floating-card{
 
-        position:static;
+    .about-image-card {
 
-        margin-top:20px;
+        height: 350px;
+
+        border-radius: 22px;
+
+    }
+
+
+    .about-floating-card {
+
+        left: 5px;
+
+        bottom: 5px;
+
+    }
+
+
+    .about-content h2 {
+
+        font-size: 34px;
+
+        letter-spacing: -0.7px;
+
+    }
+
+
+    .about-description {
+
+        font-size: 14px;
+
+        line-height: 1.7;
+
+    }
+
+
+    .about-points {
+
+        flex-direction: column;
+
+        gap: 10px;
+
+    }
+
+}
+
+
+/* ==========================================
+   SMALL MOBILE
+========================================== */
+
+@media (max-width: 450px) {
+
+    .about-content h2 {
+
+        font-size: 30px;
+
+    }
+
+
+    .about-image-card {
+
+        height: 280px;
+
+        border-radius: 20px;
+
+    }
+
+
+    .about-floating-card {
+
+        min-width: auto;
+
+        left: 5px;
+
+        right: 5px;
+
+    }
+
+
+    .about-floating-card span {
+
+        font-size: 9px;
 
     }
 

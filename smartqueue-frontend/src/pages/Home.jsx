@@ -4,7 +4,6 @@ import WhySmartQueue from "../components/WhySmartQueue";
 import Features from "../components/Features";
 import HowItWorks from "../components/HowItWorks";
 import Solutions from "../components/Solutions";
-import Statistics from "../components/Statistics";
 import About from "../components/About";
 
 import FAQ from "../components/FAQ";
@@ -45,9 +44,6 @@ function Home(){
                 <Solutions/>
             </section>
 
-            <section id="statistics">
-                <Statistics/>
-            </section>
 
             <section id="about">
                 <About/>
