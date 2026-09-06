@@ -43,6 +43,7 @@ public class SecurityConfig {
                                 "/api/admin/**",
                                 "/api/receptionist/**",
                                 "/api/doctor/**",
+                                "/api/doctors/**",
                                 "/api/queue/**",
                                 "/api/appointments/**",
                                 "/api/patients/**"     // 🟢 YEH LINE ADD KARNI HAI!

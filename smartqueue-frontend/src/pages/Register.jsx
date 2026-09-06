@@ -58,22 +58,22 @@ export default function Register() {
 
                     {error && <div className="auth-error" style={{background: '#ffebebeb', color: '#ef4444', padding: '10px', borderRadius: '8px', marginBottom: '15px', fontSize: '13px'}}>{error}</div>}
 
-                    <form onSubmit={handleSubmit} className="reg-grid-form">
+                    <form onSubmit={handleSubmit} className="reg-grid-form" autoComplete="off">
                         <div className="reg-field full-width">
                             <label className="reg-label">Full Name</label>
-                            <input name="name" type="text" className="reg-input" placeholder="John Doe" value={form.name} onChange={handleChange} required />
+                            <input name="name" type="text" className="reg-input" placeholder="John Doe" value={form.name} onChange={handleChange} autoComplete="off" required />
                         </div>
                         <div className="reg-field">
                             <label className="reg-label">Email Address</label>
-                            <input name="email" type="email" className="reg-input" placeholder="john@example.com" value={form.email} onChange={handleChange} required />
+                            <input name="email" type="email" className="reg-input" placeholder="john@example.com" value={form.email} onChange={handleChange} autoComplete="off" required />
                         </div>
                         <div className="reg-field">
                             <label className="reg-label">Phone Number</label>
-                            <input name="phone" type="tel" className="reg-input" placeholder="9876543210" value={form.phone} onChange={handleChange} required />
+                            <input name="phone" type="tel" className="reg-input" placeholder="9876543210" value={form.phone} onChange={handleChange} autoComplete="off" required />
                         </div>
                         <div className="reg-field">
                             <label className="reg-label">Password</label>
-                            <input name="password" type="password" className="reg-input" placeholder="••••••••" value={form.password} onChange={handleChange} required />
+                            <input name="password" type="password" className="reg-input" placeholder="••••••••" value={form.password} onChange={handleChange} autoComplete="new-password" required />
                         </div>
                         <div className="reg-field">
                             <label className="reg-label">Age</label>

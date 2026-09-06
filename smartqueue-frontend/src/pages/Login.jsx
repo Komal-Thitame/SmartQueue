@@ -9,13 +9,19 @@ export default function Login() {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
+    const [showPassword, setShowPassword] = useState(false);
+
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
         setError("");
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
+        if (e && e.preventDefault) e.preventDefault();
+        if (!form.email || !form.password) {
+            setError("Please fill in both email and password.");
+            return;
+        }
         setLoading(true);
         setError("");
 
@@ -59,12 +65,12 @@ export default function Login() {
                         <div className="auth-brand-mini"><span className="auth-brand-mini-dot" />SmartQueue</div>
                     </div>
 
-                    <form onSubmit={handleSubmit}>
+                    <div onKeyDown={(e) => { if (e.key === "Enter") handleSubmit(e); }}>
                         {error && <div className="auth-error" style={{background: '#ffebebeb', color: '#ef4444', padding: '10px', borderRadius: '8px', marginBottom: '15px', fontSize: '13px'}}>{error}</div>}
 
                         <div className="auth-field">
                             <label className="auth-label">Email</label>
-                            <input name="email" type="email" className="auth-input" placeholder="you@example.com" value={form.email} onChange={handleChange} required />
+                            <input name="email" type="email" className="auth-input" placeholder="you@example.com" value={form.email} onChange={handleChange} autoComplete="off" required />
                         </div>
                         <div className="auth-field">
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -73,12 +79,46 @@ export default function Login() {
                                     Forgot password?
                                 </Link>
                             </div>
-                            <input name="password" type="password" className="auth-input" placeholder="Password" value={form.password} onChange={handleChange} required />
+                            <div style={{ position: 'relative' }}>
+                                <input
+                                    name="password"
+                                    type="text"
+                                    className="auth-input"
+                                    placeholder="Password"
+                                    value={form.password}
+                                    onChange={handleChange}
+                                    autoComplete="off"
+                                    style={{
+                                        WebkitTextSecurity: showPassword ? 'none' : 'disc',
+                                        paddingRight: '55px'
+                                    }}
+                                    required
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    style={{
+                                        position: 'absolute',
+                                        right: '10px',
+                                        top: '50%',
+                                        transform: 'translateY(-50%)',
+                                        background: 'transparent',
+                                        border: 'none',
+                                        cursor: 'pointer',
+                                        fontSize: '12px',
+                                        color: '#059669',
+                                        fontWeight: '600',
+                                        padding: '4px 6px'
+                                    }}
+                                >
+                                    {showPassword ? "Hide" : "Show"}
+                                </button>
+                            </div>
                         </div>
-                        <button type="submit" className="auth-submit" disabled={loading}>
+                        <button type="button" onClick={handleSubmit} className="auth-submit" disabled={loading}>
                             {loading ? "Signing in..." : "Sign in"}
                         </button>
-                    </form>
+                    </div>
                     <p className="auth-mobile-switch">New patient? <a href="/register">Create account</a></p>
                 </div>
                 <div className="auth-panel-side">

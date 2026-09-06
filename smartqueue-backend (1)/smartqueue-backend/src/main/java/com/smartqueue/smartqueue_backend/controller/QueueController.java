@@ -58,7 +58,11 @@ public class QueueController {
         if (tokenNumber == null) {
             return "";
         }
-        return String.valueOf(tokenNumber).replaceAll("[^0-9]", "").trim();
+        String digits = String.valueOf(tokenNumber).replaceAll("[^0-9]", "").trim();
+        if (digits.isEmpty()) {
+            return "";
+        }
+        return digits.replaceFirst("^0+(?!$)", "");
     }
 
     private Long getActualDoctorId(Long id) {
@@ -554,7 +558,13 @@ public class QueueController {
                 );
             }
 
-            String patientName = "N/A";
+            String patientName = appointment.getPatientName() != null ? appointment.getPatientName() : "N/A";
+            if (appointment.getAge() != null) {
+                item.put("age", appointment.getAge());
+            }
+            if (appointment.getGender() != null) {
+                item.put("gender", appointment.getGender());
+            }
 
             QueueToken queueToken =
                     findQueueTokenForAppointment(appointment)
