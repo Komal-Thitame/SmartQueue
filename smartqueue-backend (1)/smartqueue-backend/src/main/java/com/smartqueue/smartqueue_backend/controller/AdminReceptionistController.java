@@ -45,4 +45,9 @@ public class AdminReceptionistController {
         Receptionist updated = adminReceptionistService.updateReceptionist(id, dto);
         return ResponseEntity.ok(updated);
     }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteReceptionist(@PathVariable Long id) {
+        adminReceptionistService.deleteReceptionist(id);
+        return ResponseEntity.ok(Map.of("message", "Receptionist deleted successfully"));
+    }
 }

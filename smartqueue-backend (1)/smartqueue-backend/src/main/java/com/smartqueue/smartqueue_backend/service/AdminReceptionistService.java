@@ -95,4 +95,22 @@ public class AdminReceptionistService {
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
     }
+    @Transactional
+    public void deleteReceptionist(Long id) {
+
+        Receptionist receptionist = receptionistRepository.findById(id)
+                .orElseThrow(() ->
+                        new RuntimeException("Receptionist not found with id: " + id)
+                );
+
+        User user = receptionist.getUser();
+
+        // First delete receptionist profile
+        receptionistRepository.delete(receptionist);
+
+        // Then delete linked user account
+        if (user != null) {
+            userRepository.delete(user);
+        }
+    }
 }

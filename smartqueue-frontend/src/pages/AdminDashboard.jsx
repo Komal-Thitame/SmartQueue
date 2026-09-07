@@ -107,17 +107,17 @@ const AdminDashboard = () => {
                 const parsedUser =
                     JSON.parse(storedUser);
 
-                if (parsedUser.email) {
+                if (parsedUser?.email) {
                     displayEmail =
                         parsedUser.email;
                 }
 
-                if (parsedUser.name) {
+                if (parsedUser?.name) {
                     displayName =
                         parsedUser.name;
                 }
 
-                if (parsedUser.role) {
+                if (parsedUser?.role) {
                     displayRole =
                         parsedUser.role;
                 }
@@ -146,16 +146,13 @@ const AdminDashboard = () => {
                 nameFromEmail.slice(1);
         }
 
-        setCurrentUser((prev) => ({
-            ...prev,
-
+        setCurrentUser((previous) => ({
+            ...previous,
             email:
                 displayEmail ||
                 'admin@gmail.com',
-
             name:
             displayName,
-
             role:
             displayRole
         }));
@@ -168,27 +165,22 @@ const AdminDashboard = () => {
 
     useEffect(() => {
 
-        const handleClickOutside =
-            (event) => {
+        const handleClickOutside = (event) => {
 
-                if (
-                    dropdownRef.current &&
-                    !dropdownRef.current.contains(
-                        event.target
-                    )
-                ) {
-                    setShowProfileMenu(false);
-                }
+            if (
+                dropdownRef.current &&
+                !dropdownRef.current.contains(event.target)
+            ) {
+                setShowProfileMenu(false);
+            }
 
-                if (
-                    notificationRef.current &&
-                    !notificationRef.current.contains(
-                        event.target
-                    )
-                ) {
-                    setShowNotifications(false);
-                }
-            };
+            if (
+                notificationRef.current &&
+                !notificationRef.current.contains(event.target)
+            ) {
+                setShowNotifications(false);
+            }
+        };
 
         document.addEventListener(
             'mousedown',
@@ -209,435 +201,389 @@ const AdminDashboard = () => {
     // NORMALIZE STATUS
     // =========================================================
 
-    const normalizeStatus =
-        (status) => {
+    const normalizeStatus = (status) => {
 
-            if (!status) {
-                return 'WAITING';
-            }
-
-            const value =
-                String(status)
-                    .toUpperCase()
-                    .trim()
-                    .replace(/-/g, '_')
-                    .replace(/ /g, '_');
-
-            if (
-                value === 'IN_CONSULTATION' ||
-                value === 'IN_PROGRESS' ||
-                value === 'SERVING'
-            ) {
-                return 'IN_CONSULTATION';
-            }
-
-            if (
-                value === 'COMPLETED'
-            ) {
-                return 'COMPLETED';
-            }
-
-            if (
-                value === 'CANCELLED' ||
-                value === 'CANCELED'
-            ) {
-                return 'CANCELLED';
-            }
-
-            if (
-                value === 'MISSED'
-            ) {
-                return 'MISSED';
-            }
-
-            if (
-                value === 'WAITING'
-            ) {
-                return 'WAITING';
-            }
-
+        if (!status) {
             return 'WAITING';
-        };
+        }
+
+        const value =
+            String(status)
+                .toUpperCase()
+                .trim()
+                .replace(/-/g, '_')
+                .replace(/ /g, '_');
+
+        if (
+            value === 'IN_CONSULTATION' ||
+            value === 'IN_PROGRESS' ||
+            value === 'SERVING'
+        ) {
+            return 'IN_CONSULTATION';
+        }
+
+        if (value === 'COMPLETED') {
+            return 'COMPLETED';
+        }
+
+        if (
+            value === 'CANCELLED' ||
+            value === 'CANCELED'
+        ) {
+            return 'CANCELLED';
+        }
+
+        if (value === 'MISSED') {
+            return 'MISSED';
+        }
+
+        if (value === 'WAITING') {
+            return 'WAITING';
+        }
+
+        return 'WAITING';
+    };
 
     // =========================================================
     // NUMERIC TOKEN
     // =========================================================
 
-    const getNumericToken =
-        (token) => {
+    const getNumericToken = (token) => {
 
-            if (
-                token === undefined ||
-                token === null ||
-                token === ''
-            ) {
-                return null;
-            }
+        if (
+            token === undefined ||
+            token === null ||
+            token === ''
+        ) {
+            return null;
+        }
 
-            if (
-                typeof token === 'number'
-            ) {
-                return token;
-            }
+        if (typeof token === 'number') {
+            return token;
+        }
 
-            const value =
-                String(token).trim();
+        const value =
+            String(token).trim();
 
-            const match =
-                value.match(/\d+/);
+        const match =
+            value.match(/\d+/);
 
-            if (!match) {
-                return null;
-            }
+        if (!match) {
+            return null;
+        }
 
-            const number =
-                parseInt(
-                    match[0],
-                    10
-                );
+        const number =
+            parseInt(match[0], 10);
 
-            return Number.isNaN(number)
-                ? null
-                : number;
-        };
+        return Number.isNaN(number)
+            ? null
+            : number;
+    };
 
     // =========================================================
     // FORMAT TOKEN
     // =========================================================
 
-    const formatToken =
-        (token) => {
+    const formatToken = (token) => {
 
-            const number =
-                getNumericToken(token);
+        const number =
+            getNumericToken(token);
 
-            if (number === null) {
-                return 'N/A';
-            }
+        if (number === null) {
+            return 'N/A';
+        }
 
-            return `A-${String(number).padStart(2, '0')}`;
-        };
-
-    // =========================================================
-    // GET DOCTOR NAME
-    // =========================================================
-
-    const getDoctorName =
-        (doctor) => {
-
-            if (!doctor) {
-                return 'Unknown Doctor';
-            }
-
-            const name =
-                doctor?.name ||
-                doctor?.doctorName ||
-                '';
-
-            if (!name) {
-                return 'Unknown Doctor';
-            }
-
-            if (
-                String(name)
-                    .toLowerCase()
-                    .startsWith('dr.')
-            ) {
-                return name;
-            }
-
-            return `Dr. ${name}`;
-        };
+        return `A-${String(number).padStart(2, '0')}`;
+    };
 
     // =========================================================
-    // GET DOCTOR DEPARTMENT
+    // DOCTOR NAME
     // =========================================================
 
-    const getDoctorDepartment =
-        (doctor) => {
+    const getDoctorName = (doctor) => {
 
-            return (
-                doctor?.specialization ||
-                doctor?.department ||
-                ''
-            );
-        };
+        if (!doctor) {
+            return 'Unknown Doctor';
+        }
 
-    // =========================================================
-    // GET PATIENT NAME
-    // =========================================================
+        const name =
+            doctor?.name ||
+            doctor?.doctorName ||
+            '';
 
-    const getPatientName =
-        (appointment) => {
+        if (!name) {
+            return 'Unknown Doctor';
+        }
 
-            return (
-                appointment?.patientName ||
-                appointment?.patient?.name ||
-                'Unknown Patient'
-            );
-        };
+        if (
+            String(name)
+                .toLowerCase()
+                .startsWith('dr.')
+        ) {
+            return name;
+        }
 
-    // =========================================================
-    // GET APPOINTMENT DOCTOR ID
-    // =========================================================
-
-    const getAppointmentDoctorId =
-        (appointment) => {
-
-            return (
-                appointment?.doctor?.id ??
-                appointment?.doctorId ??
-                null
-            );
-        };
+        return `Dr. ${name}`;
+    };
 
     // =========================================================
-    // GET APPOINTMENT DEPARTMENT
+    // DOCTOR DEPARTMENT
     // =========================================================
 
-    const getAppointmentDepartment =
-        (appointment) => {
+    const getDoctorDepartment = (doctor) => {
 
-            return (
-                appointment?.doctor?.specialization ||
-                appointment?.doctor?.department ||
-                appointment?.department ||
-                ''
-            );
-        };
+        return (
+            doctor?.specialization ||
+            doctor?.department ||
+            ''
+        );
+    };
+
+    // =========================================================
+    // PATIENT NAME
+    // =========================================================
+
+    const getPatientName = (appointment) => {
+
+        return (
+            appointment?.patientName ||
+            appointment?.patient?.name ||
+            'Unknown Patient'
+        );
+    };
+
+    // =========================================================
+    // APPOINTMENT DOCTOR ID
+    // =========================================================
+
+    const getAppointmentDoctorId = (appointment) => {
+
+        return (
+            appointment?.doctor?.id ??
+            appointment?.doctorId ??
+            null
+        );
+    };
+
+    // =========================================================
+    // APPOINTMENT DEPARTMENT
+    // =========================================================
+
+    const getAppointmentDepartment = (appointment) => {
+
+        return (
+            appointment?.doctor?.specialization ||
+            appointment?.doctor?.department ||
+            appointment?.department ||
+            ''
+        );
+    };
 
     // =========================================================
     // ACTIVE DOCTORS
     // =========================================================
-    //
-    // VERY IMPORTANT:
-    // active=false means soft deleted doctor.
-    // Such doctor must not appear anywhere.
-    // =========================================================
 
-    const activeDoctors =
-        useMemo(() => {
+    const activeDoctors = useMemo(() => {
 
-            return doctors.filter(
-                (doctor) =>
-                    doctor?.active !== false
-            );
+        return doctors.filter(
+            (doctor) =>
+                doctor?.active !== false
+        );
 
-        }, [doctors]);
+    }, [doctors]);
 
     // =========================================================
     // ACTIVE DOCTOR IDS
     // =========================================================
 
-    const activeDoctorIds =
-        useMemo(() => {
+    const activeDoctorIds = useMemo(() => {
 
-            return new Set(
-                activeDoctors
-                    .map(
-                        (doctor) =>
-                            doctor?.id
-                    )
-                    .filter(
-                        (id) =>
-                            id !== undefined &&
-                            id !== null
-                    )
-            );
+        return new Set(
+            activeDoctors
+                .map(
+                    (doctor) =>
+                        doctor?.id
+                )
+                .filter(
+                    (id) =>
+                        id !== undefined &&
+                        id !== null
+                )
+        );
 
-        }, [activeDoctors]);
+    }, [activeDoctors]);
 
     // =========================================================
     // REAL DEPARTMENTS
     // =========================================================
-    //
-    // ONLY ACTIVE DOCTORS.
-    //
-    // So if there is no doctor for:
-    // dentist
-    // Interventional Cardiologist
-    //
-    // they will NOT appear.
+    // Only departments having an ACTIVE doctor.
     // =========================================================
 
-    const realDepartments =
-        useMemo(() => {
+    const realDepartments = useMemo(() => {
 
-            const departmentMap =
-                new Map();
+        const departmentMap =
+            new Map();
 
-            activeDoctors.forEach(
-                (doctor) => {
+        activeDoctors.forEach((doctor) => {
 
-                    const department =
-                        getDoctorDepartment(
-                            doctor
-                        );
+            const department =
+                getDoctorDepartment(doctor);
 
-                    if (
-                        department &&
-                        String(department).trim()
-                    ) {
+            if (
+                department &&
+                String(department).trim()
+            ) {
 
-                        const cleanDepartment =
-                            String(
-                                department
-                            ).trim();
+                const cleanDepartment =
+                    String(department).trim();
 
-                        const key =
-                            cleanDepartment
-                                .toLowerCase();
+                const key =
+                    cleanDepartment.toLowerCase();
 
-                        if (
-                            !departmentMap.has(key)
-                        ) {
+                if (
+                    !departmentMap.has(key)
+                ) {
 
-                            departmentMap.set(
-                                key,
-                                cleanDepartment
-                            );
-                        }
-                    }
+                    departmentMap.set(
+                        key,
+                        cleanDepartment
+                    );
                 }
-            );
+            }
+        });
 
-            return Array.from(
-                departmentMap.values()
-            ).sort(
-                (a, b) =>
-                    a.localeCompare(b)
-            );
+        return Array.from(
+            departmentMap.values()
+        ).sort(
+            (a, b) =>
+                a.localeCompare(b)
+        );
 
-        }, [activeDoctors]);
+    }, [activeDoctors]);
 
     // =========================================================
     // FETCH APPOINTMENTS
     // =========================================================
 
-    const fetchAppointments =
-        async () => {
+    const fetchAppointments = async () => {
 
-            try {
+        try {
 
-                const response =
-                    await fetch(
-                        `${API_BASE_URL}/receptionist/appointments/today`
-                    );
-
-                if (!response.ok) {
-
-                    throw new Error(
-                        `Appointments API failed: ${response.status}`
-                    );
-                }
-
-                const data =
-                    await response.json();
-
-                setAppointments(
-                    Array.isArray(data)
-                        ? data
-                        : []
+            const response =
+                await fetch(
+                    `${API_BASE_URL}/receptionist/appointments/today`
                 );
 
-                return Array.isArray(data)
+            if (!response.ok) {
+
+                throw new Error(
+                    `Appointments API failed: ${response.status}`
+                );
+            }
+
+            const data =
+                await response.json();
+
+            const result =
+                Array.isArray(data)
                     ? data
                     : [];
 
-            } catch (error) {
+            setAppointments(result);
 
-                console.error(
-                    'Failed to fetch appointments:',
-                    error
-                );
+            return result;
 
-                return [];
-            }
-        };
+        } catch (error) {
+
+            console.error(
+                'Failed to fetch appointments:',
+                error
+            );
+
+            return [];
+        }
+    };
 
     // =========================================================
     // FETCH DOCTORS
     // =========================================================
 
-    const fetchDoctors =
-        async () => {
+    const fetchDoctors = async () => {
 
-            try {
+        try {
 
-                const response =
-                    await fetch(
-                        `${API_BASE_URL}/admin/doctors`
-                    );
-
-                if (!response.ok) {
-
-                    throw new Error(
-                        `Doctors API failed: ${response.status}`
-                    );
-                }
-
-                const data =
-                    await response.json();
-
-                setDoctors(
-                    Array.isArray(data)
-                        ? data
-                        : []
+            const response =
+                await fetch(
+                    `${API_BASE_URL}/admin/doctors`
                 );
 
-                return Array.isArray(data)
+            if (!response.ok) {
+
+                throw new Error(
+                    `Doctors API failed: ${response.status}`
+                );
+            }
+
+            const data =
+                await response.json();
+
+            const result =
+                Array.isArray(data)
                     ? data
                     : [];
 
-            } catch (error) {
+            setDoctors(result);
 
-                console.error(
-                    'Failed to fetch doctors:',
-                    error
-                );
+            return result;
 
-                setDoctors([]);
+        } catch (error) {
 
-                return [];
-            }
-        };
+            console.error(
+                'Failed to fetch doctors:',
+                error
+            );
+
+            setDoctors([]);
+
+            return [];
+        }
+    };
 
     // =========================================================
     // LOAD DASHBOARD
     // =========================================================
 
-    const loadDashboardData =
-        async () => {
+    const loadDashboardData = async () => {
 
-            try {
+        try {
 
-                setDashboardLoading(true);
-                setDashboardError('');
+            setDashboardLoading(true);
+            setDashboardError('');
 
-                await Promise.all([
-                    fetchAppointments(),
-                    fetchDoctors()
-                ]);
+            await Promise.all([
+                fetchAppointments(),
+                fetchDoctors()
+            ]);
 
-            } catch (error) {
+        } catch (error) {
 
-                console.error(
-                    'Dashboard loading error:',
-                    error
-                );
+            console.error(
+                'Dashboard loading error:',
+                error
+            );
 
-                setDashboardError(
-                    'Unable to load dashboard data.'
-                );
+            setDashboardError(
+                'Unable to load dashboard data.'
+            );
 
-            } finally {
+        } finally {
 
-                setDashboardLoading(false);
-            }
-        };
+            setDashboardLoading(false);
+        }
+    };
 
     // =========================================================
-    // INITIAL LOAD + AUTO REFRESH
+    // INITIAL LOAD + REFRESH
     // =========================================================
 
     useEffect(() => {
@@ -645,15 +591,12 @@ const AdminDashboard = () => {
         loadDashboardData();
 
         const interval =
-            setInterval(
-                () => {
+            setInterval(() => {
 
-                    fetchAppointments();
-                    fetchDoctors();
+                fetchAppointments();
+                fetchDoctors();
 
-                },
-                30000
-            );
+            }, 30000);
 
         return () =>
             clearInterval(interval);
@@ -674,15 +617,18 @@ const AdminDashboard = () => {
             return;
         }
 
+        const exists =
+            realDepartments.some(
+                (department) =>
+                    String(department)
+                        .toLowerCase() ===
+                    String(selectedDept)
+                        .toLowerCase()
+            );
+
         if (
             !selectedDept ||
-            !realDepartments.some(
-                (department) =>
-                    department
-                        .toLowerCase() ===
-                    selectedDept
-                        .toLowerCase()
-            )
+            !exists
         ) {
 
             setSelectedDept(
@@ -731,7 +677,7 @@ const AdminDashboard = () => {
         ]);
 
     // =========================================================
-    // SELECTED DEPARTMENT DOCTOR IDS
+    // SELECTED DOCTOR IDS
     // =========================================================
 
     const selectedDepartmentDoctorIds =
@@ -757,11 +703,6 @@ const AdminDashboard = () => {
     // =========================================================
     // SELECTED DEPARTMENT APPOINTMENTS
     // =========================================================
-    //
-    // VERY IMPORTANT:
-    // Appointment is accepted only if its doctor
-    // is currently active and belongs to selected department.
-    // =========================================================
 
     const selectedDepartmentAppointments =
         useMemo(() => {
@@ -784,6 +725,14 @@ const AdminDashboard = () => {
                     if (
                         doctorId === null ||
                         doctorId === undefined
+                    ) {
+                        return false;
+                    }
+
+                    if (
+                        !activeDoctorIds.has(
+                            doctorId
+                        )
                     ) {
                         return false;
                     }
@@ -815,19 +764,12 @@ const AdminDashboard = () => {
         }, [
             appointments,
             selectedDept,
-            selectedDepartmentDoctorIds
+            selectedDepartmentDoctorIds,
+            activeDoctorIds
         ]);
 
     // =========================================================
-    // REAL CURRENT CONSULTATION
-    // =========================================================
-    //
-    // DO NOT blindly trust /queue/current.
-    //
-    // The real source for dashboard display is today's
-    // appointment data.
-    //
-    // IN_CONSULTATION appointment = current token.
+    // CURRENT CONSULTATION
     // =========================================================
 
     const currentConsultation =
@@ -882,9 +824,7 @@ const AdminDashboard = () => {
 
     useEffect(() => {
 
-        if (
-            currentConsultation
-        ) {
+        if (currentConsultation) {
 
             setCurrentToken(
                 getNumericToken(
@@ -904,12 +844,6 @@ const AdminDashboard = () => {
     // =========================================================
     // NEXT WAITING TOKENS
     // =========================================================
-    //
-    // Only real waiting appointments.
-    //
-    // Cancelled / missed / completed / consultation
-    // are never shown here.
-    // =========================================================
 
     const nextWaitingTokens =
         useMemo(() => {
@@ -921,45 +855,43 @@ const AdminDashboard = () => {
                 return [];
             }
 
-            const waiting =
-                selectedDepartmentAppointments
-                    .filter(
-                        (appointment) => {
+            return selectedDepartmentAppointments
+                .filter(
+                    (appointment) => {
 
-                            const status =
-                                normalizeStatus(
-                                    appointment?.status
-                                );
-
-                            const token =
-                                getNumericToken(
-                                    appointment?.tokenNumber
-                                );
-
-                            return (
-                                status === 'WAITING' &&
-                                token !== null
+                        const status =
+                            normalizeStatus(
+                                appointment?.status
                             );
-                        }
-                    )
-                    .sort(
-                        (a, b) => {
 
-                            const tokenA =
-                                getNumericToken(
-                                    a?.tokenNumber
-                                ) || 0;
+                        const token =
+                            getNumericToken(
+                                appointment?.tokenNumber
+                            );
 
-                            const tokenB =
-                                getNumericToken(
-                                    b?.tokenNumber
-                                ) || 0;
+                        return (
+                            status === 'WAITING' &&
+                            token !== null
+                        );
+                    }
+                )
+                .sort(
+                    (a, b) => {
 
-                            return tokenA - tokenB;
-                        }
-                    );
+                        const tokenA =
+                            getNumericToken(
+                                a?.tokenNumber
+                            ) || 0;
 
-            return waiting.slice(0, 3);
+                        const tokenB =
+                            getNumericToken(
+                                b?.tokenNumber
+                            ) || 0;
+
+                        return tokenA - tokenB;
+                    }
+                )
+                .slice(0, 3);
 
         }, [
             selectedDept,
@@ -968,43 +900,36 @@ const AdminDashboard = () => {
         ]);
 
     // =========================================================
-    // DEPARTMENT QUEUE STATS
+    // DEPARTMENT STATS
     // =========================================================
 
     const departmentQueueStats =
         useMemo(() => {
 
             const waiting =
-                selectedDepartmentAppointments
-                    .filter(
-                        (appointment) =>
-                            normalizeStatus(
-                                appointment?.status
-                            ) === 'WAITING'
-                    )
-                    .length;
+                selectedDepartmentAppointments.filter(
+                    (appointment) =>
+                        normalizeStatus(
+                            appointment?.status
+                        ) === 'WAITING'
+                ).length;
 
             const inConsultation =
-                selectedDepartmentAppointments
-                    .filter(
-                        (appointment) =>
-                            normalizeStatus(
-                                appointment?.status
-                            ) ===
-                            'IN_CONSULTATION'
-                    )
-                    .length;
+                selectedDepartmentAppointments.filter(
+                    (appointment) =>
+                        normalizeStatus(
+                            appointment?.status
+                        ) ===
+                        'IN_CONSULTATION'
+                ).length;
 
             const completed =
-                selectedDepartmentAppointments
-                    .filter(
-                        (appointment) =>
-                            normalizeStatus(
-                                appointment?.status
-                            ) ===
-                            'COMPLETED'
-                    )
-                    .length;
+                selectedDepartmentAppointments.filter(
+                    (appointment) =>
+                        normalizeStatus(
+                            appointment?.status
+                        ) === 'COMPLETED'
+                ).length;
 
             return {
                 waiting,
@@ -1017,20 +942,11 @@ const AdminDashboard = () => {
         ]);
 
     // =========================================================
-    // AVERAGE WAIT TIME
-    // =========================================================
-    //
-    // 15 minutes per waiting patient.
+    // AVERAGE WAIT
     // =========================================================
 
     const averageWaitTime =
         useMemo(() => {
-
-            if (
-                departmentQueueStats.waiting === 0
-            ) {
-                return 0;
-            }
 
             return (
                 departmentQueueStats.waiting * 15
@@ -1041,210 +957,186 @@ const AdminDashboard = () => {
         ]);
 
     // =========================================================
-    // QUEUE REFRESH
+    // REFRESH QUEUE
     // =========================================================
 
-    const refreshQueueData =
-        async () => {
+    const refreshQueueData = async () => {
 
-            await Promise.all([
-                fetchAppointments(),
-                fetchDoctors()
-            ]);
-        };
+        await Promise.all([
+            fetchAppointments(),
+            fetchDoctors()
+        ]);
+    };
 
     // =========================================================
-    // NEXT TOKEN
+    // NEXT
     // =========================================================
 
-    const handleNextToken =
-        async () => {
+    const handleNextToken = async () => {
 
-            if (!selectedDept) {
-                return;
-            }
+        if (!selectedDept) {
+            return;
+        }
 
-            try {
+        try {
 
-                setQueueLoading(true);
+            setQueueLoading(true);
 
-                const response =
-                    await fetch(
-                        `${API_BASE_URL}/queue/next?department=${encodeURIComponent(
-                            selectedDept
-                        )}`,
-                        {
-                            method: 'POST'
-                        }
-                    );
-
-                const data =
-                    await response.json();
-
-                if (
-                    data?.tokenNumber !== undefined &&
-                    data?.tokenNumber !== null
-                ) {
-
-                    const number =
-                        getNumericToken(
-                            data.tokenNumber
-                        );
-
-                    if (number !== null) {
-                        setCurrentToken(number);
+            const response =
+                await fetch(
+                    `${API_BASE_URL}/queue/next?department=${encodeURIComponent(
+                        selectedDept
+                    )}`,
+                    {
+                        method: 'POST'
                     }
-
-                    await refreshQueueData();
-
-                } else if (
-                    data?.message
-                ) {
-
-                    alert(data.message);
-
-                    await refreshQueueData();
-                }
-
-            } catch (error) {
-
-                console.error(
-                    'Error calling next token:',
-                    error
                 );
 
-                alert(
-                    'Unable to call next token.'
-                );
-
-            } finally {
-
-                setQueueLoading(false);
-            }
-        };
-
-    // =========================================================
-    // PREVIOUS TOKEN
-    // =========================================================
-
-    const handlePreviousToken =
-        async () => {
-
-            if (!selectedDept) {
-                return;
-            }
-
-            try {
-
-                setQueueLoading(true);
-
-                const response =
-                    await fetch(
-                        `${API_BASE_URL}/queue/previous?department=${encodeURIComponent(
-                            selectedDept
-                        )}`,
-                        {
-                            method: 'POST'
-                        }
-                    );
-
-                const data =
-                    await response.json();
-
-                if (
-                    data?.tokenNumber !== undefined &&
-                    data?.tokenNumber !== null
-                ) {
-
-                    const number =
-                        getNumericToken(
-                            data.tokenNumber
-                        );
-
-                    if (number !== null) {
-                        setCurrentToken(number);
-                    }
-
-                    await refreshQueueData();
-
-                } else if (
-                    data?.message
-                ) {
-
-                    alert(data.message);
-
-                    await refreshQueueData();
-                }
-
-            } catch (error) {
-
-                console.error(
-                    'Error calling previous token:',
-                    error
-                );
-
-                alert(
-                    'Unable to call previous token.'
-                );
-
-            } finally {
-
-                setQueueLoading(false);
-            }
-        };
-
-    // =========================================================
-    // RECALL TOKEN
-    // =========================================================
-
-    const handleRecallToken =
-        async () => {
+            const data =
+                await response.json();
 
             if (
-                !selectedDept ||
-                currentToken === null
+                data?.tokenNumber !== undefined &&
+                data?.tokenNumber !== null
             ) {
-                return;
-            }
 
-            try {
-
-                const response =
-                    await fetch(
-                        `${API_BASE_URL}/queue/recall?department=${encodeURIComponent(
-                            selectedDept
-                        )}`,
-                        {
-                            method: 'POST'
-                        }
+                const number =
+                    getNumericToken(
+                        data.tokenNumber
                     );
 
-                const data =
-                    await response.json();
-
-                if (
-                    data?.message
-                ) {
-
-                    alert(
-                        `🔔 ${data.message}`
-                    );
-
-                } else {
-
-                    alert(
-                        `🔔 Recalling Token ${formatToken(
-                            currentToken
-                        )} to Cabin!`
-                    );
+                if (number !== null) {
+                    setCurrentToken(number);
                 }
 
-            } catch (error) {
+                await refreshQueueData();
 
-                console.error(
-                    'Error recalling token:',
-                    error
+            } else if (data?.message) {
+
+                alert(data.message);
+
+                await refreshQueueData();
+            }
+
+        } catch (error) {
+
+            console.error(
+                'Error calling next token:',
+                error
+            );
+
+            alert(
+                'Unable to call next token.'
+            );
+
+        } finally {
+
+            setQueueLoading(false);
+        }
+    };
+
+    // =========================================================
+    // PREVIOUS
+    // =========================================================
+
+    const handlePreviousToken = async () => {
+
+        if (!selectedDept) {
+            return;
+        }
+
+        try {
+
+            setQueueLoading(true);
+
+            const response =
+                await fetch(
+                    `${API_BASE_URL}/queue/previous?department=${encodeURIComponent(
+                        selectedDept
+                    )}`,
+                    {
+                        method: 'POST'
+                    }
                 );
+
+            const data =
+                await response.json();
+
+            if (
+                data?.tokenNumber !== undefined &&
+                data?.tokenNumber !== null
+            ) {
+
+                const number =
+                    getNumericToken(
+                        data.tokenNumber
+                    );
+
+                if (number !== null) {
+                    setCurrentToken(number);
+                }
+
+                await refreshQueueData();
+
+            } else if (data?.message) {
+
+                alert(data.message);
+
+                await refreshQueueData();
+            }
+
+        } catch (error) {
+
+            console.error(
+                'Error calling previous token:',
+                error
+            );
+
+            alert(
+                'Unable to call previous token.'
+            );
+
+        } finally {
+
+            setQueueLoading(false);
+        }
+    };
+
+    // =========================================================
+    // RECALL
+    // =========================================================
+
+    const handleRecallToken = async () => {
+
+        if (
+            !selectedDept ||
+            currentToken === null
+        ) {
+            return;
+        }
+
+        try {
+
+            const response =
+                await fetch(
+                    `${API_BASE_URL}/queue/recall?department=${encodeURIComponent(
+                        selectedDept
+                    )}`,
+                    {
+                        method: 'POST'
+                    }
+                );
+
+            const data =
+                await response.json();
+
+            if (data?.message) {
+
+                alert(
+                    `🔔 ${data.message}`
+                );
+
+            } else {
 
                 alert(
                     `🔔 Recalling Token ${formatToken(
@@ -1252,86 +1144,97 @@ const AdminDashboard = () => {
                     )} to Cabin!`
                 );
             }
-        };
+
+        } catch (error) {
+
+            console.error(
+                'Error recalling token:',
+                error
+            );
+
+            alert(
+                `🔔 Recalling Token ${formatToken(
+                    currentToken
+                )} to Cabin!`
+            );
+        }
+    };
 
     // =========================================================
-    // SKIP TOKEN
+    // SKIP
     // =========================================================
 
-    const handleSkipToken =
-        async () => {
+    const handleSkipToken = async () => {
+
+        if (
+            !selectedDept ||
+            currentToken === null
+        ) {
+            return;
+        }
+
+        try {
+
+            setQueueLoading(true);
+
+            const response =
+                await fetch(
+                    `${API_BASE_URL}/queue/skip?department=${encodeURIComponent(
+                        selectedDept
+                    )}`,
+                    {
+                        method: 'POST'
+                    }
+                );
+
+            const data =
+                await response.json();
 
             if (
-                !selectedDept ||
-                currentToken === null
+                data?.tokenNumber !== undefined &&
+                data?.tokenNumber !== null
             ) {
-                return;
-            }
 
-            try {
-
-                setQueueLoading(true);
-
-                const response =
-                    await fetch(
-                        `${API_BASE_URL}/queue/skip?department=${encodeURIComponent(
-                            selectedDept
-                        )}`,
-                        {
-                            method: 'POST'
-                        }
+                const number =
+                    getNumericToken(
+                        data.tokenNumber
                     );
 
-                const data =
-                    await response.json();
-
-                if (
-                    data?.tokenNumber !== undefined &&
-                    data?.tokenNumber !== null
-                ) {
-
-                    const number =
-                        getNumericToken(
-                            data.tokenNumber
-                        );
-
-                    if (number !== null) {
-                        setCurrentToken(number);
-                    }
-
-                    alert(
-                        `⏭️ Patient Skipped! Now Serving: ${formatToken(
-                            data.tokenNumber
-                        )}`
-                    );
-
-                    await refreshQueueData();
-
-                } else if (
-                    data?.message
-                ) {
-
-                    alert(data.message);
-
-                    await refreshQueueData();
+                if (number !== null) {
+                    setCurrentToken(number);
                 }
 
-            } catch (error) {
-
-                console.error(
-                    'Error skipping patient:',
-                    error
-                );
-
                 alert(
-                    'Unable to skip patient.'
+                    `⏭️ Patient Skipped! Now Serving: ${formatToken(
+                        data.tokenNumber
+                    )}`
                 );
 
-            } finally {
+                await refreshQueueData();
 
-                setQueueLoading(false);
+            } else if (data?.message) {
+
+                alert(data.message);
+
+                await refreshQueueData();
             }
-        };
+
+        } catch (error) {
+
+            console.error(
+                'Error skipping patient:',
+                error
+            );
+
+            alert(
+                'Unable to skip patient.'
+            );
+
+        } finally {
+
+            setQueueLoading(false);
+        }
+    };
 
     // =========================================================
     // DASHBOARD STATS
@@ -1431,168 +1334,163 @@ const AdminDashboard = () => {
     // DOCTOR STATUS
     // =========================================================
 
-    const getDoctorStatus =
-        (doctor) => {
+    const getDoctorStatus = (doctor) => {
 
-            const doctorId =
-                doctor?.id;
+        const doctorId =
+            doctor?.id;
 
-            if (
-                doctorId === undefined ||
-                doctorId === null
-            ) {
-
-                return {
-                    type: 'available',
-                    label: '🟢 Available'
-                };
-            }
-
-            const doctorAppointments =
-                appointments.filter(
-                    (appointment) => {
-
-                        const appointmentDoctorId =
-                            getAppointmentDoctorId(
-                                appointment
-                            );
-
-                        return (
-                            appointmentDoctorId ===
-                            doctorId
-                        );
-                    }
-                );
-
-            const consultation =
-                doctorAppointments.find(
-                    (appointment) =>
-                        normalizeStatus(
-                            appointment?.status
-                        ) ===
-                        'IN_CONSULTATION'
-                );
-
-            const waiting =
-                doctorAppointments.filter(
-                    (appointment) =>
-                        normalizeStatus(
-                            appointment?.status
-                        ) === 'WAITING'
-                );
-
-            if (consultation) {
-
-                return {
-                    type: 'serving',
-                    label:
-                        `🟢 Serving ${formatToken(
-                            consultation?.tokenNumber
-                        )}`
-                };
-            }
-
-            if (
-                waiting.length > 0
-            ) {
-
-                return {
-                    type: 'busy',
-                    label: '🟡 Waiting Queue'
-                };
-            }
+        if (
+            doctorId === undefined ||
+            doctorId === null
+        ) {
 
             return {
                 type: 'available',
                 label: '🟢 Available'
             };
+        }
+
+        const doctorAppointments =
+            appointments.filter(
+                (appointment) => {
+
+                    const appointmentDoctorId =
+                        getAppointmentDoctorId(
+                            appointment
+                        );
+
+                    return (
+                        appointmentDoctorId ===
+                        doctorId
+                    );
+                }
+            );
+
+        const consultation =
+            doctorAppointments.find(
+                (appointment) =>
+                    normalizeStatus(
+                        appointment?.status
+                    ) ===
+                    'IN_CONSULTATION'
+            );
+
+        const waiting =
+            doctorAppointments.filter(
+                (appointment) =>
+                    normalizeStatus(
+                        appointment?.status
+                    ) === 'WAITING'
+            );
+
+        if (consultation) {
+
+            return {
+                type: 'serving',
+                label:
+                    `🟢 Serving ${formatToken(
+                        consultation?.tokenNumber
+                    )}`
+            };
+        }
+
+        if (waiting.length > 0) {
+
+            return {
+                type: 'busy',
+                label: '🟡 Waiting Queue'
+            };
+        }
+
+        return {
+            type: 'available',
+            label: '🟢 Available'
         };
+    };
 
     // =========================================================
     // STATUS LABEL
     // =========================================================
 
-    const getStatusLabel =
-        (status) => {
+    const getStatusLabel = (status) => {
 
-            const normalized =
-                normalizeStatus(status);
+        const normalized =
+            normalizeStatus(status);
 
-            if (
-                normalized ===
-                'IN_CONSULTATION'
-            ) {
-                return 'IN CONSULTATION';
-            }
+        if (
+            normalized ===
+            'IN_CONSULTATION'
+        ) {
+            return 'IN CONSULTATION';
+        }
 
-            if (
-                normalized ===
-                'COMPLETED'
-            ) {
-                return 'COMPLETED';
-            }
+        if (
+            normalized ===
+            'COMPLETED'
+        ) {
+            return 'COMPLETED';
+        }
 
-            if (
-                normalized ===
-                'CANCELLED'
-            ) {
-                return 'CANCELLED';
-            }
+        if (
+            normalized ===
+            'CANCELLED'
+        ) {
+            return 'CANCELLED';
+        }
 
-            if (
-                normalized ===
-                'MISSED'
-            ) {
-                return 'MISSED';
-            }
+        if (
+            normalized ===
+            'MISSED'
+        ) {
+            return 'MISSED';
+        }
 
-            return 'WAITING';
-        };
+        return 'WAITING';
+    };
 
     // =========================================================
     // STATUS CLASS
     // =========================================================
 
-    const getStatusClass =
-        (status) => {
+    const getStatusClass = (status) => {
 
-            const normalized =
-                normalizeStatus(status);
+        const normalized =
+            normalizeStatus(status);
 
-            if (
-                normalized ===
-                'IN_CONSULTATION'
-            ) {
+        if (
+            normalized ===
+            'IN_CONSULTATION'
+        ) {
 
-                return 'status-pill serving';
-            }
+            return 'status-pill serving';
+        }
 
-            if (
-                normalized ===
-                'COMPLETED'
-            ) {
+        if (
+            normalized ===
+            'COMPLETED'
+        ) {
 
-                return 'status-pill completed';
-            }
+            return 'status-pill completed';
+        }
 
-            if (
-                normalized ===
-                'CANCELLED'
-            ) {
+        if (
+            normalized ===
+            'CANCELLED'
+        ) {
 
-                return 'status-pill offline';
-            }
+            return 'status-pill offline';
+        }
 
-            if (
-                normalized ===
-                'MISSED'
-            ) {
+        if (
+            normalized ===
+            'MISSED'
+        ) {
 
-                return 'status-pill busy';
-            }
+            return 'status-pill busy';
+        }
 
-            return 'status-pill waiting';
-        };
+        return 'status-pill waiting';
+    };
 
     // =========================================================
     // NOTIFICATIONS
@@ -1603,133 +1501,77 @@ const AdminDashboard = () => {
 
             const items = [];
 
-            // -------------------------------------------------
-            // WAITING
-            // -------------------------------------------------
-
             if (
                 dashboardStats.waiting > 0
             ) {
 
                 items.push({
-
-                    id:
-                        'waiting-patients',
-
-                    icon:
-                        '⏳',
-
-                    title:
-                        'Patients Waiting',
-
+                    id: 'waiting-patients',
+                    icon: '⏳',
+                    title: 'Patients Waiting',
                     message:
                         `${dashboardStats.waiting} patient${
                             dashboardStats.waiting > 1
                                 ? 's are'
                                 : ' is'
                         } currently waiting in queue.`,
-
-                    type:
-                        'warning'
+                    type: 'warning'
                 });
             }
-
-            // -------------------------------------------------
-            // CONSULTATION
-            // -------------------------------------------------
 
             if (
                 dashboardStats.inConsultation > 0
             ) {
 
                 items.push({
-
-                    id:
-                        'active-consultations',
-
-                    icon:
-                        '🟢',
-
-                    title:
-                        'Active Consultation',
-
+                    id: 'active-consultations',
+                    icon: '🟢',
+                    title: 'Active Consultation',
                     message:
                         `${dashboardStats.inConsultation} doctor${
                             dashboardStats.inConsultation > 1
                                 ? 's are'
                                 : ' is'
                         } currently consulting.`,
-
-                    type:
-                        'success'
+                    type: 'success'
                 });
             }
-
-            // -------------------------------------------------
-            // CANCELLED
-            // -------------------------------------------------
 
             if (
                 dashboardStats.cancelled > 0
             ) {
 
                 items.push({
-
-                    id:
-                        'cancelled-appointments',
-
-                    icon:
-                        '❌',
-
-                    title:
-                        'Cancelled Appointments',
-
+                    id: 'cancelled-appointments',
+                    icon: '❌',
+                    title: 'Cancelled Appointments',
                     message:
                         `${dashboardStats.cancelled} appointment${
                             dashboardStats.cancelled > 1
                                 ? 's were'
                                 : ' was'
                         } cancelled today.`,
-
-                    type:
-                        'danger'
+                    type: 'danger'
                 });
             }
-
-            // -------------------------------------------------
-            // MISSED
-            // -------------------------------------------------
 
             if (
                 dashboardStats.missed > 0
             ) {
 
                 items.push({
-
-                    id:
-                        'missed-appointments',
-
-                    icon:
-                        '⚠️',
-
-                    title:
-                        'Missed Appointments',
-
+                    id: 'missed-appointments',
+                    icon: '⚠️',
+                    title: 'Missed Appointments',
                     message:
                         `${dashboardStats.missed} appointment${
                             dashboardStats.missed > 1
                                 ? 's were'
                                 : ' was'
                         } marked as missed.`,
-
-                    type:
-                        'warning'
+                    type: 'warning'
                 });
             }
-
-            // -------------------------------------------------
-            // NO ACTIVE DOCTORS
-            // -------------------------------------------------
 
             if (
                 !dashboardLoading &&
@@ -1737,27 +1579,14 @@ const AdminDashboard = () => {
             ) {
 
                 items.push({
-
-                    id:
-                        'no-active-doctors',
-
-                    icon:
-                        '👨‍⚕️',
-
-                    title:
-                        'No Active Doctors',
-
+                    id: 'no-active-doctors',
+                    icon: '👨‍⚕️',
+                    title: 'No Active Doctors',
                     message:
                         'There are currently no active doctors available.',
-
-                    type:
-                        'danger'
+                    type: 'danger'
                 });
             }
-
-            // -------------------------------------------------
-            // ALL CLEAR
-            // -------------------------------------------------
 
             if (
                 !dashboardLoading &&
@@ -1765,21 +1594,12 @@ const AdminDashboard = () => {
             ) {
 
                 items.push({
-
-                    id:
-                        'all-clear',
-
-                    icon:
-                        '✅',
-
-                    title:
-                        'All Clear',
-
+                    id: 'all-clear',
+                    icon: '✅',
+                    title: 'All Clear',
                     message:
                         'No urgent queue or appointment alerts right now.',
-
-                    type:
-                        'success'
+                    type: 'success'
                 });
             }
 
@@ -1792,7 +1612,7 @@ const AdminDashboard = () => {
         ]);
 
     // =========================================================
-    // UNREAD NOTIFICATIONS
+    // UNREAD
     // =========================================================
 
     const unreadNotifications =
@@ -1811,22 +1631,21 @@ const AdminDashboard = () => {
         ]);
 
     // =========================================================
-    // MARK ALL READ
+    // MARK READ
     // =========================================================
 
-    const handleMarkAllRead =
-        () => {
+    const handleMarkAllRead = () => {
 
-            setReadNotifications(
-                notifications.map(
-                    (notification) =>
-                        notification.id
-                )
-            );
-        };
+        setReadNotifications(
+            notifications.map(
+                (notification) =>
+                    notification.id
+            )
+        );
+    };
 
     // =========================================================
-    // CLICK NOTIFICATION
+    // NOTIFICATION CLICK
     // =========================================================
 
     const handleNotificationClick =
@@ -1840,7 +1659,6 @@ const AdminDashboard = () => {
                             notification.id
                         )
                     ) {
-
                         return previous;
                     }
 
@@ -1887,68 +1705,52 @@ const AdminDashboard = () => {
     // LOGOUT
     // =========================================================
 
-    const handleLogout =
-        () => {
+    const handleLogout = () => {
 
-            localStorage.removeItem(
-                'user'
-            );
+        localStorage.removeItem('user');
+        localStorage.removeItem('email');
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+        localStorage.removeItem('userName');
 
-            localStorage.removeItem(
-                'email'
-            );
+        sessionStorage.clear();
 
-            localStorage.removeItem(
-                'token'
-            );
-
-            localStorage.removeItem(
-                'role'
-            );
-
-            localStorage.removeItem(
-                'userName'
-            );
-
-            sessionStorage.clear();
-
-            navigate(
-                '/login',
-                {
-                    replace: true
-                }
-            );
-        };
+        navigate(
+            '/login',
+            {
+                replace: true
+            }
+        );
+    };
 
     // =========================================================
     // USER INITIAL
     // =========================================================
 
-    const getUserInitial =
-        () => {
+    const getUserInitial = () => {
 
-            if (
-                currentUser.name &&
-                currentUser.name.length > 0
-            ) {
+        if (
+            currentUser.name &&
+            currentUser.name.length > 0
+        ) {
 
-                return currentUser.name
-                    .charAt(0)
-                    .toUpperCase();
-            }
+            return currentUser.name
+                .charAt(0)
+                .toUpperCase();
+        }
 
-            if (
-                currentUser.email &&
-                currentUser.email.length > 0
-            ) {
+        if (
+            currentUser.email &&
+            currentUser.email.length > 0
+        ) {
 
-                return currentUser.email
-                    .charAt(0)
-                    .toUpperCase();
-            }
+            return currentUser.email
+                .charAt(0)
+                .toUpperCase();
+        }
 
-            return 'A';
-        };
+        return 'A';
+    };
 
     // =========================================================
     // RENDER
@@ -1957,9 +1759,9 @@ const AdminDashboard = () => {
     return (
         <div className="sq-saas-layout light-theme">
 
-            {/* =================================================
+            {/* =====================================================
                 SIDEBAR
-            ================================================= */}
+            ===================================================== */}
 
             <aside className="sq-rail-sidebar">
 
@@ -1970,36 +1772,12 @@ const AdminDashboard = () => {
                 <nav className="sq-rail-nav">
 
                     {[
-                        [
-                            'control',
-                            '🎛️',
-                            'Control'
-                        ],
-                        [
-                            'queue',
-                            '🎫',
-                            'Queue Ops'
-                        ],
-                        [
-                            'doctors',
-                            '👨‍⚕️',
-                            'Doctors'
-                        ],
-                        [
-                            'reception',
-                            '👩‍💼',
-                            'Reception'
-                        ],
-                        [
-                            'patients',
-                            '👥',
-                            'Patients'
-                        ],
-                        [
-                            'bookings',
-                            '📅',
-                            'Bookings'
-                        ]
+                        ['control', '🎛️', 'Control'],
+                        ['queue', '🎫', 'Queue Ops'],
+                        ['doctors', '👨‍⚕️', 'Doctors'],
+                        ['reception', '👩‍💼', 'Reception'],
+                        ['patients', '👥', 'Patients'],
+                        ['bookings', '📅', 'Bookings']
                     ].map(
                         ([
                              tab,
@@ -2062,9 +1840,9 @@ const AdminDashboard = () => {
 
             </aside>
 
-            {/* =================================================
+            {/* =====================================================
                 MAIN
-            ================================================= */}
+            ===================================================== */}
 
             <div className="sq-main-wrapper">
 
@@ -2094,7 +1872,6 @@ const AdminDashboard = () => {
 
                     <div className="header-right-zone">
 
-                        {/* REALTIME */}
                         <div className="sq-pulse-indicator">
 
                             <span className="pulse-dot"></span>
@@ -2103,9 +1880,7 @@ const AdminDashboard = () => {
 
                         </div>
 
-                        {/* =================================================
-                            NOTIFICATION
-                        ================================================= */}
+                        {/* NOTIFICATION */}
 
                         <div
                             className="notification-wrapper"
@@ -2129,28 +1904,19 @@ const AdminDashboard = () => {
 
                                 🔔
 
-                                {unreadNotifications.length >
-                                    0 && (
-
-                                        <span className="notification-count">
-
-                                        {unreadNotifications.length >
-                                        9
+                                {unreadNotifications.length > 0 && (
+                                    <span className="notification-count">
+                                        {unreadNotifications.length > 9
                                             ? '9+'
                                             : unreadNotifications.length}
-
                                     </span>
-                                    )}
+                                )}
 
-                                {unreadNotifications.length >
-                                    0 && (
-
-                                        <span className="dot-alert"></span>
-                                    )}
+                                {unreadNotifications.length > 0 && (
+                                    <span className="dot-alert"></span>
+                                )}
 
                             </button>
-
-                            {/* NOTIFICATION DROPDOWN */}
 
                             {showNotifications && (
 
@@ -2165,26 +1931,25 @@ const AdminDashboard = () => {
                                             </h4>
 
                                             <span>
-                                                {unreadNotifications.length >
-                                                0
+                                                {unreadNotifications.length > 0
                                                     ? `${unreadNotifications.length} unread`
                                                     : 'All caught up'}
                                             </span>
 
                                         </div>
 
-                                        {unreadNotifications.length >
-                                            0 && (
+                                        {unreadNotifications.length > 0 && (
 
-                                                <button
-                                                    className="notification-mark-read"
-                                                    onClick={
-                                                        handleMarkAllRead
-                                                    }
-                                                >
-                                                    Mark all as read
-                                                </button>
-                                            )}
+                                            <button
+                                                className="notification-mark-read"
+                                                onClick={
+                                                    handleMarkAllRead
+                                                }
+                                            >
+                                                Mark all as read
+                                            </button>
+
+                                        )}
 
                                     </div>
 
@@ -2193,9 +1958,7 @@ const AdminDashboard = () => {
                                     <div className="notification-list">
 
                                         {notifications.map(
-                                            (
-                                                notification
-                                            ) => {
+                                            (notification) => {
 
                                                 const isUnread =
                                                     !readNotifications.includes(
@@ -2239,7 +2002,6 @@ const AdminDashboard = () => {
                                                                 </strong>
 
                                                                 {isUnread && (
-
                                                                     <span className="notification-unread-dot"></span>
                                                                 )}
 
@@ -2265,9 +2027,7 @@ const AdminDashboard = () => {
 
                         </div>
 
-                        {/* =================================================
-                            PROFILE
-                        ================================================= */}
+                        {/* PROFILE */}
 
                         <div
                             className="profile-wrapper"
@@ -2417,16 +2177,14 @@ const AdminDashboard = () => {
                 <main className="sq-canvas">
 
                     {/* =================================================
-                        CONTROL CENTER
+                        CONTROL
                     ================================================= */}
 
                     {activeTab === 'control' && (
 
                         <>
 
-                            {/* =================================================
-                                BANNER
-                            ================================================= */}
+                            {/* BANNER */}
 
                             <div className="sq-glass-banner mb-3">
 
@@ -2472,9 +2230,7 @@ const AdminDashboard = () => {
 
                             </div>
 
-                            {/* =================================================
-                                PRIMARY KPI
-                            ================================================= */}
+                            {/* PRIMARY KPI */}
 
                             <div className="sq-metrics-grid mb-3">
 
@@ -2487,11 +2243,9 @@ const AdminDashboard = () => {
                                     <div className="m-val-row">
 
                                         <span className="m-val">
-
                                             {dashboardLoading
                                                 ? '—'
                                                 : dashboardStats.patientsToday}
-
                                         </span>
 
                                         <span className="m-sub">
@@ -2511,11 +2265,9 @@ const AdminDashboard = () => {
                                     <div className="m-val-row">
 
                                         <span className="m-val text-amber">
-
                                             {dashboardLoading
                                                 ? '—'
                                                 : dashboardStats.waiting}
-
                                         </span>
 
                                         <span className="m-sub">
@@ -2535,11 +2287,9 @@ const AdminDashboard = () => {
                                     <div className="m-val-row">
 
                                         <span className="m-val text-teal">
-
                                             {dashboardLoading
                                                 ? '—'
                                                 : activeDoctors.length}
-
                                         </span>
 
                                         <span className="m-sub">
@@ -2559,11 +2309,9 @@ const AdminDashboard = () => {
                                     <div className="m-val-row">
 
                                         <span className="m-val text-teal">
-
                                             {dashboardLoading
                                                 ? '—'
                                                 : dashboardStats.completed}
-
                                         </span>
 
                                         <span className="m-sub">
@@ -2576,9 +2324,7 @@ const AdminDashboard = () => {
 
                             </div>
 
-                            {/* =================================================
-                                SECONDARY KPI
-                            ================================================= */}
+                            {/* SECONDARY KPI */}
 
                             <div className="sq-metrics-grid mb-3">
 
@@ -2591,11 +2337,9 @@ const AdminDashboard = () => {
                                     <div className="m-val-row">
 
                                         <span className="m-val">
-
                                             {dashboardLoading
                                                 ? '—'
                                                 : dashboardStats.inConsultation}
-
                                         </span>
 
                                         <span className="m-sub">
@@ -2615,11 +2359,9 @@ const AdminDashboard = () => {
                                     <div className="m-val-row">
 
                                         <span className="m-val text-amber">
-
                                             {dashboardLoading
                                                 ? '—'
                                                 : `${averageWaitTime}m`}
-
                                         </span>
 
                                         <span className="m-sub">
@@ -2639,11 +2381,9 @@ const AdminDashboard = () => {
                                     <div className="m-val-row">
 
                                         <span className="m-val">
-
                                             {dashboardLoading
                                                 ? '—'
                                                 : dashboardStats.cancelled}
-
                                         </span>
 
                                         <span className="m-sub">
@@ -2663,11 +2403,9 @@ const AdminDashboard = () => {
                                     <div className="m-val-row">
 
                                         <span className="m-val">
-
                                             {dashboardLoading
                                                 ? '—'
                                                 : dashboardStats.missed}
-
                                         </span>
 
                                         <span className="m-sub">
@@ -2680,15 +2418,11 @@ const AdminDashboard = () => {
 
                             </div>
 
-                            {/* =================================================
-                                QUEUE + DOCTOR
-                            ================================================= */}
+                            {/* QUEUE + DOCTOR */}
 
                             <div className="sq-matrix-grid mb-3">
 
-                                {/* =================================================
-                                    LIVE QUEUE
-                                ================================================= */}
+                                {/* LIVE QUEUE */}
 
                                 <div className="sq-glass-card hero-token-board">
 
@@ -2709,19 +2443,17 @@ const AdminDashboard = () => {
                                             <select
                                                 className="dept-dropdown"
                                                 value={selectedDept}
-                                                onChange={(e) =>
+                                                onChange={(event) =>
                                                     setSelectedDept(
-                                                        e.target.value
+                                                        event.target.value
                                                     )
                                                 }
                                                 disabled={
-                                                    realDepartments.length ===
-                                                    0
+                                                    realDepartments.length === 0
                                                 }
                                             >
 
-                                                {realDepartments.length ===
-                                                0 ? (
+                                                {realDepartments.length === 0 ? (
 
                                                     <option value="">
                                                         No active doctor departments
@@ -2730,9 +2462,7 @@ const AdminDashboard = () => {
                                                 ) : (
 
                                                     realDepartments.map(
-                                                        (
-                                                            department
-                                                        ) => (
+                                                        (department) => (
 
                                                             <option
                                                                 key={
@@ -2774,8 +2504,6 @@ const AdminDashboard = () => {
 
                                         </div>
 
-                                        {/* CURRENT PATIENT INFO */}
-
                                         {currentConsultation && (
 
                                             <div
@@ -2816,12 +2544,10 @@ const AdminDashboard = () => {
 
                                             <div className="token-chips">
 
-                                                {nextWaitingTokens.length ===
-                                                0 ? (
+                                                {nextWaitingTokens.length === 0 ? (
 
                                                     <span className="chip">
-                                                        No waiting
-                                                        patients
+                                                        No waiting patients
                                                     </span>
 
                                                 ) : (
@@ -2835,11 +2561,10 @@ const AdminDashboard = () => {
                                                             <span
                                                                 key={
                                                                     appointment?.id ||
-                                                                    appointment?.tokenNumber
+                                                                    `${appointment?.tokenNumber}-${index}`
                                                                 }
                                                                 className={`chip ${
-                                                                    index ===
-                                                                    0
+                                                                    index === 0
                                                                         ? 'active'
                                                                         : ''
                                                                 }`}
@@ -2900,8 +2625,7 @@ const AdminDashboard = () => {
                                                 }
                                                 disabled={
                                                     !selectedDept ||
-                                                    currentToken ===
-                                                    null
+                                                    currentToken === null
                                                 }
                                             >
                                                 🔔 Recall Token
@@ -2914,8 +2638,7 @@ const AdminDashboard = () => {
                                                 }
                                                 disabled={
                                                     !selectedDept ||
-                                                    currentToken ===
-                                                    null ||
+                                                    currentToken === null ||
                                                     queueLoading
                                                 }
                                             >
@@ -2931,9 +2654,7 @@ const AdminDashboard = () => {
                                         <span>
                                             ⏱️ Est. Wait Time:{' '}
                                             <strong>
-                                                {
-                                                    averageWaitTime
-                                                } mins
+                                                {averageWaitTime} mins
                                             </strong>
                                         </span>
 
@@ -2958,9 +2679,7 @@ const AdminDashboard = () => {
 
                                 </div>
 
-                                {/* =================================================
-                                    DOCTOR STATUS MATRIX
-                                ================================================= */}
+                                {/* DOCTOR STATUS */}
 
                                 <div className="sq-glass-card">
 
@@ -2984,8 +2703,7 @@ const AdminDashboard = () => {
                                                 Loading doctors...
                                             </div>
 
-                                        ) : activeDoctors.length ===
-                                        0 ? (
+                                        ) : activeDoctors.length === 0 ? (
 
                                             <div className="queue-empty">
                                                 No active doctors found.
@@ -2996,9 +2714,7 @@ const AdminDashboard = () => {
                                             activeDoctors
                                                 .slice(0, 6)
                                                 .map(
-                                                    (
-                                                        doctor
-                                                    ) => {
+                                                    (doctor) => {
 
                                                         const status =
                                                             getDoctorStatus(
@@ -3053,9 +2769,7 @@ const AdminDashboard = () => {
 
                             </div>
 
-                            {/* =================================================
-                                TODAY APPOINTMENTS
-                            ================================================= */}
+                            {/* TODAY APPOINTMENTS */}
 
                             <div className="sq-glass-card mb-3">
 
@@ -3088,8 +2802,7 @@ const AdminDashboard = () => {
 
                                 <div className="queue-table-wrapper">
 
-                                    {recentAppointments.length ===
-                                    0 ? (
+                                    {recentAppointments.length === 0 ? (
 
                                         <div className="queue-empty">
 
@@ -3115,6 +2828,7 @@ const AdminDashboard = () => {
                                             <thead>
 
                                             <tr>
+
                                                 <th>
                                                     Token
                                                 </th>
@@ -3130,6 +2844,7 @@ const AdminDashboard = () => {
                                                 <th>
                                                     Status
                                                 </th>
+
                                             </tr>
 
                                             </thead>
@@ -3137,9 +2852,7 @@ const AdminDashboard = () => {
                                             <tbody>
 
                                             {recentAppointments.map(
-                                                (
-                                                    appointment
-                                                ) => (
+                                                (appointment) => (
 
                                                     <tr
                                                         key={
@@ -3148,13 +2861,11 @@ const AdminDashboard = () => {
                                                     >
 
                                                         <td>
-
                                                             <strong>
                                                                 {formatToken(
                                                                     appointment?.tokenNumber
                                                                 )}
                                                             </strong>
-
                                                         </td>
 
                                                         <td>
@@ -3176,15 +2887,15 @@ const AdminDashboard = () => {
 
                                                         <td>
 
-                                                                <span
-                                                                    className={getStatusClass(
-                                                                        appointment?.status
-                                                                    )}
-                                                                >
-                                                                    {getStatusLabel(
-                                                                        appointment?.status
-                                                                    )}
-                                                                </span>
+                                                            <span
+                                                                className={getStatusClass(
+                                                                    appointment?.status
+                                                                )}
+                                                            >
+                                                                {getStatusLabel(
+                                                                    appointment?.status
+                                                                )}
+                                                            </span>
 
                                                         </td>
 
@@ -3200,8 +2911,6 @@ const AdminDashboard = () => {
                                 </div>
 
                             </div>
-
-                            {/* ERROR */}
 
                             {dashboardError && (
 
@@ -3340,9 +3049,7 @@ const AdminDashboard = () => {
                                         <tbody>
 
                                         {appointments.map(
-                                            (
-                                                appointment
-                                            ) => (
+                                            (appointment) => (
 
                                                 <tr
                                                     key={
@@ -3379,15 +3086,15 @@ const AdminDashboard = () => {
 
                                                     <td>
 
-                                                            <span
-                                                                className={getStatusClass(
-                                                                    appointment?.status
-                                                                )}
-                                                            >
-                                                                {getStatusLabel(
-                                                                    appointment?.status
-                                                                )}
-                                                            </span>
+                                                        <span
+                                                            className={getStatusClass(
+                                                                appointment?.status
+                                                            )}
+                                                        >
+                                                            {getStatusLabel(
+                                                                appointment?.status
+                                                            )}
+                                                        </span>
 
                                                     </td>
 

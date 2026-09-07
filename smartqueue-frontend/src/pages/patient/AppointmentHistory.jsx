@@ -136,15 +136,47 @@ const AppointmentHistory = () => {
 
             {/* MAIN CONTENT */}
             <main className="patient-main">
+                {/* HEADER */}
                 <header className="patient-header">
-                    <h1 className="patient-header-title">Appointment History</h1>
-                    <div className="patient-header-right">
-                        <span style={{ cursor: "pointer", fontSize: "18px" }}>🔔</span>
-                        <div onClick={() => navigate("/patient/profile")} style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
-                            <div className="patient-avatar">{patientName.charAt(0).toUpperCase()}</div>
-                            <span style={{ fontSize: "14px", fontWeight: "500", color: "#374151" }}>{patientName}</span>
+
+                    <div className="patient-header-left">
+                        <div className="patient-header-heading">
+                            <h1>Appointment History</h1>
+
+                            <p>
+                                View your past appointments and visit records
+                            </p>
                         </div>
                     </div>
+
+                    <div className="patient-header-right">
+
+                        {/* Profile */}
+                        <div
+                            className="patient-header-profile"
+                            onClick={() => navigate("/patient/profile")}
+                        >
+                            <div className="patient-avatar">
+                                {patientName.charAt(0).toUpperCase()}
+                            </div>
+
+                            <div className="patient-header-user-info">
+                <span className="patient-header-user-name">
+                    {patientName}
+                </span>
+
+                                <span className="patient-header-user-role">
+                    Patient
+                </span>
+                            </div>
+
+                            <span className="patient-profile-arrow">
+                ›
+            </span>
+                        </div>
+
+                    </div>
+
                 </header>
 
                 <div className="patient-body">
