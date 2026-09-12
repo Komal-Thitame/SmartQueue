@@ -8,6 +8,7 @@ import com.smartqueue.smartqueue_backend.entity.Role;
 import com.smartqueue.smartqueue_backend.entity.User;
 import com.smartqueue.smartqueue_backend.repository.UserRepository;
 import com.smartqueue.smartqueue_backend.service.AuthService;
+import com.smartqueue.smartqueue_backend.security.JwtService;
 
 import jakarta.validation.Valid;
 
@@ -31,6 +32,9 @@ public class AuthController {
 
     @Autowired
     private AuthService authService;
+
+    @Autowired
+    private JwtService jwtService;
 
     // ================= REGISTER =================
 
@@ -59,9 +63,11 @@ public class AuthController {
 
         userRepository.save(user);
 
+        String token = jwtService.generateToken(user.getEmail(), user.getRole().toString());
+
         return ResponseEntity.ok(
                 new AuthResponse(
-                        null,
+                        token,
                         user.getRole().toString(),
                         "Registration Successful"
                 )
@@ -93,10 +99,12 @@ public class AuthController {
                     .body(Map.of("message", "Invalid Email or Password"));
         }
 
+        String token = jwtService.generateToken(user.getEmail(), user.getRole().toString());
+
         // 🟢 Login successful hone par user ki saari details return karna taaki profile dynamic bane
         return ResponseEntity.ok(
                 Map.of(
-                        "token", "temporary-token",
+                        "token", token,
                         "role", user.getRole().toString(),
                         "message", "Login Successful",
                         "id", user.getId(),

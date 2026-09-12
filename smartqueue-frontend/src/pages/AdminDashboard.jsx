@@ -333,8 +333,8 @@ const AdminDashboard = () => {
     const getDoctorDepartment = (doctor) => {
 
         return (
-            doctor?.specialization ||
             doctor?.department ||
+            doctor?.specialization ||
             ''
         );
     };
@@ -372,8 +372,8 @@ const AdminDashboard = () => {
     const getAppointmentDepartment = (appointment) => {
 
         return (
-            appointment?.doctor?.specialization ||
             appointment?.doctor?.department ||
+            appointment?.doctor?.specialization ||
             appointment?.department ||
             ''
         );
