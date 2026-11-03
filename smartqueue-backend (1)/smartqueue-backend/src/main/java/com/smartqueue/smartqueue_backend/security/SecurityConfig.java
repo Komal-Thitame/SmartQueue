@@ -46,7 +46,7 @@ public class SecurityConfig {
                                 "/api/doctors/**",
                                 "/api/queue/**",
                                 "/api/appointments/**",
-                                "/api/patients/**"     // 🟢 YEH LINE ADD KARNI HAI!
+                                "/api/patients/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
@@ -55,11 +55,11 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // CORS Configuration for React Frontend (localhost:5173)
+    // CORS Configuration for React Frontend (allows localhost 5173, 5174, 5175, 3000, etc.)
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:5173"));
+        config.setAllowedOriginPatterns(List.of("http://localhost:*", "http://127.0.0.1:*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
