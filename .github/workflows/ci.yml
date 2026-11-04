@@ -22,5 +22,6 @@ jobs:
           distribution: 'temurin'
 
       - name: Build and Run Tests
-        run: mvn -B clean verify
-        working-directory: "smartqueue-backend (1)/smartqueue-backend"
+        run: |
+          chmod +x mvnw
+          ./mvnw -B clean verify
